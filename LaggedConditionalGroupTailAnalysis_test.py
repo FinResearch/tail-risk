@@ -34,47 +34,56 @@ def Extractor(filename, tickers):
 # Script begins                     #
 #####################################
 
-question       = "What is the name of the database?"
-database_name = eg.enterbox(question, title="DB name", default="dbMSTR.csv")
+#  question       = "What is the name of the database?"
+#  database_name = eg.enterbox(question, title="DB name", default="dbMSTR_test.csv")
+database_name = "dbMSTR_test.csv"
 
 
-question       = "How many entries would you like to analyze?"
-no_entries       = int(eg.enterbox(question, title="No. entries", default="5"))
+#  question       = "How many entries would you like to analyze?"
+#  no_entries       = int(eg.enterbox(question, title="No. entries", default="5"))
+no_entries = 4
 fieldNames       = ["# " + str(i) for i in xrange(1, no_entries + 1, 1)]
-fieldValues   = ['DE 01Y', 'DE 03Y', 'DE 05Y', 'DE 10Y', 'DE 30Y', 
-                 'FR 01Y', 'FR 03Y', 'FR 05Y', 'FR 10Y', 'FR 30Y', 
-                 'ES 01Y', 'ES 03Y', 'ES 05Y', 'ES 10Y', 'ES 30Y', 
-                 'PT 01Y', 'PT 03Y', 'PT 05Y', 'PT 10Y', 'PT 30Y', 
-                 'IT 01Y', 'IT 03Y', 'IT 05Y', 'IT 10Y', 'IT 30Y', 
-                 'IR 01Y', 'IR 03Y', 'IR 05Y', 'IR 10Y', 'IR 30Y'
+fieldValues   = ['DE 01Y', 'DE 03Y', 'DE 05Y', 'DE 10Y', #'DE 30Y', 
+                 #  'FR 01Y', 'FR 03Y', 'FR 05Y', 'FR 10Y', 'FR 30Y',
+                 #  'ES 01Y', 'ES 03Y', 'ES 05Y', 'ES 10Y', 'ES 30Y',
+                 #  'PT 01Y', 'PT 03Y', 'PT 05Y', 'PT 10Y', 'PT 30Y',
+                 #  'IT 01Y', 'IT 03Y', 'IT 05Y', 'IT 10Y', 'IT 30Y',
+                 #  'IR 01Y', 'IR 03Y', 'IR 05Y', 'IR 10Y', 'IR 30Y'
                  ]
-title           = "Tickers input"
-labels        = eg.multenterbox(question, title, fieldNames, fieldValues)
+#  title           = "Tickers input"
+#  labels        = eg.multenterbox(question, title, fieldNames, fieldValues)
+labels = fieldValues
 
 database      = Extractor(database_name, labels)
 
 
-question      = "Please specify the initial date, the final date and the lookback for rolling analysis?"
-fieldNames    = ["Initial Date", "Final Date", "Lookback"]
-fieldValues   = ["01-01-16", "05-05-16", "252"]
-title         = "Dates input"
-input         = eg.multenterbox(question, title, fieldNames, fieldValues)
-initial_date  = input[0]
-final_date    = input[1]
-lookback      = int(input[2])
+#  question      = "Please specify the initial date, the final date and the lookback for rolling analysis?"
+#  fieldNames    = ["Initial Date", "Final Date", "Lookback"]
+#  fieldValues   = ["17-07-03", "5/5/2016", "252"]
+#  title         = "Dates input"
+#  input         = eg.multenterbox(question, title, fieldNames, fieldValues)
+#  initial_date  = input[0]
+#  final_date    = input[1]
+#  lookback      = int(input[2])
+initial_date  = "1/1/2016"
+final_date    = "5/5/2016"
+lookback      = 252
 
 
 
-question      = "Please specify which type of series you want to study"
-choices       = ['Returns', 'Relative Returns','Log-Returns']
-input_type    = eg.choicebox(question, 'Input type', choices)
+#  question      = "Please specify which type of series you want to study"
+#  choices       = ['Returns', 'Relative Returns','Log-Returns']
+#  input_type    = eg.choicebox(question, 'Input type', choices)
+input_type = "Log-Returns"
 
-msg           = "Please specify the time lag of the input series: 1 = daily, 5 = weekly, 22 = monthly"
-tau           = int(eg.enterbox(msg, title="delta", default="1"))
+#  msg           = "Please specify the time lag of the input series: 1 = daily, 5 = weekly, 22 = monthly"
+#  tau           = int(eg.enterbox(msg, title="delta", default="1"))
+tau = 1
 
-question      = "Do you want to normalize each investigated time series?"
-choices       = ['Yes', 'No']
-standardize   = eg.buttonbox(question, 'Normalization', choices)
+#  question      = "Do you want to normalize each investigated time series?"
+#  choices       = ['Yes', 'No']
+#  standardize   = eg.buttonbox(question, 'Normalization', choices)
+standardize = "No"
 
 if standardize == 'Yes':
     question     = "When do you want to standardize your series with respect to the grouping procedure?"
@@ -82,9 +91,10 @@ if standardize == 'Yes':
     title         = 'Normalization timing'
     norm_timing = eg.choicebox(question, title, choices)
 
-question      = "Do you want to take the absolute value of your series (after any eventual normalization)?"
-choices       = ['Yes', 'No']
-abs_value     = eg.buttonbox(question, 'Absolute value', choices)
+#  question      = "Do you want to take the absolute value of your series (after any eventual normalization)?"
+#  choices       = ['Yes', 'No']
+#  abs_value     = eg.buttonbox(question, 'Absolute value', choices)
+abs_value = "No"
 
 if abs_value == 'Yes':
     question     = "When do you want to take the absolute value of your series with respect to the grouping procedure?"
@@ -92,14 +102,17 @@ if abs_value == 'Yes':
     title         = 'Absolute value timing'
     abs_timing = eg.choicebox(question, title, choices)
 
-question      = "Please specify which approach you would like to use"
-choices       = ['Static', 'Rolling', 'Increasing']
-approach      = eg.choicebox(question, 'Approach', choices)
+#  question      = "Please specify which approach you would like to use"
+#  choices       = ['Static', 'Rolling', 'Increasing']
+#  approach      = eg.choicebox(question, 'Approach', choices)
+approach = "Rolling"
+#  an_freq = 1
  
-question       = "How do you want to group the inputs?"
-choices       = ['Country', 'Maturity', 'Core vs Peripheral', 'All', 'Rating', 'High Yield', 'Investment Grade']
-title         = 'Partition type'
-partition     = eg.choicebox(question, title, choices)
+#  question       = "How do you want to group the inputs?"
+#  choices       = ['Country', 'Maturity', 'Core vs Peripheral', 'All', 'Rating', 'High Yield', 'Investment Grade']
+#  title         = 'Partition type'
+#  partition     = eg.choicebox(question, title, choices)
+partition = "Country"
 
 if partition == 'Country':
     identifiers = []
@@ -136,28 +149,34 @@ elif partition == 'All':
 else:
     'Nada'
 
-if approach != 'Static':
-    question        = "Please specify the amplitude of the sliding window (days) in the non static analysis"
-    sliding_window  = int(eg.enterbox(question, title="block length", default="1"))
+#  if approach != 'Static':
+    #  question        = "Please specify the amplitude of the sliding window (days) in the non static analysis"
+    #  sliding_window  = int(eg.enterbox(question, title="block length", default="1"))
+sliding_window = 1
 
 
-question      = "Please specify which tail you want to plot in the alpha timeline"
-choices       = ['Left', 'Right', 'Both']
-tail_selected = eg.choicebox(question, 'Select a tail', choices)
+#  question      = "Please specify which tail you want to plot in the alpha timeline"
+#  choices       = ['Left', 'Right', 'Both']
+#  tail_selected = eg.choicebox(question, 'Select a tail', choices)
+tail_selected = "Both"
 
-question      = "What is the nature of your data?"
-choices       = ['Discrete', 'Continuous']
-data_nature   = eg.choicebox(question, 'Data type', choices)
+#  question      = "What is the nature of your data?"
+#  choices       = ['Discrete', 'Continuous']
+#  data_nature   = eg.choicebox(question, 'Data type', choices)
+data_nature = "Continuous"
 
-question      = "What is the criteria for picking xmin"
-choices       = ['Clauset', 'Rolling', 'Manual', 'Percentile']
-xmin_rule     = eg.choicebox(question, 'xmin rule', choices)
+#  question      = "What is the criteria for picking xmin"
+#  choices       = ['Clauset', 'Rolling', 'Manual', 'Percentile']
+#  xmin_rule     = eg.choicebox(question, 'xmin rule', choices)
+xmin_rule = "Rolling"
 
-if xmin_rule == 'Rolling':
-        question     = "How many days do you want to include in the moving xmin average?"
-        rolling_days = int(eg.enterbox(question, title="rolling days", default="66"))
-        question     = "How many lags do you want in your average?"
-        rolling_lags = int(eg.enterbox(question, title="rolling days", default="0"))
+#  if xmin_rule == 'Rolling':
+#          question     = "How many days do you want to include in the moving xmin average?"
+#          rolling_days = int(eg.enterbox(question, title="rolling days", default="66"))
+#          question     = "How many lags do you want in your average?"
+#          rolling_lags = int(eg.enterbox(question, title="rolling days", default="0"))
+rolling_days = 22
+rolling_lags = 1
 
 if xmin_rule == 'Manual':
         question   = "What is the value for xmin?"
@@ -171,11 +190,13 @@ if tail_selected == 'Both':
 else:
         multiplier = 1.0;
 
-msg           = "Please specify the significance of the confidence interval (1 - a) for the alpha parameter "
-significance  = float(eg.enterbox(msg, title="alpha", default="0.05"))
+#  msg           = "Please specify the significance of the confidence interval (1 - a) for the alpha parameter "
+#  significance  = float(eg.enterbox(msg, title="alpha", default="0.05"))
+significance = 0.05
 
-question      = "What is the number of iterations for the Clauset p-value algorithm?"
-c_iter        = int(eg.enterbox(question, title="iterations", default='2'))
+#  question      = "What is the number of iterations for the Clauset p-value algorithm?"
+#  c_iter        = int(eg.enterbox(question, title="iterations", default='2'))
+c_iter = 2
 
 
 
@@ -568,9 +589,10 @@ if approach == 'Static':
 
 else:
 
-        question      = "Do you want to save the sequential scaling plot?"
-        choices      = ['Yes', 'No']
-        plot_storing = eg.choicebox(question, 'Plot', choices)
+        #  question      = "Do you want to save the sequential scaling plot?"
+        #  choices      = ['Yes', 'No']
+        #  plot_storing = eg.choicebox(question, 'Plot', choices)
+        plot_storing = "No"
 
         if plot_storing == 'Yes':
             question    = "What is the target directory for the pictures?";
