@@ -592,7 +592,7 @@ else:
         #  question      = "Do you want to save the sequential scaling plot?"
         #  choices      = ['Yes', 'No']
         #  plot_storing = eg.choicebox(question, 'Plot', choices)
-        plot_storing = "No"
+        
 
         if plot_storing == 'Yes':
             question    = "What is the target directory for the pictures?";
@@ -951,7 +951,7 @@ else:
             z.title('Cross-sectional analysis for ' + r'$\alpha$' + '-right tail exponents ' + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[len(dates) - 1] + '. Grouping rule: ' + partition)
             z.legend()
             z.grid()
-            z.show()
+            #  z.show()
 
             # Plotting the histograms for the rolling alpha
 
@@ -982,7 +982,7 @@ else:
                 the_table.auto_set_font_size(False);
                 the_table.set_fontsize(10);
                 the_table.scale(0.5, 0.5);
-                z.show()
+                #  z.show()
 
         if tail_selected == 'Left' or tail_selected == 'Both':
             max_key, max_value = max(negative_alpha_vec.items(), key=lambda x: len(set(x[1])))
@@ -1000,7 +1000,7 @@ else:
             z.title('Cross-sectional analysis for ' + r'$\alpha$' + '-left tail exponents ' + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[len(dates) - 1] + '. Grouping rule: ' + partition)
             z.legend()
             z.grid()
-            z.show()
+            #  z.show()
 
             # Plotting the histograms for the rolling alpha
 
@@ -1031,7 +1031,7 @@ else:
                 the_table.auto_set_font_size(False);
                 the_table.set_fontsize(10);
                 the_table.scale(0.5, 0.5);
-                z.show()
+                #  z.show()
 
 
 

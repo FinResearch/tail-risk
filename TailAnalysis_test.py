@@ -12,7 +12,7 @@ import pandas as pd
 import scipy.stats as st
 
 eng       = matlab.engine.start_matlab()
-print(type(eng))
+#  print(type(eng))
 directory = os.getcwd()
 eng.cd(directory, nargout=0)
 
@@ -317,7 +317,7 @@ if approach == 'Static':
                 z.ylabel('R')
                 z.title('Log-likelihood ratio for ' + labels[i-1] + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input series: ' + lab)
                 z.grid()
-                z.show()  
+                #z.show()  
 
                 z.figure('Log Likelihood ratio p-values for the right tail for ' + labels[i-1])
                 z.bar(np.arange(0, len(loglikelihood_pvalue_right), 1), loglikelihood_pvalue_right, 1)
@@ -325,7 +325,7 @@ if approach == 'Static':
                 z.ylabel('R')
                 z.title('Log-likelihood ratio p values for ' + labels[i-1] + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input series: ' + lab)
                 z.grid()
-                z.show()                     
+                #z.show()                     
 
             if tail_selected == 'Left' or tail_selected == 'Both':
 
@@ -370,7 +370,7 @@ if approach == 'Static':
                 z.ylabel('R')
                 z.title('Log-likelihood ratio for ' + labels[i-1] + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input series: ' + lab)
                 z.grid()
-                z.show()  
+                #z.show()  
 
                 z.figure('Log Likelihood ratio p-values for the left tail for ' + labels[i-1])
                 z.bar(np.arange(0, len(loglikelihood_pvalue_left), 1), loglikelihood_pvalue_left, 1)
@@ -378,7 +378,7 @@ if approach == 'Static':
                 z.ylabel('R')
                 z.title('Log-likelihood ratio p values for ' + labels[i-1] + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input series: ' + lab)
                 z.grid()
-                z.show()                    
+                #z.show()                    
 
             if tail_selected == 'Right' or tail_selected == 'Both':
 
@@ -418,7 +418,7 @@ if approach == 'Static':
         z.title('Estimation of the ' + r'$\alpha$' + '-right tail exponents using KS-Method' + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input series: ' + lab)
         z.legend(bbox_to_anchor=(0.0, -0.175, 1.0, .02), ncol=2, mode="expand", borderaxespad=0)
         z.grid()
-        z.show()
+        #z.show()
 
         if tail_selected == 'Right' or tail_selected == 'Both':
 
@@ -436,7 +436,7 @@ if approach == 'Static':
             z.title('Confidence intervals for the ' + r'$\alpha$' + '-right tail exponents ' + '(c = ' + str(1 - significance) + ')' + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input series: ' + lab)
             z.legend(bbox_to_anchor=(0.0, -0.175, 1.0, .02), ncol=3, mode="expand", borderaxespad=0)
             z.grid()
-            z.show()
+            #z.show()
                     
 
         if tail_selected == 'Left' or tail_selected == 'Both':
@@ -455,7 +455,7 @@ if approach == 'Static':
             z.title('Confidence intervals for the ' + r'$\alpha$' + '-left tail exponents ' + '(c = ' + str(1 - significance) + ')' + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input series: ' + lab)
             z.legend(bbox_to_anchor=(0.0, -0.175, 1.0, .02), ncol=3, mode="expand", borderaxespad=0)
             z.grid()
-            z.show()
+            #z.show()
 
         # Absolute length of the tail bar chart
 
@@ -471,7 +471,7 @@ if approach == 'Static':
         z.title('Bar chart representation of the length of the tails' + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input series: ' + lab)
         z.legend(bbox_to_anchor=(0.0, -0.175, 1.0, .02), ncol=3, mode="expand", borderaxespad=0)
         z.grid()
-        z.show()
+        #z.show()
 
         # Absolute length of the tail bar chart
 
@@ -487,7 +487,7 @@ if approach == 'Static':
         z.title('Bar chart representation of the relative length of the tails' + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input series: ' + lab)
         z.legend(bbox_to_anchor=(0.0, -0.175, 1.0, .02), ncol=3, mode="expand", borderaxespad=0)
         z.grid()
-        z.show()
+        #z.show()
 
         # KS test outcome
 
@@ -503,7 +503,7 @@ if approach == 'Static':
         z.title('KS-statistics: p-value obtained from Clauset algorithm' + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input series: ' + lab)
         z.legend(bbox_to_anchor=(0.0, -0.175, 1.0, .02), ncol=3, mode="expand", borderaxespad=0)
         z.grid()
-        z.show()
+        #z.show()
 
         # Print the figures
         matrix_form = np.array(tail_statistics)
@@ -804,8 +804,8 @@ else:
             the_table.auto_set_font_size(False);
             the_table.set_fontsize(10);
             the_table.scale(0.5, 0.5);
-            z.show()
-            z.show()
+            #z.show()
+            #z.show()
 
             # Plot the alpha exponent confidence interval in time
             if tail_selected == 'Both' or tail_selected == 'Right':
@@ -823,7 +823,7 @@ else:
                 z.title('Rolling confidence intervals for the ' + r'$\alpha$' + '-right tail exponents ' + '(c = ' + str(1 - significance) + ')' + '\n' + 'Ticker: ' + labels[i - 1] + '.Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
                 z.legend(bbox_to_anchor=(0.0, -0.175, 1.0, .02), ncol=3, mode="expand", borderaxespad=0)
                 z.grid()
-                z.show()
+                #z.show()
 
                 z.figure('Time rolling size for right tail for ' + labels[i - 1])
                 z.gca().set_position((.1, .20, .83, .70))
@@ -836,7 +836,7 @@ else:
                 z.title('Rolling tail length for :' + labels[i - 1] + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
                 z.legend()
                 z.grid()
-                z.show()
+                #z.show()
 
                 z.figure('Time rolling relative size for right tail for ' + labels[i - 1])
                 z.gca().set_position((.1, .20, .83, .70))
@@ -849,7 +849,7 @@ else:
                 z.title('Rolling relative tail length for :' + labels[i - 1] + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
                 z.legend()
                 z.grid()
-                z.show()
+                #z.show()
 
                 z.figure('Time rolling KS test for right tail for ' + labels[i - 1])
                 z.gca().set_position((.1, .20, .83, .70))
@@ -862,7 +862,7 @@ else:
                 z.title('KS-statistics: rolling p-value obtained from Clauset algorithm for ' + labels[i - 1] + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
                 z.legend()
                 z.grid()
-                z.show()
+                #z.show()
 
                 # Plotting the histograms for the rolling alpha
 
@@ -891,7 +891,7 @@ else:
                 the_table.auto_set_font_size(False);
                 the_table.set_fontsize(10);
                 the_table.scale(0.5, 0.5);
-                z.show()
+                #z.show()
 
             if tail_selected == 'Both' or tail_selected == 'Left':
 
@@ -908,7 +908,7 @@ else:
                 z.title('Rolling confidence intervals for the ' + r'$\alpha$' + '-left tail exponents ' + '(c = ' + str(1 - significance) + ')' + '\n' + 'Ticker: ' + labels[i - 1] + '.Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
                 z.legend(bbox_to_anchor=(0.0, -0.175, 1.0, .02), ncol=3, mode="expand", borderaxespad=0)
                 z.grid()
-                z.show()
+                #z.show()
 
                 z.figure('Time rolling size for left tail for ' + labels[i - 1])
                 z.gca().set_position((.1, .20, .83, .70))
@@ -921,7 +921,7 @@ else:
                 z.title('Rolling tail length for :' + labels[i - 1] + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
                 z.legend()
                 z.grid()
-                z.show()
+                #z.show()
 
                 z.figure('Time rolling relative size for left tail for ' + labels[i - 1])
                 z.gca().set_position((.1, .20, .83, .70))
@@ -934,7 +934,7 @@ else:
                 z.title('Rolling relative tail length for :' + labels[i - 1] + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
                 z.legend()
                 z.grid()
-                z.show()
+                #z.show()
 
                 z.figure('Time rolling KS test for left tail for ' + labels[i - 1])
                 z.gca().set_position((.1, .20, .83, .70))
@@ -947,7 +947,7 @@ else:
                 z.title('KS-statistics: rolling p-value obtained from Clauset algorithm for ' + labels[i - 1] + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
                 z.legend()
                 z.grid()
-                z.show()
+                #z.show()
 
                 # Plotting the histograms for the rolling alpha
 
@@ -976,7 +976,7 @@ else:
                 the_table.auto_set_font_size(False);
                 the_table.set_fontsize(10);
                 the_table.scale(0.5, 0.5);
-                z.show()
+                #z.show()
 
             # Print the figures
             matrix_form = np.array(tail_statistics)
@@ -1021,7 +1021,7 @@ else:
             z.ylabel(r'$\alpha$')
             z.title('Boxplot representation of the ' + r'$\alpha$' + '-right tail exponent ' + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input series: ' + lab)
             z.grid()
-            z.show()
+            #z.show()
 
         if tail_selected == 'Left' or tail_selected == 'Both':
             z.figure('Negative Power Law Boxplot')
@@ -1031,4 +1031,4 @@ else:
             z.ylabel(r'$\alpha$')
             z.title('Boxplot representation of the ' + r'$\alpha$' + '-left tail exponent' + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input series: ' + lab)
             z.grid()
-            z.show()
+            #z.show()
