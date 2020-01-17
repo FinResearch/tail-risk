@@ -32,28 +32,23 @@ def Extractor(filename, tickers):
 
 def PowerLawFit(data, data_nature, xmin_rule, *args):
 
+    data = np.array(data)[np.nonzero(data)]
+
     if data_nature == "Continuous":
         if xmin_rule == "Clauset":
-            fit = pl.Fit(filter(lambda x: x != 0, data))
+            fit = pl.Fit(data)
         elif xmin_rule == "Manual":
-            fit = pl.Fit(filter(lambda x: x != 0, data), xmin=args[0])
+            fit = pl.Fit(data, xmin=args[0])
         else:
-            fit = pl.Fit(
-                filter(lambda x: x != 0, data),
-                xmin=np.percentile(data, args[1])
-            )
+            fit = pl.Fit(data, xmin=np.percentile(data, args[1]))
     else:
         if xmin_rule == "Clauset":
-            fit = pl.Fit(filter(lambda x: x != 0, data), discrete=True)
+            fit = pl.Fit(data, discrete=True)
         elif xmin_rule == "Manual":
-            fit = pl.Fit(filter(lambda x: x != 0, data),
-                         discrete=True, xmin=args[0])
+            fit = pl.Fit(data, discrete=True, xmin=args[0])
         else:
-            fit = pl.Fit(
-                filter(lambda x: x != 0, data),
-                discrete=True,
-                xmin=np.percentile(data, args[1]),
-            )
+            fit = pl.Fit(data, discrete=True,
+                         xmin=np.percentile(data, args[1]))
     return fit
 
 
