@@ -1338,12 +1338,11 @@ else:
                     alpha1 - (st.norm.ppf(1 - multiplier * significance))
                     * s_err1
                 )
-                positive_abs_length.append(len(filter(lambda x: x >= xmin1,
-                                                      tail_plus)))
-                positive_rel_length.append(
-                    len(filter(lambda x: x >= xmin1, tail_plus)) /
-                    float(len(tail_plus))
-                )
+                #  positive_abs_length.append(len(filter(lambda x: x >= xmin1,
+                #                                        tail_plus)))
+                positive_abs_length.append(len(tail_plus[tail_plus >= xmin1]))
+                positive_rel_length.append(len(tail_plus[tail_plus >= xmin1]) /
+                                           float(len(tail_plus)))
                 p1 = plpva.plpva(
                     tail_plus.tolist(), float(xmin1), "reps", c_iter, "silent"
                 )
@@ -1374,12 +1373,11 @@ else:
                     alpha2 - (st.norm.ppf(1 - multiplier * significance))
                     * s_err2
                 )
-                negative_abs_length.append(len(filter(lambda x: x >= xmin2,
-                                                      tail_neg)))
-                negative_rel_length.append(
-                    len(filter(lambda x: x >= xmin2, tail_neg)) /
-                    float(len(tail_neg))
-                )
+                #  negative_abs_length.append(len(filter(lambda x: x >= xmin2,
+                #                                        tail_neg)))
+                negative_abs_length.append(len(tail_neg[tail_neg >= xmin2]))
+                negative_rel_length.append(len(tail_neg[tail_neg >= xmin2]) /
+                                           float(len(tail_neg)))
                 p2 = plpva.plpva(
                     np.array(tail_neg).tolist(), float(xmin2), "reps",
                     c_iter, "silent"
