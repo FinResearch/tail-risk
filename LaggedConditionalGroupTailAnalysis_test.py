@@ -592,6 +592,7 @@ else:
         #  question      = "Do you want to save the sequential scaling plot?"
         #  choices      = ['Yes', 'No']
         #  plot_storing = eg.choicebox(question, 'Plot', choices)
+        plot_storing = 'No'
         
 
         if plot_storing == 'Yes':

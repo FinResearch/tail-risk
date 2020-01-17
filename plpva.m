@@ -163,54 +163,59 @@ switch f_dattype,
     case 'REAL',
         
         % compute D for the empirical distribution
-        z     = x(x>=xmin);	nz   = length(z);
-        y     = x(x<xmin); 	ny   = length(y);
+        z     = x(x>=xmin);
+        nz   = length(z);
+        y     = x(x<xmin);
+        ny   = length(y);
         alpha = 1 + nz ./ sum( log(z./xmin) );
         cz    = (0:nz-1)'./nz;
         cf    = 1-(xmin./sort(z)).^(alpha-1);
         gof   = max( abs(cz - cf) );
         pz    = nz/N;
 
+
         % compute distribution of gofs from semi-parametric bootstrap
         % of entire data set with fit
         for B=1:length(nof)
             % semi-parametric bootstrap of data
-            n1 = sum(rand(N,1)>pz);
-            q1 = y(ceil(ny.*rand(n1,1)));
-            n2 = N-n1;
-            q2 = xmin*(1-rand(n2,1)).^(-1/(alpha-1));
-            q  = sort([q1; q2]);
+            n1 = sum(rand(N,1)>pz)
+            q1 = y(ceil(ny.*rand(n1,1)))
+            n2 = N-n1
+            q2 = xmin*(1-rand(n2,1)).^(-1/(alpha-1))
+            q  = sort([q1; q2])
 
             % estimate xmin and alpha via GoF-method
-            qmins = unique(q);
-            qmins = qmins(1:end-1);
+            qmins = unique(q)
+            qmins = qmins(1:end-1)
             if ~isempty(xminx),
                 qmins = qmins(find(qmins>=xminx,1,'first'));
             end;
             if ~isempty(limit),
-                qmins(qmins>limit) = [];
+                qmins(qmins>limit) = []
                 if isempty(qmins), qmins = min(q); end;
             end;
             if ~isempty(sample),
-                qmins = qmins(unique(round(linspace(1,length(qmins),sample))));
+                qmins = qmins(unique(round(linspace(1,length(qmins),sample))))
             end;
-            dat   = zeros(size(qmins));
+            dat   = zeros(size(qmins))
             for qm=1:length(qmins)
-                  qmin = qmins(qm);
-                  zq   = q(q>=qmin);
-                  nq   = length(zq);
-                  a    = nq ./ sum( log(zq./qmin) );
-                  cq   = (0:nq-1)'./nq;
-                  cf   = 1-(qmin./zq).^a;
-                  dat(qm) = max( abs(cq - cf) );
+                  qmin = qmins(qm)
+                  zq   = q(q>=qmin)
+                  nq   = length(zq)
+                  log_logarg = log(zq./qmin)
+                  sum_logarg = sum(log_logarg)
+                  a    = nq ./ sum( log(zq./qmin) )
+                  cq   = (0:nq-1)'./nq
+                  cf   = 1-(qmin./zq).^a
+                  dat(qm) = max( abs(cq - cf) )
             end;
             if ~quiet,
                 fprintf('[%i]\tp = %6.4f\t[%4.2fm]\n',B,sum(nof(1:B)>=gof)./B,toc/60);
             end;
             % store distribution of estimated gof values
-            nof(B) = min(dat);
+            nof(B) = min(dat)
         end;
-        p = sum(nof>=gof)./length(nof);
+        p = sum(nof>=gof)./length(nof)
 
     case 'INTS',
 
