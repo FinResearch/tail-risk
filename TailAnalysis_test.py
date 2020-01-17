@@ -1375,6 +1375,8 @@ else:
                 )
                 #  negative_abs_length.append(len(filter(lambda x: x >= xmin2,
                 #                                        tail_neg)))
+                # NOTE: tail_plus was already converted
+                tail_neg = np.array(tail_neg)
                 negative_abs_length.append(len(tail_neg[tail_neg >= xmin2]))
                 negative_rel_length.append(len(tail_neg[tail_neg >= xmin2]) /
                                            float(len(tail_neg)))
