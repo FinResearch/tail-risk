@@ -157,76 +157,74 @@ if approach == "Static":
             )
             lab = r"$\log$" + "(P(t+" + str(tau) + ")/P(t))"
 
-        if standardize == "Yes":
-            if standardize_target == "Full Series":
-                print("I am standardizing your time series")
-                S = X
-                m = np.mean(S)
-                v = np.std(S)
-                X = (S - m) / v
+        #  if standardize == "Yes":
+        #      if standardize_target == "Full Series":
+        #          print("I am standardizing your time series")
+        #          S = X
+        #          m = np.mean(S)
+        #          v = np.std(S)
+        #          X = (S - m) / v
 
-        if abs_value == "Yes":
-            if abs_target == "Full Series":
-                print("I am taking the absolute value of your time series")
-                X = np.abs(X)
-                lab = "|" + lab + "|"
+        #  if abs_value == "Yes":
+        #      if abs_target == "Full Series":
+        #          print("I am taking the absolute value of your time series")
+        #          X = np.abs(X)
+        #          lab = "|" + lab + "|"
 
         if tail_selected == "Right" or tail_selected == "Both":
             tail_plus = X
             if xmin_rule == "Clauset":
                 fit_1 = PowerLawFit(tail_plus, data_nature, xmin_rule)
-            elif xmin_rule == "Manual":
-                fit_1 = PowerLawFit(tail_plus, data_nature,
-                                    xmin_rule, xmin_value)
-            else:
-                fit_1 = PowerLawFit(
-                    tail_plus, data_nature, xmin_rule, "None", xmin_sign
-                )
+            #  elif xmin_rule == "Manual":
+            #      fit_1 = PowerLawFit(tail_plus, data_nature,
+            #                          xmin_rule, xmin_value)
+            #  else:
+            #      fit_1 = PowerLawFit(
+            #          tail_plus, data_nature, xmin_rule, "None", xmin_sign
+            #      )
 
-            if standardize == "Yes":
-                if standardize_target == "Tail":
-                    print("I am standardizing your tail")
-                    S = np.array(filter(lambda x: x >= fit_1.power_law.xmin,
-                                        tail_plus))
-                    m = np.mean(S)
-                    v = np.std(S)
-                    X = (S - m) / v
-
-                    if abs_value == "Yes":
-                        if abs_target == "Tail":
-                            print("I am taking the absolute "
-                                  " value of your tail")
-                            X = np.abs(X)
-                            lab = "|" + lab + "|"
-                    fit_1 = PowerLawFit(X, data_nature, xmin_rule, np.min(X))
+            #  if standardize == "Yes":
+            #      if standardize_target == "Tail":
+            #          print("I am standardizing your tail")
+            #          S = np.array(filter(lambda x: x >= fit_1.power_law.xmin,
+            #                              tail_plus))
+            #          m = np.mean(S)
+            #          v = np.std(S)
+            #          X = (S - m) / v
+            #          if abs_value == "Yes":
+            #              if abs_target == "Tail":
+            #                  print("I am taking the absolute "
+            #                        " value of your tail")
+            #                  X = np.abs(X)
+            #                  lab = "|" + lab + "|"
+            #          fit_1 =PowerLawFit(X, data_nature, xmin_rule, np.min(X))
 
         if tail_selected == "Left" or tail_selected == "Both":
             tail_neg = (np.dot(-1.0, X)).tolist()
             if xmin_rule == "Clauset":
                 fit_2 = PowerLawFit(tail_neg, data_nature, xmin_rule)
-            elif xmin_rule == "Manual":
-                fit_2 = PowerLawFit(tail_neg, data_nature,
-                                    xmin_rule, xmin_value)
-            else:
-                fit_2 = PowerLawFit(tail_neg, data_nature,
-                                    xmin_rule, "None", xmin_sign)
+            #  elif xmin_rule == "Manual":
+            #      fit_2 = PowerLawFit(tail_neg, data_nature,
+            #                          xmin_rule, xmin_value)
+            #  else:
+            #      fit_2 = PowerLawFit(tail_neg, data_nature,
+            #                          xmin_rule, "None", xmin_sign)
 
-            if standardize == "Yes":
-                if standardize_target == "Tail":
-                    print("I am standardizing your tail")
-                    S = np.array(filter(lambda x: x >= fit_2.power_law.xmin,
-                                        tail_neg))
-                    m = np.mean(S)
-                    v = np.std(S)
-                    X = (S - m) / v
-
-                    if abs_value == "Yes":
-                        if abs_target == "Tail":
-                            print("I am taking the absolute "
-                                  "value of your tail")
-                            X = np.abs(X)
-                            lab = "|" + lab + "|"
-                    fit_2 = PowerLawFit(X, data_nature, xmin_rule, np.min(X))
+            #  if standardize == "Yes":
+            #      if standardize_target == "Tail":
+            #          print("I am standardizing your tail")
+            #          S = np.array(filter(lambda x: x >= fit_2.power_law.xmin,
+            #                              tail_neg))
+            #          m = np.mean(S)
+            #          v = np.std(S)
+            #          X = (S - m) / v
+            #          if abs_value == "Yes":
+            #              if abs_target == "Tail":
+            #                  print("I am taking the absolute "
+            #                        "value of your tail")
+            #                  X = np.abs(X)
+            #                  lab = "|" + lab + "|"
+            #          fit_2 =PowerLawFit(X, data_nature, xmin_rule, np.min(X))
 
         if tail_selected == "Right" or tail_selected == "Both":
             alpha1 = fit_1.power_law.alpha
@@ -1078,13 +1076,13 @@ else:
                 tail_plus = X
                 if xmin_rule == "Clauset":
                     fit_1 = PowerLawFit(tail_plus, data_nature, xmin_rule)
-                elif xmin_rule == "Manual":
-                    fit_1 = PowerLawFit(tail_plus, data_nature,
-                                        xmin_rule, xmin_value)
-                else:
-                    fit_1 = PowerLawFit(
-                        tail_plus, data_nature, xmin_rule, "None", xmin_sign
-                    )
+                #  elif xmin_rule == "Manual":
+                #      fit_1 = PowerLawFit(tail_plus, data_nature,
+                #                          xmin_rule, xmin_value)
+                #  else:
+                #      fit_1 = PowerLawFit(
+                #          tail_plus, data_nature, xmin_rule, "None", xmin_sign
+                #      )
 
                 alpha1 = fit_1.power_law.alpha
                 xmin1 = fit_1.power_law.xmin
@@ -1094,13 +1092,13 @@ else:
                 tail_neg = (np.dot(-1.0, X)).tolist()
                 if xmin_rule == "Clauset":
                     fit_2 = PowerLawFit(tail_neg, data_nature, xmin_rule)
-                elif xmin_rule == "Manual":
-                    fit_2 = PowerLawFit(tail_neg, data_nature,
-                                        xmin_rule, xmin_value)
-                else:
-                    fit_2 = PowerLawFit(
-                        tail_neg, data_nature, xmin_rule, "None", xmin_sign
-                    )
+                #  elif xmin_rule == "Manual":
+                #      fit_2 = PowerLawFit(tail_neg, data_nature,
+                #                          xmin_rule, xmin_value)
+                #  else:
+                #      fit_2 = PowerLawFit(
+                #          tail_neg, data_nature, xmin_rule, "None", xmin_sign
+                #      )
 
                 alpha2 = fit_2.power_law.alpha
                 xmin2 = fit_2.power_law.xmin
