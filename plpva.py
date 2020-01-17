@@ -68,9 +68,9 @@ def plpva(x, xmin, vec=numpy.arange(1.50, 3.51, 0.01), reps=1000, quiet=False, *
     nof = numpy.array([])
 
     if not quiet:
-        print 'Power-law Distribution, p-value calculation'
-        print '   Warning: This can be a slow calculation; please be patient.'
-        print '   n    = %i\n   xmin = %6.4f\n   reps = %i' % (len(x), xmin, reps)
+        print('Power-law Distribution, p-value calculation')
+        print('   Warning: This can be a slow calculation; please be patient.')
+        print('   n    = %i\n   xmin = %6.4f\n   reps = %i' % (len(x), xmin, reps))
 
     # continuous method
     if (min(x) > 1000 and len(x) > 100) or sum(x-numpy.floor(x)):
@@ -132,7 +132,7 @@ def plpva(x, xmin, vec=numpy.arange(1.50, 3.51, 0.01), reps=1000, quiet=False, *
             # store distribution of estimated gof values
             nof = numpy.r_[nof, min(dat)]
             if not quiet:
-                print '[%i]\tp = %.4f\n' % (B+1, sum(nof>=gof) / float(B+1))
+                print('[%i]\tp = %.4f\n' % (B+1, sum(nof>=gof) / float(B+1)))
         p = sum(nof>=gof) / float(len(nof))
 
     # discrete method
@@ -209,7 +209,7 @@ def plpva(x, xmin, vec=numpy.arange(1.50, 3.51, 0.01), reps=1000, quiet=False, *
                         L =  - nq*numpy.log(zvec)- vec*slogzq # (3.5) (B.8)
                     except:
                         # iterative version (more memory efficient, but slower)
-                        print "except"
+                        print("except")
                         L = - numpy.inf * numpy.ones(len(vec))
                         for k in xrange(len(vec)):
                             L[k] = - nq*numpy.log(zvec[k]) - vec[k]*slogzq # (3.5) (B.8)
@@ -227,7 +227,7 @@ def plpva(x, xmin, vec=numpy.arange(1.50, 3.51, 0.01), reps=1000, quiet=False, *
             if not quiet:
 #                fprintf('[%i]\tp = %6.4f\t[%4.2fm]\n',B,sum(nof(1:B)>=gof)./B,toc/60);
 #                print '[%i]\tp = %6.4f\t[%4.2fm]\n' % (B+1, sum(nof>=gof)/float(B+1), toc/60)
-                print '[%i]\tp = %.4f\n' % (B+1, sum(nof>=gof) / float(B+1))
+                print('[%i]\tp = %.4f\n' % (B+1, sum(nof>=gof) / float(B+1)))
         p = sum(nof>=gof) / float(len(nof))
 
     return p, gof
