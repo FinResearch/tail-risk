@@ -45,7 +45,7 @@ def PowerLawFit(data, data_nature, xmin_rule, *args):
 
 
 #####################################
-# Script inputs                     #
+# Script inputs (hardcoded for the time)                     #
 #####################################
 
 database_name = "dbMSTR_test.csv"
@@ -84,6 +84,7 @@ significance = 0.05
 
 c_iter = 100
 
+
 if approach == "Static":
 
     positive_alpha_vec = []
@@ -98,6 +99,23 @@ if approach == "Static":
     positive_rel_length = []
     negative_abs_length = []
     negative_rel_length = []
+
+    #  positive_alpha_vec = []
+    #  negative_alpha_vec = []
+    #  positive_alpha_KS = []
+    #  negative_alpha_KS = []
+    #  positive_upper_bound = []
+    #  positive_lower_bound = []
+    #  negative_upper_bound = []
+    #  negative_lower_bound = []
+    #  positive_abs_length = []
+    #  positive_rel_length = []
+    #  negative_abs_length = []
+    #  negative_rel_length = []
+    #  loglikelihood_ratio_right = []
+    #  loglikelihood_pvalue_right = []
+    #  loglikelihood_ratio_left = []
+    #  loglikelihood_pvalue_left = []
 
     initial_index = database[0].index(initial_date)
     final_index = database[0].index(final_date)
