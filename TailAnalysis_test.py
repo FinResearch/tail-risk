@@ -21,7 +21,7 @@ import plpva as plpva
 def Extractor(filename, tickers):
     object = pd.read_csv(filename)
     output = [(object["Date"].values).tolist()]
-    for i in xrange(0, len(tickers), 1):
+    for i in range(0, len(tickers), 1):
         try:
             output.append((object[tickers[i]].values).tolist())
         except KeyError:
@@ -58,123 +58,47 @@ def PowerLawFit(data, data_nature, xmin_rule, *args):
 
 
 #####################################
-# Script begins                     #
+# Script inputs                     #
 #####################################
 
-#  question       = "What is the name of the database?"
-#  database_name = eg.enterbox(question, title="DB name", default="dbMSTR.csv")
 database_name = "dbMSTR_test.csv"
 
-
-#  question = "How many entries would you like to analyze?"
-#  no_entries = int(eg.enterbox(question, title="No. entries", default="4"))
 no_entries = 1
-fieldNames = ["# " + str(i) for i in xrange(1, no_entries + 1, 1)]
+fieldNames = ["# " + str(i) for i in range(1, no_entries + 1, 1)]
 fieldValues = [
     "DE 01Y",
     "DE 03Y",
     "DE 05Y",
-    "DE 10Y",  #'DE 30Y',
-    #'BE 01Y', 'BE 03Y', 'BE 05Y', 'BE 10Y', #'BE 30Y',
-    #'FR 01Y', 'FR 03Y', 'FR 05Y', 'FR 10Y', #'FR 30Y',
-    #'ES 01Y', 'ES 03Y', 'ES 05Y', 'ES 10Y', #'ES 30Y',
-    #'PT 01Y', 'PT 03Y', 'PT 05Y', 'PT 10Y', #'PT 30Y',
-    #'IT 01Y', 'IT 03Y', 'IT 05Y', 'IT 10Y', #'IT 30Y',
-    #'IR 01Y', 'IR 03Y', 'IR 05Y', 'IR 10Y', #
-    #'DE 30Y', 'PT 30Y', 'IT 30Y', #'IR 10Y', #'IR 30Y'
-]
-#  title           = "Tickers input"
-#  labels        = eg.multenterbox(question, title, fieldNames, fieldValues)
+    "DE 10Y", ]
 labels = fieldValues
 
 database = Extractor(database_name, labels)
 
-#  question      = "Please specify the initial date, the final date and the lookback for rolling analysis?"
-#  fieldNames    = ["Initial Date", "Final Date", "Lookback"]
-#  fieldValues   = ["01-01-09", "05-05-16", "504"]
-#  title         = "Dates input"
-#  input         = eg.multenterbox(question, title, fieldNames, fieldValues)
-#  initial_date  = input[0]
-#  final_date    = input[1]
-#  lookback      = int(input[2])
 initial_date = "1/1/2016"
 final_date = "5/5/2016"
 lookback = 504
 
-#  question      = "Please specify which type of series you want to study"
-#  choices       = ['Returns', 'Relative Returns','Log-Returns']
-#  input_type    = eg.choicebox(question, 'Input type', choices)
 input_type = "Log-Returns"
 
-#  msg           = "Please specify the time lag of the input series: 1 = daily, 5 = weekly, 22 = monthly"
-#  tau           = int(eg.enterbox(msg, title="delta", default="1"))
 tau = 1
 
-#  question      = "Do you want to normalize each investigated time series?"
-#  choices       = ['Yes', 'No']
-#  standardize   = eg.buttonbox(question, 'Normalization', choices)
 standardize = "No"
-#  standardize_target = "Full Series"
-
-#  if standardize == 'Yes':
-#  question           = "What should be standardized?"
-#  choices            = ['Full Series', 'Tail']
-#  standardize_target = eg.buttonbox(question, 'Normalization target', choices)
-
-#  question      = "Do you want to take the absolute value of your series (after any eventual normalization)?"
-#  choices       = ['Yes', 'No']
-#  abs_value     = eg.buttonbox(question, 'Absolute value', choices)
 abs_value = "No"
 
-if abs_value == "Yes":
-    question = "What should be standardized?"
-    choices = ["Full Series", "Tail"]
-    abs_target = eg.buttonbox(question, "Absolute value target", choices)
-
-#  question      = "Please specify which approach you would like to use"
-#  choices       = ['Static', 'Rolling', 'Increasing']
-#  approach      = eg.choicebox(question, 'Approach', choices)
 approach = "Rolling"
 an_freq = 1
-#  approach = "Static"
-
-#  if approach != 'Static':
-#          question = "What is the frequency at which the tail should be analyzed (days)?"
-#          an_freq  = int(eg.enterbox(question, title="frequency", default='1'))
-
-#  question      = "Please specify which tail you want to plot in the alpha timeline"
-#  choices       = ['Left', 'Right', 'Both']
-#  tail_selected = eg.choicebox(question, 'Select a tail', choices)
 tail_selected = "Both"
-
-#  question      = "What is the nature of your data?"
-#  choices       = ['Discrete', 'Continuous']
-#  data_nature   = eg.choicebox(question, 'Data type', choices)
 data_nature = "Continuous"
 
-#  question      = "What is the criteria for picking xmin"
-#  choices       = ['Clauset', 'Manual', 'Percentile']
-#  xmin_rule     = eg.choicebox(question, 'xmin rule', choices)
 xmin_rule = "Clauset"
-
-if xmin_rule == "Manual":
-    question = "What is the value for xmin?"
-    xmin_value = float(eg.enterbox(question, title="xmin value", default="0.0"))
-if xmin_rule == "Percentile":
-    question = "What is the value of the significance for xmin?"
-    xmin_sign = float(eg.enterbox(question, title="xmin percentile", default="90"))
 
 if tail_selected == "Both":
     multiplier = 0.5
 else:
     multiplier = 1.0
 
-#  msg           = "Please specify the significance of the confidence interval (1 - a) for the alpha parameter "
-#  significance  = float(eg.enterbox(msg, title="alpha", default="0.05"))
 significance = 0.05
 
-#  question      = "What is the number of iterations for the Clauset p-value algorithm?"
-#  c_iter    = int(eg.enterbox(question, title="iterations", default='2'))
 c_iter = 100
 
 if approach == "Static":
@@ -194,7 +118,7 @@ if approach == "Static":
 
     initial_index = database[0].index(initial_date)
     final_index = database[0].index(final_date)
-    dates = database[0][initial_index : (final_index + 1)]
+    dates = database[0][initial_index: (final_index + 1)]
     labelstep = (
         22
         if len(dates) <= 252
@@ -206,26 +130,30 @@ if approach == "Static":
 
     tail_statistics = []
 
-    for i in xrange(1, N, 1):
+    for i in range(1, N, 1):
 
         loglikelihood_ratio_right = []
         loglikelihood_pvalue_right = []
         loglikelihood_ratio_left = []
         loglikelihood_pvalue_left = []
 
-        print("I am analyzing the time series for " + labels[i - 1] + " between " + dates[0] + " and " + dates[-1])
-        series = database[i][initial_index : (final_index + 1)]
+        print("I am analyzing the time series for " +
+              labels[i - 1] + " between " + dates[0] + " and " + dates[-1])
+        series = database[i][initial_index: (final_index + 1)]
 
         print("You opted for the analysis of the " + input_type)
         if input_type == "Returns":
-            X = np.array(series[tau:]) - np.array(series[0 : (len(series) - tau)])
+            X = np.array(series[tau:]) - \
+                np.array(series[0: (len(series) - tau)])
             lab = "P(t+" + str(tau) + ") - P(t)"
         elif input_type == "Relative returns":
-            X = np.array(series[tau:]) / np.array(series[0 : (len(series) - tau)]) - 1.0
+            X = np.array(series[tau:]) / \
+                np.array(series[0: (len(series) - tau)]) - 1.0
             lab = "P(t+" + str(tau) + ")/P(t) - 1.0"
         else:
             X = np.log(
-                np.array(series[tau:]) / np.array(series[0 : (len(series) - tau)])
+                np.array(series[tau:]) /
+                np.array(series[0: (len(series) - tau)])
             )
             lab = r"$\log$" + "(P(t+" + str(tau) + ")/P(t))"
 
@@ -248,7 +176,8 @@ if approach == "Static":
             if xmin_rule == "Clauset":
                 fit_1 = PowerLawFit(tail_plus, data_nature, xmin_rule)
             elif xmin_rule == "Manual":
-                fit_1 = PowerLawFit(tail_plus, data_nature, xmin_rule, xmin_value)
+                fit_1 = PowerLawFit(tail_plus, data_nature,
+                                    xmin_rule, xmin_value)
             else:
                 fit_1 = PowerLawFit(
                     tail_plus, data_nature, xmin_rule, "None", xmin_sign
@@ -257,14 +186,16 @@ if approach == "Static":
             if standardize == "Yes":
                 if standardize_target == "Tail":
                     print("I am standardizing your tail")
-                    S = np.array(filter(lambda x: x >= fit_1.power_law.xmin, tail_plus))
+                    S = np.array(filter(lambda x: x >= fit_1.power_law.xmin,
+                                        tail_plus))
                     m = np.mean(S)
                     v = np.std(S)
                     X = (S - m) / v
 
                     if abs_value == "Yes":
                         if abs_target == "Tail":
-                            print("I am taking the absolute value of your tail")
+                            print("I am taking the absolute "
+                                  " value of your tail")
                             X = np.abs(X)
                             lab = "|" + lab + "|"
                     fit_1 = PowerLawFit(X, data_nature, xmin_rule, np.min(X))
@@ -274,21 +205,25 @@ if approach == "Static":
             if xmin_rule == "Clauset":
                 fit_2 = PowerLawFit(tail_neg, data_nature, xmin_rule)
             elif xmin_rule == "Manual":
-                fit_2 = PowerLawFit(tail_neg, data_nature, xmin_rule, xmin_value)
+                fit_2 = PowerLawFit(tail_neg, data_nature,
+                                    xmin_rule, xmin_value)
             else:
-                fit_2 = PowerLawFit(tail_neg, data_nature, xmin_rule, "None", xmin_sign)
+                fit_2 = PowerLawFit(tail_neg, data_nature,
+                                    xmin_rule, "None", xmin_sign)
 
             if standardize == "Yes":
                 if standardize_target == "Tail":
                     print("I am standardizing your tail")
-                    S = np.array(filter(lambda x: x >= fit_2.power_law.xmin, tail_neg))
+                    S = np.array(filter(lambda x: x >= fit_2.power_law.xmin,
+                                        tail_neg))
                     m = np.mean(S)
                     v = np.std(S)
                     X = (S - m) / v
 
                     if abs_value == "Yes":
                         if abs_target == "Tail":
-                            print("I am taking the absolute value of your tail")
+                            print("I am taking the absolute "
+                                  "value of your tail")
                             X = np.abs(X)
                             lab = "|" + lab + "|"
                     fit_2 = PowerLawFit(X, data_nature, xmin_rule, np.min(X))
@@ -297,29 +232,29 @@ if approach == "Static":
             alpha1 = fit_1.power_law.alpha
             xmin1 = fit_1.power_law.xmin
             s_err1 = fit_1.power_law.sigma
-            #  p1             = eng.plpva(matlab.double(tail_plus.tolist()), float(xmin1), 'reps', float(c_iter), 'silent', nargout=2)
-            p1 = plpva.plpva(tail_plus.tolist(), float(xmin1), "reps", c_iter, "silent")
+            p1 = plpva.plpva(tail_plus.tolist(), float(xmin1),
+                             "reps", c_iter, "silent")
             positive_alpha_KS.append(p1[0])
 
         if tail_selected == "Left" or tail_selected == "Both":
             alpha2 = fit_2.power_law.alpha
             xmin2 = fit_2.power_law.xmin
             s_err2 = fit_2.power_law.sigma
-            #  p2             = eng.plpva(matlab.double(np.array(tail_neg).tolist()), float(xmin2), 'reps', float(c_iter),'silent', nargout=2)
-            p2 = plpva.plpva(
-                np.array(tail_neg).tolist(), float(xmin2), "reps", c_iter, "silent"
-            )
+            p2 = plpva.plpva(np.array(tail_neg).tolist(),
+                             float(xmin2), "reps", c_iter, "silent")
             negative_alpha_KS.append(p2[0])
 
         if tail_selected == "Right" or tail_selected == "Both":
 
             plt.figure("Right tail scaling for " + labels[i - 1])
             z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            fig4 = fit_1.plot_ccdf(color="b", linewidth=2, label="Empirical CCDF")
+            fig4 = fit_1.plot_ccdf(color="b", linewidth=2,
+                                   label="Empirical CCDF")
             fit_1.power_law.plot_ccdf(
                 color="b", linestyle="-", label="Fitted CCDF", ax=fig4
             )
-            fit_1.plot_pdf(color="r", linewidth=2, label="Empirical PDF", ax=fig4)
+            fit_1.plot_pdf(color="r", linewidth=2,
+                           label="Empirical PDF", ax=fig4)
             fit_1.power_law.plot_pdf(
                 color="r", linestyle="-", label="Fitted PDF", ax=fig4
             )
@@ -336,7 +271,8 @@ if approach == "Static":
             )
             fig4.grid()
             fig4.legend()
-            col_labels = [r"$\hat{\alpha}$", "Standard err.", r"$x_{min}$", "size"]
+            col_labels = [r"$\hat{\alpha}$", "Standard err.",
+                          r"$x_{min}$", "size"]
             table_vals = []
             table_vals.append(
                 [
@@ -359,7 +295,8 @@ if approach == "Static":
             plt.show()
 
             plt.figure("Right tail comparison for " + labels[i - 1])
-            fig4 = fit_1.plot_ccdf(color="b", linewidth=2, label="Empirical CCDF")
+            fig4 = fit_1.plot_ccdf(color="b", linewidth=2,
+                                   label="Empirical CCDF")
             fit_1.power_law.plot_ccdf(
                 color="r", linestyle="-", label="Fitted PL", ax=fig4
             )
@@ -387,7 +324,8 @@ if approach == "Static":
             fig4.legend()
             plt.show()
 
-            distribution_list = ["truncated_power_law", "exponential", "lognormal"]
+            distribution_list = ["truncated_power_law",
+                                 "exponential", "lognormal"]
             for pdf in distribution_list:
                 R, p = fit_1.distribution_compare(
                     "power_law", pdf, normalized_ratio=True
@@ -395,13 +333,15 @@ if approach == "Static":
                 loglikelihood_ratio_right.append(R)
                 loglikelihood_pvalue_right.append(p)
 
-            z.figure("Log Likelihood ratio for the right tail for " + labels[i - 1])
+            z.figure("Log Likelihood ratio for the right tail for " +
+                     labels[i - 1])
             z.bar(
                 np.arange(0, len(loglikelihood_ratio_right), 1),
                 loglikelihood_ratio_right,
                 1,
             )
-            z.xticks(np.arange(0.5, len(distribution_list) + 0.5, 1), distribution_list)
+            z.xticks(np.arange(0.5, len(distribution_list) + 0.5, 1),
+                     distribution_list)
             z.ylabel("R")
             z.title(
                 "Log-likelihood ratio for "
@@ -417,15 +357,15 @@ if approach == "Static":
             z.grid()
             # z.show()
 
-            z.figure(
-                "Log Likelihood ratio p-values for the right tail for " + labels[i - 1]
-            )
+            z.figure("Log Likelihood ratio p-values for the right tail for " +
+                     labels[i - 1])
             z.bar(
                 np.arange(0, len(loglikelihood_pvalue_right), 1),
                 loglikelihood_pvalue_right,
                 1,
             )
-            z.xticks(np.arange(0.5, len(distribution_list) + 0.5, 1), distribution_list)
+            z.xticks(np.arange(0.5, len(distribution_list) + 0.5, 1),
+                     distribution_list)
             z.ylabel("R")
             z.title(
                 "Log-likelihood ratio p values for "
@@ -445,11 +385,13 @@ if approach == "Static":
 
             plt.figure("Left tail scaling for " + labels[i - 1])
             z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            fig4 = fit_2.plot_ccdf(color="b", linewidth=2, label="Empirical CCDF")
+            fig4 = fit_2.plot_ccdf(color="b", linewidth=2,
+                                   label="Empirical CCDF")
             fit_2.power_law.plot_ccdf(
                 color="b", linestyle="-", label="Fitted CCDF", ax=fig4
             )
-            fit_2.plot_pdf(color="r", linewidth=2, label="Empirical PDF", ax=fig4)
+            fit_2.plot_pdf(color="r", linewidth=2,
+                           label="Empirical PDF", ax=fig4)
             fit_2.power_law.plot_pdf(
                 color="r", linestyle="-", label="Fitted PDF", ax=fig4
             )
@@ -466,7 +408,8 @@ if approach == "Static":
             )
             fig4.grid()
             fig4.legend()
-            col_labels = [r"$\hat{\alpha}$", "Standard err.", r"$x_{min}$", "size"]
+            col_labels = [r"$\hat{\alpha}$", "Standard err.",
+                          r"$x_{min}$", "size"]
             table_vals = []
             table_vals.append(
                 [
@@ -489,7 +432,8 @@ if approach == "Static":
             plt.show()
 
             plt.figure("Left tail comparison for " + labels[i - 1])
-            fig4 = fit_2.plot_ccdf(color="b", linewidth=2, label="Empirical CCDF")
+            fig4 = fit_2.plot_ccdf(color="b", linewidth=2,
+                                   label="Empirical CCDF")
             fit_2.power_law.plot_ccdf(
                 color="r", linestyle="-", label="Fitted PL", ax=fig4
             )
@@ -517,7 +461,8 @@ if approach == "Static":
             fig4.legend()
             plt.show()
 
-            distribution_list = ["truncated_power_law", "exponential", "lognormal"]
+            distribution_list = ["truncated_power_law",
+                                 "exponential", "lognormal"]
             for pdf in distribution_list:
                 R, p = fit_2.distribution_compare(
                     "power_law", pdf, normalized_ratio=True
@@ -525,13 +470,15 @@ if approach == "Static":
                 loglikelihood_ratio_left.append(R)
                 loglikelihood_pvalue_left.append(p)
 
-            z.figure("Log Likelihood ratio for the left tail for " + labels[i - 1])
+            z.figure("Log Likelihood ratio for the left tail for " +
+                     labels[i - 1])
             z.bar(
                 np.arange(0, len(loglikelihood_ratio_left), 1),
                 loglikelihood_ratio_left,
                 1,
             )
-            z.xticks(np.arange(0.5, len(distribution_list) + 0.5, 1), distribution_list)
+            z.xticks(np.arange(0.5, len(distribution_list) + 0.5, 1),
+                     distribution_list)
             z.ylabel("R")
             z.title(
                 "Log-likelihood ratio for "
@@ -548,14 +495,15 @@ if approach == "Static":
             # z.show()
 
             z.figure(
-                "Log Likelihood ratio p-values for the left tail for " + labels[i - 1]
-            )
+                "Log Likelihood ratio p-values for the left tail for " +
+                labels[i - 1])
             z.bar(
                 np.arange(0, len(loglikelihood_pvalue_left), 1),
                 loglikelihood_pvalue_left,
                 1,
             )
-            z.xticks(np.arange(0.5, len(distribution_list) + 0.5, 1), distribution_list)
+            z.xticks(np.arange(0.5, len(distribution_list) + 0.5, 1),
+                     distribution_list)
             z.ylabel("R")
             z.title(
                 "Log-likelihood ratio p values for "
@@ -580,9 +528,11 @@ if approach == "Static":
             positive_lower_bound.append(
                 alpha1 - (st.norm.ppf(1 - multiplier * significance)) * s_err1
             )
-            positive_abs_length.append(len(filter(lambda x: x >= xmin1, tail_plus)))
+            positive_abs_length.append(len(filter(lambda x: x >= xmin1,
+                                                  tail_plus)))
             positive_rel_length.append(
-                len(filter(lambda x: x >= xmin1, tail_plus)) / float(len(tail_plus))
+                len(filter(lambda x: x >= xmin1, tail_plus)) /
+                float(len(tail_plus))
             )
 
         if tail_selected == "Left" or tail_selected == "Both":
@@ -593,9 +543,11 @@ if approach == "Static":
             negative_lower_bound.append(
                 alpha2 - (st.norm.ppf(1 - multiplier * significance)) * s_err2
             )
-            negative_abs_length.append(len(filter(lambda x: x >= xmin2, tail_neg)))
+            negative_abs_length.append(len(filter(lambda x: x >= xmin2,
+                                                  tail_neg)))
             negative_rel_length.append(
-                len(filter(lambda x: x >= xmin2, tail_neg)) / float(len(tail_neg))
+                len(filter(lambda x: x >= xmin2, tail_neg)) /
+                float(len(tail_neg))
             )
 
         if tail_selected == "Both":
@@ -646,7 +598,7 @@ if approach == "Static":
     z.gca().set_position((0.1, 0.20, 0.83, 0.70))
     if tail_selected == "Right" or tail_selected == "Both":
         z.plot(
-            xrange(1, len(labels) + 1, 1),
+            range(1, len(labels) + 1, 1),
             positive_alpha_vec,
             marker="^",
             markersize=10.0,
@@ -656,7 +608,7 @@ if approach == "Static":
         )
     if tail_selected == "Left" or tail_selected == "Both":
         z.plot(
-            xrange(1, len(labels) + 1, 1),
+            range(1, len(labels) + 1, 1),
             negative_alpha_vec,
             marker="^",
             markersize=10.0,
@@ -664,7 +616,7 @@ if approach == "Static":
             color="red",
             label="Left tail",
         )
-    z.xticks(xrange(1, len(labels) + 1, 1), labels)
+    z.xticks(range(1, len(labels) + 1, 1), labels)
     z.xlim(xmin=0.5, xmax=len(labels) + 0.5)
     z.ylabel(r"$\alpha$")
     z.title(
@@ -680,7 +632,8 @@ if approach == "Static":
         + lab
     )
     z.legend(
-        bbox_to_anchor=(0.0, -0.175, 1.0, 0.02), ncol=2, mode="expand", borderaxespad=0
+        bbox_to_anchor=(0.0, -0.175, 1.0, 0.02), ncol=2,
+        mode="expand", borderaxespad=0
     )
     z.grid()
     # z.show()
@@ -691,7 +644,7 @@ if approach == "Static":
         z.figure("Confidence interval for the right tail")
         z.gca().set_position((0.1, 0.20, 0.83, 0.70))
         z.plot(
-            xrange(1, len(labels) + 1, 1),
+            range(1, len(labels) + 1, 1),
             positive_alpha_vec,
             marker="o",
             markersize=7.0,
@@ -700,7 +653,7 @@ if approach == "Static":
             label="Right tail",
         )
         z.plot(
-            xrange(1, len(labels) + 1, 1),
+            range(1, len(labels) + 1, 1),
             positive_upper_bound,
             marker="o",
             markersize=7.0,
@@ -709,7 +662,7 @@ if approach == "Static":
             label="Upper bound",
         )
         z.plot(
-            xrange(1, len(labels) + 1, 1),
+            range(1, len(labels) + 1, 1),
             positive_lower_bound,
             marker="o",
             markersize=7.0,
@@ -718,12 +671,14 @@ if approach == "Static":
             label="Lower bound",
         )
         z.plot(
-            xrange(0, len(labels) + 2, 1), np.repeat(3, len(labels) + 2), color="red"
+            range(0, len(labels) + 2, 1), np.repeat(3, len(labels) + 2),
+            color="red"
         )
         z.plot(
-            xrange(0, len(labels) + 2, 1), np.repeat(2, len(labels) + 2), color="red"
+            range(0, len(labels) + 2, 1), np.repeat(2, len(labels) + 2),
+            color="red"
         )
-        z.xticks(xrange(1, len(labels) + 1, 1), labels)
+        z.xticks(range(1, len(labels) + 1, 1), labels)
         z.xlim(xmin=0.5, xmax=len(labels) + 0.5)
         z.ylabel(r"$\alpha$")
         z.title(
@@ -756,7 +711,7 @@ if approach == "Static":
         z.figure("Confidence interval for the left tail")
         z.gca().set_position((0.1, 0.20, 0.83, 0.70))
         z.plot(
-            xrange(1, len(labels) + 1, 1),
+            range(1, len(labels) + 1, 1),
             negative_alpha_vec,
             marker="o",
             markersize=7.0,
@@ -765,7 +720,7 @@ if approach == "Static":
             label="Left tail",
         )
         z.plot(
-            xrange(1, len(labels) + 1, 1),
+            range(1, len(labels) + 1, 1),
             negative_upper_bound,
             marker="o",
             markersize=7.0,
@@ -774,7 +729,7 @@ if approach == "Static":
             label="Upper bound",
         )
         z.plot(
-            xrange(1, len(labels) + 1, 1),
+            range(1, len(labels) + 1, 1),
             negative_lower_bound,
             marker="o",
             markersize=7.0,
@@ -783,12 +738,14 @@ if approach == "Static":
             label="Lower bound",
         )
         z.plot(
-            xrange(0, len(labels) + 2, 1), np.repeat(3, len(labels) + 2), color="red"
+            range(0, len(labels) + 2, 1), np.repeat(3, len(labels) + 2),
+            color="red"
         )
         z.plot(
-            xrange(0, len(labels) + 2, 1), np.repeat(2, len(labels) + 2), color="red"
+            range(0, len(labels) + 2, 1), np.repeat(2, len(labels) + 2),
+            color="red"
         )
-        z.xticks(xrange(1, len(labels) + 1, 1), labels)
+        z.xticks(range(1, len(labels) + 1, 1), labels)
         z.xlim(xmin=0.5, xmax=len(labels) + 0.5)
         z.ylabel(r"$\alpha$")
         z.title(
@@ -849,7 +806,8 @@ if approach == "Static":
         + lab
     )
     z.legend(
-        bbox_to_anchor=(0.0, -0.175, 1.0, 0.02), ncol=3, mode="expand", borderaxespad=0
+        bbox_to_anchor=(0.0, -0.175, 1.0, 0.02), ncol=3, mode="expand",
+        borderaxespad=0
     )
     z.grid()
     # z.show()
@@ -888,7 +846,8 @@ if approach == "Static":
         + lab
     )
     z.legend(
-        bbox_to_anchor=(0.0, -0.175, 1.0, 0.02), ncol=3, mode="expand", borderaxespad=0
+        bbox_to_anchor=(0.0, -0.175, 1.0, 0.02), ncol=3,
+        mode="expand", borderaxespad=0
     )
     z.grid()
     # z.show()
@@ -927,7 +886,8 @@ if approach == "Static":
         + lab
     )
     z.legend(
-        bbox_to_anchor=(0.0, -0.175, 1.0, 0.02), ncol=3, mode="expand", borderaxespad=0
+        bbox_to_anchor=(0.0, -0.175, 1.0, 0.02), ncol=3,
+        mode="expand", borderaxespad=0
     )
     z.grid()
     # z.show()
@@ -981,12 +941,13 @@ else:
         motherpath = eg.enterbox(
             question,
             title="path",
-            default="C:\Users\\alber\Dropbox\Research\IP\Econophysics\Final Code Hurst Exponent\\",
+            #  default = ("C:\Users\\alber\Dropbox\Research"
+            #             "\IP\Econophysics\Final Code Hurst Exponent\\"),
         )
 
     initial_index = database[0].index(initial_date)
     final_index = database[0].index(final_date)
-    dates = database[0][initial_index : (final_index + 1)]
+    dates = database[0][initial_index: (final_index + 1)]
     labelstep = (
         22
         if len(dates) <= 252
@@ -1000,7 +961,7 @@ else:
 
     if an_freq > 1:
         spec_dates = []
-        for ddd in xrange(0, len(dates), an_freq):
+        for ddd in range(0, len(dates), an_freq):
             spec_dates.append(dates[ddd])
         spec_labelstep = 22
     else:
@@ -1012,7 +973,7 @@ else:
     positive_alpha_mat = []
     negative_alpha_mat = []
 
-    for i in xrange(1, N, 1):
+    for i in range(1, N, 1):
 
         if plot_storing == "Yes":
             directory = motherpath + "PowerLawAnimation\\" + labels[i - 1]
@@ -1042,14 +1003,14 @@ else:
 
         tail_statistics = []
 
-        for l in xrange(initial_index, final_index + 1, an_freq):
+        for l in range(initial_index, final_index + 1, an_freq):
 
             if approach == "Rolling":
-                series = database[i][(l + 1 - lookback) : (l + 1)]
+                series = database[i][(l + 1 - lookback): (l + 1)]
                 begin_date = database[0][(l + 1 - lookback)]
                 end_date = database[0][l]
             else:
-                series = database[i][(initial_index + 1 - lookback) : (l + 1)]
+                series = database[i][(initial_index + 1 - lookback): (l + 1)]
                 begin_date = database[0][(initial_index + 1 - lookback)]
                 end_date = database[0][l]
 
@@ -1077,22 +1038,27 @@ else:
                         raise
                 os.chdir(subdirectory)
 
-            print("I am analyzing the time series for " + labels[i - 1] + " between " + begin_date + " and " + end_date)
+            print("I am analyzing the time series for " +
+                  labels[i - 1] + " between " + begin_date +
+                  " and " + end_date)
 
             print("You opted for the analysis of the " + input_type)
 
             if input_type == "Returns":
-                X = np.array(series[tau:]) - np.array(series[0 : (len(series) - tau)])
+                X = np.array(series[tau:]) - np.array(
+                    series[0: (len(series) - tau)])
                 lab = "P(t+" + str(tau) + ") - P(t)"
             elif input_type == "Relative returns":
                 X = (
-                    np.array(series[tau:]) / np.array(series[0 : (len(series) - tau)])
+                    np.array(series[tau:]) /
+                    np.array(series[0: (len(series) - tau)])
                     - 1.0
                 )
                 lab = "P(t+" + str(tau) + ")/P(t) - 1.0"
             else:
                 X = np.log(
-                    np.array(series[tau:]) / np.array(series[0 : (len(series) - tau)])
+                    np.array(series[tau:]) /
+                    np.array(series[0: (len(series) - tau)])
                 )
                 lab = r"$\log$" + "(P(t+" + str(tau) + ")/P(t))"
 
@@ -1113,7 +1079,8 @@ else:
                 if xmin_rule == "Clauset":
                     fit_1 = PowerLawFit(tail_plus, data_nature, xmin_rule)
                 elif xmin_rule == "Manual":
-                    fit_1 = PowerLawFit(tail_plus, data_nature, xmin_rule, xmin_value)
+                    fit_1 = PowerLawFit(tail_plus, data_nature,
+                                        xmin_rule, xmin_value)
                 else:
                     fit_1 = PowerLawFit(
                         tail_plus, data_nature, xmin_rule, "None", xmin_sign
@@ -1128,7 +1095,8 @@ else:
                 if xmin_rule == "Clauset":
                     fit_2 = PowerLawFit(tail_neg, data_nature, xmin_rule)
                 elif xmin_rule == "Manual":
-                    fit_2 = PowerLawFit(tail_neg, data_nature, xmin_rule, xmin_value)
+                    fit_2 = PowerLawFit(tail_neg, data_nature,
+                                        xmin_rule, xmin_value)
                 else:
                     fit_2 = PowerLawFit(
                         tail_neg, data_nature, xmin_rule, "None", xmin_sign
@@ -1163,7 +1131,8 @@ else:
                         color="r", linestyle="-", label="Fitted PDF", ax=fig4
                     )
                     fig4.set_title(
-                        "Log-log plot of the scaling properties of the right-tail for "
+                        "Log-log plot of the scaling properties "
+                        "of the right-tail for "
                         + labels[i - 1]
                         + "\n"
                         + "Time Period: "
@@ -1228,7 +1197,8 @@ else:
                         color="m", linestyle="-", label="Fitted LogN.", ax=fig4
                     )
                     fig4.set_title(
-                        "Comparison of the distributions fitted on the right-tail for "
+                        "Comparison of the distributions "
+                        "fitted on the right-tail for "
                         + labels[i - 1]
                         + "\n"
                         + "Time Period: "
@@ -1274,7 +1244,8 @@ else:
                         color="r", linestyle="-", label="Fitted PDF", ax=fig4
                     )
                     fig4.set_title(
-                        "Log-log plot of the scaling properties of the left-tail for "
+                        "Log-log plot of the scaling properties "
+                        "of the left-tail for "
                         + labels[i - 1]
                         + "\n"
                         + "Time Period: "
@@ -1339,7 +1310,8 @@ else:
                         color="m", linestyle="-", label="Fitted LogN.", ax=fig4
                     )
                     fig4.set_title(
-                        "Comparison of the distributions fitted on the left-tail for "
+                        "Comparison of the distributions fitted "
+                        "on the left-tail for "
                         + labels[i - 1]
                         + "\n"
                         + "Time Period: "
@@ -1366,21 +1338,26 @@ else:
 
                 positive_alpha_vec.append(alpha1)
                 positive_upper_bound.append(
-                    alpha1 + (st.norm.ppf(1 - multiplier * significance)) * s_err1
+                    alpha1 + (st.norm.ppf(1 - multiplier * significance))
+                    * s_err1
                 )
                 positive_lower_bound.append(
-                    alpha1 - (st.norm.ppf(1 - multiplier * significance)) * s_err1
+                    alpha1 - (st.norm.ppf(1 - multiplier * significance))
+                    * s_err1
                 )
-                positive_abs_length.append(len(filter(lambda x: x >= xmin1, tail_plus)))
+                positive_abs_length.append(len(filter(lambda x: x >= xmin1,
+                                                      tail_plus)))
                 positive_rel_length.append(
-                    len(filter(lambda x: x >= xmin1, tail_plus)) / float(len(tail_plus))
+                    len(filter(lambda x: x >= xmin1, tail_plus)) /
+                    float(len(tail_plus))
                 )
                 p1 = plpva.plpva(
                     tail_plus.tolist(), float(xmin1), "reps", c_iter, "silent"
                 )
                 positive_alpha_KS.append(p1[0])
 
-                distribution_list = ["truncated_power_law", "exponential", "lognormal"]
+                distribution_list = ["truncated_power_law",
+                                     "exponential", "lognormal"]
                 daily_r_ratio = []
                 daily_r_p = []
                 for pdf in distribution_list:
@@ -1397,21 +1374,27 @@ else:
 
                 negative_alpha_vec.append(alpha2)
                 negative_upper_bound.append(
-                    alpha2 + (st.norm.ppf(1 - multiplier * significance)) * s_err2
+                    alpha2 + (st.norm.ppf(1 - multiplier * significance))
+                    * s_err2
                 )
                 negative_lower_bound.append(
-                    alpha2 - (st.norm.ppf(1 - multiplier * significance)) * s_err2
+                    alpha2 - (st.norm.ppf(1 - multiplier * significance))
+                    * s_err2
                 )
-                negative_abs_length.append(len(filter(lambda x: x >= xmin2, tail_neg)))
+                negative_abs_length.append(len(filter(lambda x: x >= xmin2,
+                                                      tail_neg)))
                 negative_rel_length.append(
-                    len(filter(lambda x: x >= xmin2, tail_neg)) / float(len(tail_neg))
+                    len(filter(lambda x: x >= xmin2, tail_neg)) /
+                    float(len(tail_neg))
                 )
                 p2 = plpva.plpva(
-                    np.array(tail_neg).tolist(), float(xmin2), "reps", c_iter, "silent"
+                    np.array(tail_neg).tolist(), float(xmin2), "reps",
+                    c_iter, "silent"
                 )
                 negative_alpha_KS.append(p2[0])
 
-                distribution_list = ["truncated_power_law", "exponential", "lognormal"]
+                distribution_list = ["truncated_power_law",
+                                     "exponential", "lognormal"]
                 daily_l_ratio = []
                 daily_l_p = []
                 for pdf in distribution_list:
@@ -1531,7 +1514,7 @@ else:
             + dates[-1]
         )
         z.xticks(
-            xrange(0, len(spec_dates), spec_labelstep),
+            range(0, len(spec_dates), spec_labelstep),
             [el[3:] for el in spec_dates[0::spec_labelstep]],
             rotation="vertical",
         )
@@ -1596,7 +1579,7 @@ else:
             z.ylabel(r"$\alpha$")
             z.xlim(xmin=0.0, xmax=len(positive_alpha_vec) - 1)
             z.xticks(
-                xrange(0, len(spec_dates), spec_labelstep),
+                range(0, len(spec_dates), spec_labelstep),
                 [el[3:] for el in spec_dates[0::spec_labelstep]],
                 rotation="vertical",
             )
@@ -1634,7 +1617,7 @@ else:
             z.ylabel("Tail length")
             z.xlim(xmin=0.0, xmax=len(positive_abs_length) - 1)
             z.xticks(
-                xrange(0, len(spec_dates), spec_labelstep),
+                range(0, len(spec_dates), spec_labelstep),
                 [el[3:] for el in spec_dates[0::spec_labelstep]],
                 rotation="vertical",
             )
@@ -1653,7 +1636,8 @@ else:
             z.grid()
             # z.show()
 
-            z.figure("Time rolling relative size for right tail for " + labels[i - 1])
+            z.figure("Time rolling relative size for right tail for "
+                     + labels[i - 1])
             z.gca().set_position((0.1, 0.20, 0.83, 0.70))
             z.plot(positive_rel_length, color="green", label="Right tail")
             if tail_selected == "Both":
@@ -1661,7 +1645,7 @@ else:
             z.ylabel("Relative tail length")
             z.xlim(xmin=0.0, xmax=len(positive_rel_length) - 1)
             z.xticks(
-                xrange(0, len(spec_dates), spec_labelstep),
+                range(0, len(spec_dates), spec_labelstep),
                 [el[3:] for el in spec_dates[0::spec_labelstep]],
                 rotation="vertical",
             )
@@ -1680,7 +1664,7 @@ else:
             z.grid()
             # z.show()
 
-            z.figure("Time rolling KS test for right tail for " + labels[i - 1])
+            z.figure("Time rolling KS test for right tail for " + labels[i-1])
             z.gca().set_position((0.1, 0.20, 0.83, 0.70))
             z.plot(positive_alpha_KS, color="green", label="Right tail")
             if tail_selected == "Both":
@@ -1688,12 +1672,13 @@ else:
             z.ylabel("p-value")
             z.xlim(xmin=0.0, xmax=len(positive_abs_length) - 1)
             z.xticks(
-                xrange(0, len(spec_dates), spec_labelstep),
+                range(0, len(spec_dates), spec_labelstep),
                 [el[3:] for el in spec_dates[0::spec_labelstep]],
                 rotation="vertical",
             )
             z.title(
-                "KS-statistics: rolling p-value obtained from Clauset algorithm for "
+                "KS-statistics: rolling p-value obtained from "
+                "Clauset algorithm for "
                 + labels[i - 1]
                 + "\n"
                 + "Time Period: "
@@ -1720,14 +1705,15 @@ else:
             )
             h = 2 * IQR * np.power(len(positive_alpha_vec), -1.0 / 3.0)
             nbins = np.int(
-                (np.max(positive_alpha_vec) - np.min(positive_alpha_vec)) / float(h)
+                (np.max(positive_alpha_vec) - np.min(positive_alpha_vec)) /
+                float(h)
             )
             # Building the histogram and plotting the relevant vertical lines
             z.hist(positive_alpha_vec, nbins, color="red")
             out1, bins = z.histogram(positive_alpha_vec, nbins)
             z.plot(
                 np.repeat(np.mean(positive_alpha_vec), np.max(out1) + 1),
-                xrange(0, np.max(out1) + 1, 1),
+                range(0, np.max(out1) + 1, 1),
                 color="blue",
                 linewidth=1.5,
                 label=r"$E[\hat{\alpha}]$",
@@ -1746,7 +1732,8 @@ else:
                 + " - "
                 + dates[-1]
             )
-            z.xlim(xmin=np.min(positive_alpha_vec), xmax=np.max(positive_alpha_vec))
+            z.xlim(xmin=np.min(positive_alpha_vec),
+                   xmax=np.max(positive_alpha_vec))
             z.ylim(ymin=0, ymax=np.max(out1))
             z.legend()
             z.grid()
@@ -1790,7 +1777,7 @@ else:
             z.ylabel(r"$\alpha$")
             z.xlim(xmin=0.0, xmax=len(negative_alpha_vec) - 1)
             z.xticks(
-                xrange(0, len(spec_dates), spec_labelstep),
+                range(0, len(spec_dates), spec_labelstep),
                 [el[3:] for el in spec_dates[0::spec_labelstep]],
                 rotation="vertical",
             )
@@ -1828,7 +1815,7 @@ else:
             z.ylabel("Tail length")
             z.xlim(xmin=0.0, xmax=len(negative_abs_length) - 1)
             z.xticks(
-                xrange(0, len(spec_dates), spec_labelstep),
+                range(0, len(spec_dates), spec_labelstep),
                 [el[3:] for el in spec_dates[0::spec_labelstep]],
                 rotation="vertical",
             )
@@ -1847,7 +1834,8 @@ else:
             z.grid()
             # z.show()
 
-            z.figure("Time rolling relative size for left tail for " + labels[i - 1])
+            z.figure("Time rolling relative size for left tail for " +
+                     labels[i - 1])
             z.gca().set_position((0.1, 0.20, 0.83, 0.70))
             z.plot(negative_rel_length, color="purple", label="Left tail")
             if tail_selected == "Both":
@@ -1855,7 +1843,7 @@ else:
             z.ylabel("Relative tail length")
             z.xlim(xmin=0.0, xmax=len(negative_rel_length) - 1)
             z.xticks(
-                xrange(0, len(spec_dates), spec_labelstep),
+                range(0, len(spec_dates), spec_labelstep),
                 [el[3:] for el in spec_dates[0::spec_labelstep]],
                 rotation="vertical",
             )
@@ -1882,12 +1870,13 @@ else:
             z.ylabel("p-value")
             z.xlim(xmin=0.0, xmax=len(negative_abs_length) - 1)
             z.xticks(
-                xrange(0, len(spec_dates), spec_labelstep),
+                range(0, len(spec_dates), spec_labelstep),
                 [el[3:] for el in spec_dates[0::spec_labelstep]],
                 rotation="vertical",
             )
             z.title(
-                "KS-statistics: rolling p-value obtained from Clauset algorithm for "
+                "KS-statistics: rolling p-value obtained "
+                "from Clauset algorithm for "
                 + labels[i - 1]
                 + "\n"
                 + "Time Period: "
@@ -1914,14 +1903,15 @@ else:
             )
             h = 2 * IQR * np.power(len(negative_alpha_vec), -1.0 / 3.0)
             nbins = np.int(
-                (np.max(negative_alpha_vec) - np.min(negative_alpha_vec)) / float(h)
+                (np.max(negative_alpha_vec) - np.min(negative_alpha_vec)) /
+                float(h)
             )
             # Building the histogram and plotting the relevant vertical lines
             z.hist(negative_alpha_vec, nbins, color="red")
             out1, bins = z.histogram(negative_alpha_vec, nbins)
             z.plot(
                 np.repeat(np.mean(negative_alpha_vec), np.max(out1) + 1),
-                xrange(0, np.max(out1) + 1, 1),
+                range(0, np.max(out1) + 1, 1),
                 color="blue",
                 linewidth=1.5,
                 label=r"$E[\hat{\alpha}]$",
@@ -1940,7 +1930,8 @@ else:
                 + " - "
                 + dates[-1]
             )
-            z.xlim(xmin=np.min(negative_alpha_vec), xmax=np.max(negative_alpha_vec))
+            z.xlim(xmin=np.min(negative_alpha_vec),
+                   xmax=np.max(negative_alpha_vec))
             z.ylim(ymin=0, ymax=np.max(out1))
             z.legend()
             z.grid()
@@ -1975,7 +1966,8 @@ else:
         # Print the figures
         matrix_form = np.array(tail_statistics)
         matrix_form_transpose = np.transpose(matrix_form)
-        filename = "TailStatistics_504_d=1_pn_normalized_" + labels[i - 1] + "_KS.csv"
+        filename = ("TailStatistics_504_d=1_pn_normalized_" +
+                    labels[i - 1] + "_KS.csv")
         df = pd.DataFrame(
             {
                 "Date": spec_dates,
@@ -2036,7 +2028,7 @@ else:
     if tail_selected == "Right" or tail_selected == "Both":
         z.figure("Positive Power Law Boxplot")
         z.boxplot(positive_alpha_mat)
-        z.xticks(xrange(1, len(labels) + 1, 1), labels)
+        z.xticks(range(1, len(labels) + 1, 1), labels)
         z.xlim(xmin=0.5, xmax=len(labels) + 0.5)
         z.ylabel(r"$\alpha$")
         z.title(
@@ -2057,7 +2049,7 @@ else:
     if tail_selected == "Left" or tail_selected == "Both":
         z.figure("Negative Power Law Boxplot")
         z.boxplot(negative_alpha_mat)
-        z.xticks(xrange(1, len(labels) + 1, 1), labels)
+        z.xticks(range(1, len(labels) + 1, 1), labels)
         z.xlim(xmin=0.5, xmax=len(labels) + 0.5)
         z.ylabel(r"$\alpha$")
         z.title(
