@@ -1,7 +1,7 @@
 #####################################
 # Libraries                         #
 #####################################
-import os
+#  import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -9,7 +9,7 @@ import pylab as z
 
 import scipy.stats as st
 import powerlaw as pl
-import easygui as eg
+#  import easygui as eg
 
 import plpva as plpva
 
@@ -934,14 +934,14 @@ else:
     #  plot_storing = eg.choicebox(question, 'Plot', choices)
     plot_storing = "No"
 
-    if plot_storing == "Yes":
-        question = "What is the target directory for the pictures?"
-        motherpath = eg.enterbox(
-            question,
-            title="path",
-            #  default = ("C:\Users\\alber\Dropbox\Research"
-            #             "\IP\Econophysics\Final Code Hurst Exponent\\"),
-        )
+    #  if plot_storing == "Yes":
+    #      question = "What is the target directory for the pictures?"
+    #      motherpath = eg.enterbox(
+    #          question,
+    #          title="path",
+    #          default = ("C:\Users\\alber\Dropbox\Research"
+    #                     "\IP\Econophysics\Final Code Hurst Exponent\\"),
+    #      )
 
     initial_index = database[0].index(initial_date)
     final_index = database[0].index(final_date)
@@ -973,14 +973,14 @@ else:
 
     for i in range(1, N, 1):
 
-        if plot_storing == "Yes":
-            directory = motherpath + "PowerLawAnimation\\" + labels[i - 1]
-            try:
-                os.makedirs(directory)
-            except OSError:
-                if not os.path.isdir(directory):
-                    raise
-            os.chdir(directory)
+        #  if plot_storing == "Yes":
+        #      directory = motherpath + "PowerLawAnimation\\" + labels[i - 1]
+        #      try:
+        #          os.makedirs(directory)
+        #      except OSError:
+        #          if not os.path.isdir(directory):
+        #              raise
+        #      os.chdir(directory)
 
         positive_alpha_vec = []
         negative_alpha_vec = []
@@ -1012,29 +1012,29 @@ else:
                 begin_date = database[0][(initial_index + 1 - lookback)]
                 end_date = database[0][l]
 
-            if plot_storing == "Yes":
-                subdirectory = (
-                    directory
-                    + "\\"
-                    + begin_date[6:8]
-                    + "-"
-                    + begin_date[3:5]
-                    + "-"
-                    + begin_date[0:2]
-                    + "_"
-                    + end_date[6:8]
-                    + "-"
-                    + end_date[3:5]
-                    + "-"
-                    + end_date[0:2]
-                    + "\\"
-                )
-                try:
-                    os.makedirs(subdirectory)
-                except OSError:
-                    if not os.path.isdir(subdirectory):
-                        raise
-                os.chdir(subdirectory)
+            #  if plot_storing == "Yes":
+            #      subdirectory = (
+            #          directory
+            #          + "\\"
+            #          + begin_date[6:8]
+            #          + "-"
+            #          + begin_date[3:5]
+            #          + "-"
+            #          + begin_date[0:2]
+            #          + "_"
+            #          + end_date[6:8]
+            #          + "-"
+            #          + end_date[3:5]
+            #          + "-"
+            #          + end_date[0:2]
+            #          + "\\"
+            #      )
+            #      try:
+            #          os.makedirs(subdirectory)
+            #      except OSError:
+            #          if not os.path.isdir(subdirectory):
+            #              raise
+            #      os.chdir(subdirectory)
 
             print("I am analyzing the time series for " +
                   labels[i - 1] + " between " + begin_date +
