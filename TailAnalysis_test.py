@@ -2,7 +2,6 @@
 # Libraries                         #
 #####################################
 import numpy as np
-import matlab.engine
 import os
 import matplotlib.pyplot as plt
 import powerlaw as pl
@@ -11,10 +10,7 @@ import easygui as eg
 import pandas as pd
 import scipy.stats as st
 
-eng       = matlab.engine.start_matlab()
-#  print(type(eng))
-directory = os.getcwd()
-eng.cd(directory, nargout=0)
+import plpva_numpy as plpva
 
 #####################################
 # Tools Functions                   #
@@ -60,7 +56,7 @@ database_name = "dbMSTR_test.csv"
 
 #  question       = "How many entries would you like to analyze?"
 #  no_entries       = int(eg.enterbox(question, title="No. entries", default="4"))
-no_entries = 4
+no_entries = 1
 fieldNames       = ["# " + str(i) for i in xrange(1, no_entries + 1, 1)]
 fieldValues   = ['DE 01Y', 'DE 03Y', 'DE 05Y', 'DE 10Y', #'DE 30Y', 
                  #'BE 01Y', 'BE 03Y', 'BE 05Y', 'BE 10Y', #'BE 30Y', 
@@ -265,14 +261,16 @@ if approach == 'Static':
                 alpha1      = fit_1.power_law.alpha
                 xmin1         = fit_1.power_law.xmin
                 s_err1         = fit_1.power_law.sigma
-                p1             = eng.plpva(matlab.double(tail_plus.tolist()), float(xmin1), 'reps', float(c_iter), 'silent', nargout=2)
+                #  p1             = eng.plpva(matlab.double(tail_plus.tolist()), float(xmin1), 'reps', float(c_iter), 'silent', nargout=2)
+                p1     = plpva.plpva(tail_plus.tolist(), float(xmin1), 'reps', c_iter, 'silent')
                 positive_alpha_KS.append(p1[0])
 
             if tail_selected == 'Left' or tail_selected == 'Both':
                 alpha2         = fit_2.power_law.alpha
                 xmin2         = fit_2.power_law.xmin
                 s_err2         = fit_2.power_law.sigma
-                p2             = eng.plpva(matlab.double(np.array(tail_neg).tolist()), float(xmin2), 'reps', float(c_iter),'silent', nargout=2)
+                #  p2             = eng.plpva(matlab.double(np.array(tail_neg).tolist()), float(xmin2), 'reps', float(c_iter),'silent', nargout=2)
+                p2     = plpva.plpva(np.array(tail_neg).tolist(), float(xmin2), 'reps', c_iter,'silent')
                 negative_alpha_KS.append(p2[0])
 
     
@@ -532,13 +530,11 @@ else:
         #  question      = "Do you want to save the sequential scaling plot?"
         #  choices      = ['Yes', 'No']
         #  plot_storing = eg.choicebox(question, 'Plot', choices)
-        #  plot_storing = "Yes"
         plot_storing = "No"
 
         if plot_storing == 'Yes':
             question    = "What is the target directory for the pictures?";
-            #  motherpath  = eg.enterbox(question, title="path", default='C:\Users\\alber\Dropbox\Research\IP\Econophysics\Final Code Hurst Exponent\\');
-            motherpath  = '/home/jyscao/Upwork/matlab_powerlaw/outputs_TailAnalysis2/'
+            motherpath  = eg.enterbox(question, title="path", default='C:\Users\\alber\Dropbox\Research\IP\Econophysics\Final Code Hurst Exponent\\');
 
         initial_index   = database[0].index(initial_date)
         final_index     = database[0].index(final_date)
@@ -565,8 +561,7 @@ else:
         for i in xrange(1, N, 1):
 
             if plot_storing == 'Yes':
-                #  directory = motherpath + 'PowerLawAnimation\\' + labels[i - 1]
-                directory = motherpath + 'PowerLawAnimation/' + labels[i - 1] + '/'
+                directory = motherpath + 'PowerLawAnimation\\' + labels[i - 1]
                 try:
                     os.makedirs(directory)
                 except OSError:
@@ -594,8 +589,7 @@ else:
                     end_date   = database[0][l]
 
                 if plot_storing == 'Yes':
-                    #  subdirectory = directory + '\\' + begin_date[6:8] + '-' + begin_date[3:5] + '-' + begin_date[0:2] + '_' + end_date[6:8] + '-' + end_date[3:5] + '-' + end_date[0:2] + '\\'
-                    subdirectory = directory + begin_date[6:8] + '-' + begin_date[3:5] + '-' + begin_date[0:2] + '_' + end_date[6:8] + '-' + end_date[3:5] + '-' + end_date[0:2] + '\\'
+                    subdirectory = directory + '\\' + begin_date[6:8] + '-' + begin_date[3:5] + '-' + begin_date[0:2] + '_' + end_date[6:8] + '-' + end_date[3:5] + '-' + end_date[0:2] + '\\'
                     try:
                         os.makedirs(subdirectory)
                     except OSError:
@@ -675,7 +669,7 @@ else:
                         the_table.auto_set_font_size(False);
                         the_table.set_fontsize(10);
                         the_table.scale(0.5, 0.5);
-                        plt.savefig('Right-tail scaling_' + begin_date + '_' + end_date + '_' + labels[i - 1] + '.png')
+                        plt.savefig('Right-tail scaling_' + begin_date + '_' + end_date + '_' + labels[i - 1] + '.jpg')
                         plt.close()
                         
                         plt.figure('Right tail comparison for ' + labels[i - 1])
@@ -687,7 +681,7 @@ else:
                         fig4.set_title('Comparison of the distributions fitted on the right-tail for ' + labels[i - 1] + '\n' +'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input series: ' + lab)
                         fig4.grid()
                         fig4.legend()
-                        plt.savefig('Right-tail fitting comparison_' + begin_date + '_' + end_date + '_' + labels[i - 1] + '.png')
+                        plt.savefig('Right-tail fitting comparison_' + begin_date + '_' + end_date + '_' + labels[i - 1] + '.jpg')
                         plt.close()                      
 
                     if tail_selected == 'Left' or tail_selected == 'Both':
@@ -708,7 +702,7 @@ else:
                         the_table.auto_set_font_size(False);
                         the_table.set_fontsize(10);
                         the_table.scale(0.5, 0.5);
-                        plt.savefig('Left-tail scaling_' + begin_date + '_' + end_date + '_' + labels[i - 1] + '.png')
+                        plt.savefig('Left-tail scaling_' + begin_date + '_' + end_date + '_' + labels[i - 1] + '.jpg')
                         plt.close()
                         
                         plt.figure('Left tail comparison for ' + labels[i - 1])
@@ -720,55 +714,54 @@ else:
                         fig4.set_title('Comparison of the distributions fitted on the left-tail for ' + labels[i - 1] + '\n' +'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input series: ' + lab)
                         fig4.grid()
                         fig4.legend()
-                        plt.savefig('Left-tail fitting comparison_' + begin_date + '_' + end_date + '_' + labels[i - 1] + '.png')
+                        plt.savefig('Left-tail fitting comparison_' + begin_date + '_' + end_date + '_' + labels[i - 1] + '.jpg')
                         plt.close()                          
 
-                #  if tail_selected == 'Right' or tail_selected == 'Both':
-                #
-                #      positive_alpha_vec.append(alpha1)
-                #      positive_upper_bound.append(alpha1 + (st.norm.ppf(1 - multiplier * significance)) * s_err1)
-                #      positive_lower_bound.append(alpha1 - (st.norm.ppf(1 - multiplier * significance)) * s_err1)
-                #      positive_abs_length.append(len(filter(lambda x: x >= xmin1, tail_plus)))
-                #      positive_rel_length.append(len(filter(lambda x: x >= xmin1, tail_plus)) / float(len(tail_plus)))
-                #      p1     = eng.plpva(matlab.double(tail_plus.tolist()), float(xmin1), 'reps', float(c_iter), 'silent',nargout=2)
-                #      positive_alpha_KS.append(p1[0])
-                #
-                #      distribution_list = ['truncated_power_law','exponential','lognormal']
-                #      daily_r_ratio     = [];
-                #      daily_r_p         = []
-                #      for pdf in distribution_list:
-                #          R, p = fit_1.distribution_compare('power_law', pdf ,normalized_ratio = True)
-                #          daily_r_ratio.append(R);
-                #          daily_r_p.append(p);
-                #
-                #      loglikelihood_ratio_right.append(daily_r_ratio)
-                #      loglikelihood_pvalue_right.append(daily_r_p)
-                #
-                #  if tail_selected == 'Left' or tail_selected == 'Both':
-                #
-                #      negative_alpha_vec.append(alpha2)
-                #      negative_upper_bound.append(alpha2 + (st.norm.ppf(1 - multiplier * significance)) * s_err2)
-                #      negative_lower_bound.append(alpha2 - (st.norm.ppf(1 - multiplier * significance)) * s_err2)
-                #      negative_abs_length.append(len(filter(lambda x: x >= xmin2, tail_neg)))
-                #      negative_rel_length.append(len(filter(lambda x: x >= xmin2, tail_neg)) / float(len(tail_neg)))
-                #      p2     = eng.plpva(matlab.double(np.array(tail_neg).tolist()), float(xmin2), 'reps', float(c_iter),'silent', nargout=2)
-                #      negative_alpha_KS.append(p2[0])
-                #
-                #      distribution_list = ['truncated_power_law','exponential','lognormal']
-                #      daily_l_ratio     = [];
-                #      daily_l_p         = []
-                #      for pdf in distribution_list:
-                #          R, p = fit_2.distribution_compare('power_law', pdf ,normalized_ratio = True)
-                #          daily_l_ratio.append(R);
-                #          daily_l_p.append(p);
-                #
-                #      loglikelihood_ratio_left.append(daily_l_ratio)
-                #      loglikelihood_pvalue_left.append(daily_l_p)
+                if tail_selected == 'Right' or tail_selected == 'Both':
+
+                    positive_alpha_vec.append(alpha1)
+                    positive_upper_bound.append(alpha1 + (st.norm.ppf(1 - multiplier * significance)) * s_err1)
+                    positive_lower_bound.append(alpha1 - (st.norm.ppf(1 - multiplier * significance)) * s_err1)
+                    positive_abs_length.append(len(filter(lambda x: x >= xmin1, tail_plus)))
+                    positive_rel_length.append(len(filter(lambda x: x >= xmin1, tail_plus)) / float(len(tail_plus)))
+                    p1     = plpva.plpva(tail_plus.tolist(), float(xmin1), 'reps', c_iter, 'silent')
+                    positive_alpha_KS.append(p1[0])
+                    
+                    distribution_list = ['truncated_power_law','exponential','lognormal']
+                    daily_r_ratio     = []; 
+                    daily_r_p         = []
+                    for pdf in distribution_list:
+                        R, p = fit_1.distribution_compare('power_law', pdf ,normalized_ratio = True)
+                        daily_r_ratio.append(R); 
+                        daily_r_p.append(p);
+                        
+                    loglikelihood_ratio_right.append(daily_r_ratio)
+                    loglikelihood_pvalue_right.append(daily_r_p)
+
+                if tail_selected == 'Left' or tail_selected == 'Both':
+
+                    negative_alpha_vec.append(alpha2)
+                    negative_upper_bound.append(alpha2 + (st.norm.ppf(1 - multiplier * significance)) * s_err2)
+                    negative_lower_bound.append(alpha2 - (st.norm.ppf(1 - multiplier * significance)) * s_err2)
+                    negative_abs_length.append(len(filter(lambda x: x >= xmin2, tail_neg)))
+                    negative_rel_length.append(len(filter(lambda x: x >= xmin2, tail_neg)) / float(len(tail_neg)))
+                    p2     = plpva.plpva(np.array(tail_neg).tolist(), float(xmin2), 'reps', c_iter,'silent')
+                    negative_alpha_KS.append(p2[0])
+                    
+                    distribution_list = ['truncated_power_law','exponential','lognormal']
+                    daily_l_ratio     = []; 
+                    daily_l_p         = []
+                    for pdf in distribution_list:
+                        R, p = fit_2.distribution_compare('power_law', pdf ,normalized_ratio = True)
+                        daily_l_ratio.append(R); 
+                        daily_l_p.append(p);
+                        
+                    loglikelihood_ratio_left.append(daily_l_ratio)
+                    loglikelihood_pvalue_left.append(daily_l_p)                    
 
                 if tail_selected == 'Both':
-                    #  row = [alpha1, alpha2, xmin1, xmin2, s_err1, s_err2, len(filter(lambda x: x >= xmin1, tail_plus)), len(filter(lambda x: x >= xmin2, tail_neg)), p1[0], p2[0], \
-                           #  daily_r_ratio[0],daily_r_ratio[1],daily_r_ratio[2],daily_r_p[0],daily_r_p[1],daily_r_p[2],daily_l_ratio[0],daily_l_ratio[1],daily_l_ratio[2],daily_l_p[0],daily_l_p[1],daily_l_p[2]]
-                    row = [alpha1, alpha2, xmin1, xmin2, s_err1, s_err2, len(filter(lambda x: x >= xmin1, tail_plus)), len(filter(lambda x: x >= xmin2, tail_neg))] + [0 for x in range(14)]
+                    row = [alpha1, alpha2, xmin1, xmin2, s_err1, s_err2, len(filter(lambda x: x >= xmin1, tail_plus)), len(filter(lambda x: x >= xmin2, tail_neg)), p1[0], p2[0], \
+                           daily_r_ratio[0],daily_r_ratio[1],daily_r_ratio[2],daily_r_p[0],daily_r_p[1],daily_r_p[2],daily_l_ratio[0],daily_l_ratio[1],daily_l_ratio[2],daily_l_p[0],daily_l_p[1],daily_l_p[2]]
                 if tail_selected == 'Right':
                     row = [alpha1, 0,      xmin1, 0,     s_err1, 0,      len(filter(lambda x: x >= xmin1, tail_plus)), 0,                                           p1[0], 0,\
                            daily_r_ratio[0],daily_r_ratio[1],daily_r_ratio[2],daily_r_p[0],daily_r_p[1],daily_r_p[2],0,0,0,0,0,0]
@@ -794,196 +787,196 @@ else:
                 z.plot(negative_alpha_vec, label='Left tail')
                 z.xlim(xmin=0.0, xmax=len(negative_alpha_vec) - 1)
 
-            #  z.ylabel(r'$\alpha$')
-            #  z.title('Time evolution of the parameter ' + r'$\alpha$' + ' for ' + labels[i - 1] + "\n" + "Time period: " + dates[0] + " - " + dates[-1])
-            #  z.xticks(xrange(0, len(spec_dates), spec_labelstep), [el[3:] for el in spec_dates[0::spec_labelstep]],rotation='vertical')
-            #  z.grid()
-            #  z.legend()
-            #  # A table with the four statistical moments is built
-            #  col_labels = ['Tail', r'$E[\alpha]$', 'Median', r'$\sigma(\alpha)$', 'min', 'max'];
-            #  table_vals = []
-            #  if tail_selected == 'Right' or tail_selected == 'Both':
-            #      table_vals.append(['Right', np.round(np.mean(positive_alpha_vec), 4), np.round(np.median(positive_alpha_vec), 4),np.round(np.std(positive_alpha_vec), 4), np.round(np.min(positive_alpha_vec), 4),np.round(np.max(positive_alpha_vec), 4)])
-            #  if tail_selected == 'Left' or tail_selected == 'Both':
-            #      table_vals.append(['Left', np.round(np.mean(negative_alpha_vec), 4), np.round(np.median(negative_alpha_vec), 4),np.round(np.std(negative_alpha_vec), 4), np.round(np.min(negative_alpha_vec), 4),np.round(np.max(negative_alpha_vec), 4)])
+            z.ylabel(r'$\alpha$')
+            z.title('Time evolution of the parameter ' + r'$\alpha$' + ' for ' + labels[i - 1] + "\n" + "Time period: " + dates[0] + " - " + dates[-1])
+            z.xticks(xrange(0, len(spec_dates), spec_labelstep), [el[3:] for el in spec_dates[0::spec_labelstep]],rotation='vertical')
+            z.grid()
+            z.legend()
+            # A table with the four statistical moments is built
+            col_labels = ['Tail', r'$E[\alpha]$', 'Median', r'$\sigma(\alpha)$', 'min', 'max'];
+            table_vals = []
+            if tail_selected == 'Right' or tail_selected == 'Both':
+                table_vals.append(['Right', np.round(np.mean(positive_alpha_vec), 4), np.round(np.median(positive_alpha_vec), 4),np.round(np.std(positive_alpha_vec), 4), np.round(np.min(positive_alpha_vec), 4),np.round(np.max(positive_alpha_vec), 4)])
+            if tail_selected == 'Left' or tail_selected == 'Both':
+                table_vals.append(['Left', np.round(np.mean(negative_alpha_vec), 4), np.round(np.median(negative_alpha_vec), 4),np.round(np.std(negative_alpha_vec), 4), np.round(np.min(negative_alpha_vec), 4),np.round(np.max(negative_alpha_vec), 4)])
 
-            #  the_table = plt.table(cellText=table_vals, cellLoc='center', colLabels=col_labels, loc="bottom",bbox=[0.0, -0.26, 1.0, 0.10])
-            #  the_table.auto_set_font_size(False);
-            #  the_table.set_fontsize(10);
-            #  the_table.scale(0.5, 0.5);
-            #  #z.show()
-            #  #z.show()
+            the_table = plt.table(cellText=table_vals, cellLoc='center', colLabels=col_labels, loc="bottom",bbox=[0.0, -0.26, 1.0, 0.10])
+            the_table.auto_set_font_size(False);
+            the_table.set_fontsize(10);
+            the_table.scale(0.5, 0.5);
+            #z.show()
+            #z.show()
 
             # Plot the alpha exponent confidence interval in time
-            #  if tail_selected == 'Both' or tail_selected == 'Right':
-            #
-            #      z.figure('Time rolling CI for right tail for ' + labels[i - 1])
-            #      z.gca().set_position((.1, .20, .83, .70))
-            #      z.plot(positive_alpha_vec, color='green', label='Right tail')
-            #      z.plot(positive_upper_bound, color='purple', label='Upper bound')
-            #      z.plot(positive_lower_bound, color='blue', label='Lower bound')
-            #      z.plot(np.repeat(3, len(positive_alpha_vec) + 2), color='red')
-            #      z.plot(np.repeat(2, len(positive_alpha_vec) + 2), color='red')
-            #      z.ylabel(r'$\alpha$')
-            #      z.xlim(xmin=0.0, xmax=len(positive_alpha_vec) - 1)
-            #      z.xticks(xrange(0, len(spec_dates), spec_labelstep), [el[3:] for el in spec_dates[0::spec_labelstep]],rotation='vertical')
-            #      z.title('Rolling confidence intervals for the ' + r'$\alpha$' + '-right tail exponents ' + '(c = ' + str(1 - significance) + ')' + '\n' + 'Ticker: ' + labels[i - 1] + '.Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
-            #      z.legend(bbox_to_anchor=(0.0, -0.175, 1.0, .02), ncol=3, mode="expand", borderaxespad=0)
-            #      z.grid()
-            #      #z.show()
-            #
-            #      z.figure('Time rolling size for right tail for ' + labels[i - 1])
-            #      z.gca().set_position((.1, .20, .83, .70))
-            #      z.plot(positive_abs_length, color='green', label='Right tail')
-            #      if tail_selected == 'Both':
-            #          z.plot(negative_abs_length, color='purple', label='Left tail')
-            #      z.ylabel('Tail length')
-            #      z.xlim(xmin=0.0, xmax=len(positive_abs_length) - 1)
-            #      z.xticks(xrange(0, len(spec_dates), spec_labelstep), [el[3:] for el in spec_dates[0::spec_labelstep]],rotation='vertical')
-            #      z.title('Rolling tail length for :' + labels[i - 1] + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
-            #      z.legend()
-            #      z.grid()
-            #      #z.show()
-            #
-            #      z.figure('Time rolling relative size for right tail for ' + labels[i - 1])
-            #      z.gca().set_position((.1, .20, .83, .70))
-            #      z.plot(positive_rel_length, color='green', label='Right tail')
-            #      if tail_selected == 'Both':
-            #          z.plot(negative_rel_length, color='purple', label='Left tail')
-            #      z.ylabel('Relative tail length')
-            #      z.xlim(xmin=0.0, xmax=len(positive_rel_length) - 1)
-            #      z.xticks(xrange(0, len(spec_dates), spec_labelstep), [el[3:] for el in spec_dates[0::spec_labelstep]],rotation='vertical')
-            #      z.title('Rolling relative tail length for :' + labels[i - 1] + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
-            #      z.legend()
-            #      z.grid()
-            #      #z.show()
-            #
-            #      z.figure('Time rolling KS test for right tail for ' + labels[i - 1])
-            #      z.gca().set_position((.1, .20, .83, .70))
-            #      z.plot(positive_alpha_KS, color='green', label='Right tail')
-            #      if tail_selected == 'Both':
-            #          z.plot(negative_alpha_KS, color='purple', label='Left tail')
-            #      z.ylabel('p-value')
-            #      z.xlim(xmin=0.0, xmax=len(positive_abs_length) - 1)
-            #      z.xticks(xrange(0, len(spec_dates), spec_labelstep), [el[3:] for el in spec_dates[0::spec_labelstep]],rotation='vertical')
-            #      z.title('KS-statistics: rolling p-value obtained from Clauset algorithm for ' + labels[i - 1] + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
-            #      z.legend()
-            #      z.grid()
-            #      #z.show()
-            #
-            #      # Plotting the histograms for the rolling alpha
-            #
-            #      z.figure('Histogram of positive tail alphas for ' + labels[i - 1], figsize=(8, 6), dpi=100);
-            #      z.gca().set_position((.1, .20, .83, .70))
-            #      IQR   = np.percentile(positive_alpha_vec, 75) - np.percentile(positive_alpha_vec, 25);
-            #      h     = 2 * IQR * np.power(len(positive_alpha_vec), - 1.0 / 3.0);
-            #      nbins = np.int((np.max(positive_alpha_vec) - np.min(positive_alpha_vec)) / float(h))
-            #      # Building the histogram and plotting the relevant vertical lines
-            #      z.hist(positive_alpha_vec, nbins, color='red');
-            #      out1, bins = z.histogram(positive_alpha_vec, nbins)
-            #      z.plot(np.repeat(np.mean(positive_alpha_vec), np.max(out1) + 1), xrange(0, np.max(out1) + 1, 1), color='blue', linewidth=1.5,label=r'$E[\hat{\alpha}]$');
-            #      # Adding the labels, the axis limits, legend and grid
-            #      z.xlabel(lab);
-            #      z.ylabel('Absolute frequency');
-            #      z.title('Empirical distribution (right tail) of the rolling ' + r'$\hat{\alpha}$' + ' for ' + labels[i - 1] + '\n' + "Time period: " + dates[0] + " - " + dates[-1])
-            #      z.xlim(xmin=np.min(positive_alpha_vec), xmax=np.max(positive_alpha_vec));
-            #      z.ylim(ymin=0, ymax=np.max(out1));
-            #      z.legend();
-            #      z.grid()
-            #      # A table with the four statistical moments is built
-            #      col_labels = [r'$E[\hat{\alpha}]$', r'$\sigma (\hat{\alpha})$', 'min', 'max'];
-            #      table_vals = []
-            #      table_vals.append([np.round(np.mean(positive_alpha_vec), 4), np.round(np.std(positive_alpha_vec), 4), np.round(np.min(positive_alpha_vec), 4), np.round(np.max(positive_alpha_vec), 4)])
-            #      the_table  = plt.table(cellText=table_vals, cellLoc='center', colLabels=col_labels, loc="bottom",bbox=[0.0, -0.26, 1.0, 0.10])
-            #      the_table.auto_set_font_size(False);
-            #      the_table.set_fontsize(10);
-            #      the_table.scale(0.5, 0.5);
-            #      #z.show()
-            #
-            #  if tail_selected == 'Both' or tail_selected == 'Left':
-            #
-            #      z.figure('Time rolling CI for left tail for ' + labels[i - 1])
-            #      z.gca().set_position((.1, .20, .83, .70))
-            #      z.plot(negative_alpha_vec, color='green', label='Right tail')
-            #      z.plot(negative_upper_bound, color='purple', label='Upper bound')
-            #      z.plot(negative_lower_bound, color='blue', label='Lower bound')
-            #      z.plot(np.repeat(3, len(negative_alpha_vec) + 2), color='red')
-            #      z.plot(np.repeat(2, len(negative_alpha_vec) + 2), color='red')
-            #      z.ylabel(r'$\alpha$')
-            #      z.xlim(xmin=0.0, xmax=len(negative_alpha_vec) - 1)
-            #      z.xticks(xrange(0, len(spec_dates), spec_labelstep), [el[3:] for el in spec_dates[0::spec_labelstep]],rotation='vertical')
-            #      z.title('Rolling confidence intervals for the ' + r'$\alpha$' + '-left tail exponents ' + '(c = ' + str(1 - significance) + ')' + '\n' + 'Ticker: ' + labels[i - 1] + '.Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
-            #      z.legend(bbox_to_anchor=(0.0, -0.175, 1.0, .02), ncol=3, mode="expand", borderaxespad=0)
-            #      z.grid()
-            #      #z.show()
-            #
-            #      z.figure('Time rolling size for left tail for ' + labels[i - 1])
-            #      z.gca().set_position((.1, .20, .83, .70))
-            #      z.plot(negative_abs_length, color='purple', label='Left tail')
-            #      if tail_selected == 'Both':
-            #          z.plot(positive_abs_length, color='green', label='Right tail')
-            #      z.ylabel('Tail length')
-            #      z.xlim(xmin=0.0, xmax=len(negative_abs_length) - 1)
-            #      z.xticks(xrange(0, len(spec_dates), spec_labelstep), [el[3:] for el in spec_dates[0::spec_labelstep]],rotation='vertical')
-            #      z.title('Rolling tail length for :' + labels[i - 1] + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
-            #      z.legend()
-            #      z.grid()
-            #      #z.show()
-            #
-            #      z.figure('Time rolling relative size for left tail for ' + labels[i - 1])
-            #      z.gca().set_position((.1, .20, .83, .70))
-            #      z.plot(negative_rel_length, color='purple', label='Left tail')
-            #      if tail_selected == 'Both':
-            #          z.plot(positive_rel_length, color='green', label='Right tail')
-            #      z.ylabel('Relative tail length')
-            #      z.xlim(xmin=0.0, xmax=len(negative_rel_length) - 1)
-            #      z.xticks(xrange(0, len(spec_dates), spec_labelstep), [el[3:] for el in spec_dates[0::spec_labelstep]],rotation='vertical')
-            #      z.title('Rolling relative tail length for :' + labels[i - 1] + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
-            #      z.legend()
-            #      z.grid()
-            #      #z.show()
-            #
-            #      z.figure('Time rolling KS test for left tail for ' + labels[i - 1])
-            #      z.gca().set_position((.1, .20, .83, .70))
-            #      z.plot(negative_alpha_KS, color='purple', label='Left tail')
-            #      if tail_selected == 'Both':
-            #          z.plot(positive_alpha_KS, color='green', label='Right tail')
-            #      z.ylabel('p-value')
-            #      z.xlim(xmin=0.0, xmax=len(negative_abs_length) - 1)
-            #      z.xticks(xrange(0, len(spec_dates), spec_labelstep), [el[3:] for el in spec_dates[0::spec_labelstep]],rotation='vertical')
-            #      z.title('KS-statistics: rolling p-value obtained from Clauset algorithm for ' + labels[i - 1] + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
-            #      z.legend()
-            #      z.grid()
-            #      #z.show()
-            #
-            #      # Plotting the histograms for the rolling alpha
-            #
-            #      z.figure('Histogram of negative tail alphas for ' + labels[i - 1], figsize=(8, 6), dpi=100);
-            #      z.gca().set_position((.1, .20, .83, .70))
-            #      IQR   = np.percentile(negative_alpha_vec, 75) - np.percentile(negative_alpha_vec, 25);
-            #      h     = 2 * IQR * np.power(len(negative_alpha_vec), - 1.0 / 3.0);
-            #      nbins = np.int((np.max(negative_alpha_vec) - np.min(negative_alpha_vec)) / float(h))
-            #      # Building the histogram and plotting the relevant vertical lines
-            #      z.hist(negative_alpha_vec, nbins, color='red');
-            #      out1, bins = z.histogram(negative_alpha_vec, nbins)
-            #      z.plot(np.repeat(np.mean(negative_alpha_vec), np.max(out1) + 1), xrange(0, np.max(out1) + 1, 1), color='blue', linewidth=1.5, label=r'$E[\hat{\alpha}]$');
-            #      # Adding the labels, the axis limits, legend and grid
-            #      z.xlabel(lab);
-            #      z.ylabel('Absolute frequency');
-            #      z.title('Empirical distribution (left tail) of the rolling ' + r'$\hat{\alpha}$' + ' for ' + labels[i - 1] + '\n' + "Time period: " + dates[0] + " - " + dates[-1])
-            #      z.xlim(xmin=np.min(negative_alpha_vec), xmax=np.max(negative_alpha_vec));
-            #      z.ylim(ymin=0, ymax=np.max(out1));
-            #      z.legend();
-            #      z.grid()
-            #      # A table with the four statistical moments is built
-            #      col_labels = [r'$E[\hat{\alpha}]$', r'$\sigma (\hat{\alpha})$', 'min', 'max'];
-            #      table_vals = []
-            #      table_vals.append([np.round(np.mean(negative_alpha_vec), 4), np.round(np.std(negative_alpha_vec), 4), np.round(np.min(negative_alpha_vec), 4), np.round(np.max(negative_alpha_vec), 4)])
-            #      the_table = plt.table(cellText=table_vals, cellLoc='center', colLabels=col_labels, loc="bottom",bbox=[0.0, -0.26, 1.0, 0.10])
-            #      the_table.auto_set_font_size(False);
-            #      the_table.set_fontsize(10);
-            #      the_table.scale(0.5, 0.5);
-            #      #z.show()
+            if tail_selected == 'Both' or tail_selected == 'Right':
+
+                z.figure('Time rolling CI for right tail for ' + labels[i - 1])
+                z.gca().set_position((.1, .20, .83, .70))
+                z.plot(positive_alpha_vec, color='green', label='Right tail')
+                z.plot(positive_upper_bound, color='purple', label='Upper bound')
+                z.plot(positive_lower_bound, color='blue', label='Lower bound')
+                z.plot(np.repeat(3, len(positive_alpha_vec) + 2), color='red')
+                z.plot(np.repeat(2, len(positive_alpha_vec) + 2), color='red')
+                z.ylabel(r'$\alpha$')
+                z.xlim(xmin=0.0, xmax=len(positive_alpha_vec) - 1)
+                z.xticks(xrange(0, len(spec_dates), spec_labelstep), [el[3:] for el in spec_dates[0::spec_labelstep]],rotation='vertical')
+                z.title('Rolling confidence intervals for the ' + r'$\alpha$' + '-right tail exponents ' + '(c = ' + str(1 - significance) + ')' + '\n' + 'Ticker: ' + labels[i - 1] + '.Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
+                z.legend(bbox_to_anchor=(0.0, -0.175, 1.0, .02), ncol=3, mode="expand", borderaxespad=0)
+                z.grid()
+                #z.show()
+
+                z.figure('Time rolling size for right tail for ' + labels[i - 1])
+                z.gca().set_position((.1, .20, .83, .70))
+                z.plot(positive_abs_length, color='green', label='Right tail')
+                if tail_selected == 'Both':
+                    z.plot(negative_abs_length, color='purple', label='Left tail')
+                z.ylabel('Tail length')
+                z.xlim(xmin=0.0, xmax=len(positive_abs_length) - 1)
+                z.xticks(xrange(0, len(spec_dates), spec_labelstep), [el[3:] for el in spec_dates[0::spec_labelstep]],rotation='vertical')
+                z.title('Rolling tail length for :' + labels[i - 1] + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
+                z.legend()
+                z.grid()
+                #z.show()
+
+                z.figure('Time rolling relative size for right tail for ' + labels[i - 1])
+                z.gca().set_position((.1, .20, .83, .70))
+                z.plot(positive_rel_length, color='green', label='Right tail')
+                if tail_selected == 'Both':
+                    z.plot(negative_rel_length, color='purple', label='Left tail')
+                z.ylabel('Relative tail length')
+                z.xlim(xmin=0.0, xmax=len(positive_rel_length) - 1)
+                z.xticks(xrange(0, len(spec_dates), spec_labelstep), [el[3:] for el in spec_dates[0::spec_labelstep]],rotation='vertical')
+                z.title('Rolling relative tail length for :' + labels[i - 1] + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
+                z.legend()
+                z.grid()
+                #z.show()
+
+                z.figure('Time rolling KS test for right tail for ' + labels[i - 1])
+                z.gca().set_position((.1, .20, .83, .70))
+                z.plot(positive_alpha_KS, color='green', label='Right tail')
+                if tail_selected == 'Both':
+                    z.plot(negative_alpha_KS, color='purple', label='Left tail')
+                z.ylabel('p-value')
+                z.xlim(xmin=0.0, xmax=len(positive_abs_length) - 1)
+                z.xticks(xrange(0, len(spec_dates), spec_labelstep), [el[3:] for el in spec_dates[0::spec_labelstep]],rotation='vertical')
+                z.title('KS-statistics: rolling p-value obtained from Clauset algorithm for ' + labels[i - 1] + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
+                z.legend()
+                z.grid()
+                #z.show()
+
+                # Plotting the histograms for the rolling alpha
+
+                z.figure('Histogram of positive tail alphas for ' + labels[i - 1], figsize=(8, 6), dpi=100);
+                z.gca().set_position((.1, .20, .83, .70))
+                IQR   = np.percentile(positive_alpha_vec, 75) - np.percentile(positive_alpha_vec, 25);
+                h     = 2 * IQR * np.power(len(positive_alpha_vec), - 1.0 / 3.0);
+                nbins = np.int((np.max(positive_alpha_vec) - np.min(positive_alpha_vec)) / float(h))
+                # Building the histogram and plotting the relevant vertical lines
+                z.hist(positive_alpha_vec, nbins, color='red');
+                out1, bins = z.histogram(positive_alpha_vec, nbins)
+                z.plot(np.repeat(np.mean(positive_alpha_vec), np.max(out1) + 1), xrange(0, np.max(out1) + 1, 1), color='blue', linewidth=1.5,label=r'$E[\hat{\alpha}]$');
+                # Adding the labels, the axis limits, legend and grid
+                z.xlabel(lab);
+                z.ylabel('Absolute frequency');
+                z.title('Empirical distribution (right tail) of the rolling ' + r'$\hat{\alpha}$' + ' for ' + labels[i - 1] + '\n' + "Time period: " + dates[0] + " - " + dates[-1])
+                z.xlim(xmin=np.min(positive_alpha_vec), xmax=np.max(positive_alpha_vec));
+                z.ylim(ymin=0, ymax=np.max(out1));
+                z.legend();
+                z.grid()
+                # A table with the four statistical moments is built
+                col_labels = [r'$E[\hat{\alpha}]$', r'$\sigma (\hat{\alpha})$', 'min', 'max'];
+                table_vals = []
+                table_vals.append([np.round(np.mean(positive_alpha_vec), 4), np.round(np.std(positive_alpha_vec), 4), np.round(np.min(positive_alpha_vec), 4), np.round(np.max(positive_alpha_vec), 4)])
+                the_table  = plt.table(cellText=table_vals, cellLoc='center', colLabels=col_labels, loc="bottom",bbox=[0.0, -0.26, 1.0, 0.10])
+                the_table.auto_set_font_size(False);
+                the_table.set_fontsize(10);
+                the_table.scale(0.5, 0.5);
+                #z.show()
+
+            if tail_selected == 'Both' or tail_selected == 'Left':
+
+                z.figure('Time rolling CI for left tail for ' + labels[i - 1])
+                z.gca().set_position((.1, .20, .83, .70))
+                z.plot(negative_alpha_vec, color='green', label='Right tail')
+                z.plot(negative_upper_bound, color='purple', label='Upper bound')
+                z.plot(negative_lower_bound, color='blue', label='Lower bound')
+                z.plot(np.repeat(3, len(negative_alpha_vec) + 2), color='red')
+                z.plot(np.repeat(2, len(negative_alpha_vec) + 2), color='red')
+                z.ylabel(r'$\alpha$')
+                z.xlim(xmin=0.0, xmax=len(negative_alpha_vec) - 1)
+                z.xticks(xrange(0, len(spec_dates), spec_labelstep), [el[3:] for el in spec_dates[0::spec_labelstep]],rotation='vertical')
+                z.title('Rolling confidence intervals for the ' + r'$\alpha$' + '-left tail exponents ' + '(c = ' + str(1 - significance) + ')' + '\n' + 'Ticker: ' + labels[i - 1] + '.Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
+                z.legend(bbox_to_anchor=(0.0, -0.175, 1.0, .02), ncol=3, mode="expand", borderaxespad=0)
+                z.grid()
+                #z.show()
+
+                z.figure('Time rolling size for left tail for ' + labels[i - 1])
+                z.gca().set_position((.1, .20, .83, .70))
+                z.plot(negative_abs_length, color='purple', label='Left tail')
+                if tail_selected == 'Both':
+                    z.plot(positive_abs_length, color='green', label='Right tail')
+                z.ylabel('Tail length')
+                z.xlim(xmin=0.0, xmax=len(negative_abs_length) - 1)
+                z.xticks(xrange(0, len(spec_dates), spec_labelstep), [el[3:] for el in spec_dates[0::spec_labelstep]],rotation='vertical')
+                z.title('Rolling tail length for :' + labels[i - 1] + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
+                z.legend()
+                z.grid()
+                #z.show()
+
+                z.figure('Time rolling relative size for left tail for ' + labels[i - 1])
+                z.gca().set_position((.1, .20, .83, .70))
+                z.plot(negative_rel_length, color='purple', label='Left tail')
+                if tail_selected == 'Both':
+                    z.plot(positive_rel_length, color='green', label='Right tail')
+                z.ylabel('Relative tail length')
+                z.xlim(xmin=0.0, xmax=len(negative_rel_length) - 1)
+                z.xticks(xrange(0, len(spec_dates), spec_labelstep), [el[3:] for el in spec_dates[0::spec_labelstep]],rotation='vertical')
+                z.title('Rolling relative tail length for :' + labels[i - 1] + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
+                z.legend()
+                z.grid()
+                #z.show()
+
+                z.figure('Time rolling KS test for left tail for ' + labels[i - 1])
+                z.gca().set_position((.1, .20, .83, .70))
+                z.plot(negative_alpha_KS, color='purple', label='Left tail')
+                if tail_selected == 'Both':
+                    z.plot(positive_alpha_KS, color='green', label='Right tail')
+                z.ylabel('p-value')
+                z.xlim(xmin=0.0, xmax=len(negative_abs_length) - 1)
+                z.xticks(xrange(0, len(spec_dates), spec_labelstep), [el[3:] for el in spec_dates[0::spec_labelstep]],rotation='vertical')
+                z.title('KS-statistics: rolling p-value obtained from Clauset algorithm for ' + labels[i - 1] + '\n' + 'Time Period: ' + dates[0] + ' - ' + dates[-1] + '. Input: ' + lab)
+                z.legend()
+                z.grid()
+                #z.show()
+
+                # Plotting the histograms for the rolling alpha
+
+                z.figure('Histogram of negative tail alphas for ' + labels[i - 1], figsize=(8, 6), dpi=100);
+                z.gca().set_position((.1, .20, .83, .70))
+                IQR   = np.percentile(negative_alpha_vec, 75) - np.percentile(negative_alpha_vec, 25);
+                h     = 2 * IQR * np.power(len(negative_alpha_vec), - 1.0 / 3.0);
+                nbins = np.int((np.max(negative_alpha_vec) - np.min(negative_alpha_vec)) / float(h))
+                # Building the histogram and plotting the relevant vertical lines
+                z.hist(negative_alpha_vec, nbins, color='red');
+                out1, bins = z.histogram(negative_alpha_vec, nbins)
+                z.plot(np.repeat(np.mean(negative_alpha_vec), np.max(out1) + 1), xrange(0, np.max(out1) + 1, 1), color='blue', linewidth=1.5, label=r'$E[\hat{\alpha}]$');
+                # Adding the labels, the axis limits, legend and grid
+                z.xlabel(lab);
+                z.ylabel('Absolute frequency');
+                z.title('Empirical distribution (left tail) of the rolling ' + r'$\hat{\alpha}$' + ' for ' + labels[i - 1] + '\n' + "Time period: " + dates[0] + " - " + dates[-1])
+                z.xlim(xmin=np.min(negative_alpha_vec), xmax=np.max(negative_alpha_vec));
+                z.ylim(ymin=0, ymax=np.max(out1));
+                z.legend();
+                z.grid()
+                # A table with the four statistical moments is built
+                col_labels = [r'$E[\hat{\alpha}]$', r'$\sigma (\hat{\alpha})$', 'min', 'max'];
+                table_vals = []
+                table_vals.append([np.round(np.mean(negative_alpha_vec), 4), np.round(np.std(negative_alpha_vec), 4), np.round(np.min(negative_alpha_vec), 4), np.round(np.max(negative_alpha_vec), 4)])
+                the_table = plt.table(cellText=table_vals, cellLoc='center', colLabels=col_labels, loc="bottom",bbox=[0.0, -0.26, 1.0, 0.10])
+                the_table.auto_set_font_size(False);
+                the_table.set_fontsize(10);
+                the_table.scale(0.5, 0.5);
+                #z.show()
 
             # Print the figures
             matrix_form = np.array(tail_statistics)
