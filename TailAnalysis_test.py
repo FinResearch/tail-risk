@@ -60,11 +60,7 @@ database_name = "dbMSTR_test.csv"
 
 no_entries = 1
 fieldNames = ["# " + str(i) for i in range(1, no_entries + 1, 1)]
-fieldValues = [
-    "DE 01Y",
-    "DE 03Y",
-    "DE 05Y",
-    "DE 10Y", ]
+fieldValues = ["DE 01Y"]  # , "DE 03Y", "DE 05Y", "DE 10Y"]
 labels = fieldValues
 
 database = Extractor(database_name, labels)
@@ -1408,8 +1404,10 @@ else:
                     xmin2,
                     s_err1,
                     s_err2,
-                    len(filter(lambda x: x >= xmin1, tail_plus)),
-                    len(filter(lambda x: x >= xmin2, tail_neg)),
+                    #  len(filter(lambda x: x >= xmin1, tail_plus)),
+                    #  len(filter(lambda x: x >= xmin2, tail_neg)),
+                    len(tail_plus[tail_plus >= xmin1]),
+                    len(tail_neg[tail_neg >= xmin2]),
                     p1[0],
                     p2[0],
                     daily_r_ratio[0],
