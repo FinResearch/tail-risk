@@ -87,7 +87,7 @@ def plpva(x, xmin, vec=numpy.arange(1.50, 3.51, 0.01), reps=1000, quiet=False, *
         
         # compute distribution of gofs from semi-parametric bootstrap
         # of entire data set with fit
-        for B in xrange(reps):
+        for B in range(reps):
             # semi-parametric bootstrap of data
             n1 = sum(numpy.random.random(N) > pz)
             q1 = y[numpy.array(numpy.floor(ny*numpy.random.random(n1)), dtype='int32')]
@@ -148,7 +148,7 @@ def plpva(x, xmin, vec=numpy.arange(1.50, 3.51, 0.01), reps=1000, quiet=False, *
 
         L     = - numpy.inf * numpy.ones(len(vec))
         slogz = sum(numpy.log(z))
-        for k in xrange(len(vec)):
+        for k in range(len(vec)):
             L[k] = - nz*numpy.log(zvec[k]) - vec[k]*slogz # (3.5) (B.8)
         Y, I  = L.max(0), L.argmax(0)
         alpha = vec[I]
@@ -165,7 +165,7 @@ def plpva(x, xmin, vec=numpy.arange(1.50, 3.51, 0.01), reps=1000, quiet=False, *
 
         # compute distribution of gofs from semi-parametric bootstrap
         # of entire data set with fit
-        for B in xrange(reps):
+        for B in range(reps):
             # semi-parametric bootstrap of data
             n1 = sum(numpy.random.random(N) > pz)
             q1 = y[numpy.array(numpy.floor(ny*numpy.random.random(n1)), dtype='int32')]
@@ -176,7 +176,7 @@ def plpva(x, xmin, vec=numpy.arange(1.50, 3.51, 0.01), reps=1000, quiet=False, *
             c  = 0
             q2 = numpy.zeros(n2)
             k  = 0
-            for i in xrange(int(xmin), int(mmax+2)):
+            for i in range(int(xmin), int(mmax+2)):
                while c<len(r2) and r2[c]<=cdf[1,i-1]:
                    c=c+1
                q2[k:c] = i
@@ -211,7 +211,7 @@ def plpva(x, xmin, vec=numpy.arange(1.50, 3.51, 0.01), reps=1000, quiet=False, *
                         # iterative version (more memory efficient, but slower)
                         print("except")
                         L = - numpy.inf * numpy.ones(len(vec))
-                        for k in xrange(len(vec)):
+                        for k in range(len(vec)):
                             L[k] = - nq*numpy.log(zvec[k]) - vec[k]*slogzq # (3.5) (B.8)
                     Y, I = L.max(0), L.argmax(0)
                 
