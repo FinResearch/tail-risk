@@ -25,7 +25,7 @@ def Extractor(filename, tickers):
         try:
             output.append((object[tickers[i]].values).tolist())
         except KeyError:
-            print "Ticker " + tickers[i] + " not found in " + filename
+            print("Ticker " + tickers[i] + " not found in " + filename)
 
     return output
 
@@ -39,13 +39,15 @@ def PowerLawFit(data, data_nature, xmin_rule, *args):
             fit = pl.Fit(filter(lambda x: x != 0, data), xmin=args[0])
         else:
             fit = pl.Fit(
-                filter(lambda x: x != 0, data), xmin=np.percentile(data, args[1])
+                filter(lambda x: x != 0, data),
+                xmin=np.percentile(data, args[1])
             )
     else:
         if xmin_rule == "Clauset":
             fit = pl.Fit(filter(lambda x: x != 0, data), discrete=True)
         elif xmin_rule == "Manual":
-            fit = pl.Fit(filter(lambda x: x != 0, data), discrete=True, xmin=args[0])
+            fit = pl.Fit(filter(lambda x: x != 0, data),
+                         discrete=True, xmin=args[0])
         else:
             fit = pl.Fit(
                 filter(lambda x: x != 0, data),
@@ -64,8 +66,8 @@ def PowerLawFit(data, data_nature, xmin_rule, *args):
 database_name = "dbMSTR_test.csv"
 
 
-#  question       = "How many entries would you like to analyze?"
-#  no_entries       = int(eg.enterbox(question, title="No. entries", default="4"))
+#  question = "How many entries would you like to analyze?"
+#  no_entries = int(eg.enterbox(question, title="No. entries", default="4"))
 no_entries = 1
 fieldNames = ["# " + str(i) for i in xrange(1, no_entries + 1, 1)]
 fieldValues = [
@@ -211,12 +213,10 @@ if approach == "Static":
         loglikelihood_ratio_left = []
         loglikelihood_pvalue_left = []
 
-        print "I am analyzing the time series for " + labels[
-            i - 1
-        ] + " between " + dates[0] + " and " + dates[-1]
+        print("I am analyzing the time series for " + labels[i - 1] + " between " + dates[0] + " and " + dates[-1])
         series = database[i][initial_index : (final_index + 1)]
 
-        print "You opted for the analysis of the " + input_type
+        print("You opted for the analysis of the " + input_type)
         if input_type == "Returns":
             X = np.array(series[tau:]) - np.array(series[0 : (len(series) - tau)])
             lab = "P(t+" + str(tau) + ") - P(t)"
@@ -231,7 +231,7 @@ if approach == "Static":
 
         if standardize == "Yes":
             if standardize_target == "Full Series":
-                print "I am standardizing your time series"
+                print("I am standardizing your time series")
                 S = X
                 m = np.mean(S)
                 v = np.std(S)
@@ -239,7 +239,7 @@ if approach == "Static":
 
         if abs_value == "Yes":
             if abs_target == "Full Series":
-                print "I am taking the absolute value of your time series"
+                print("I am taking the absolute value of your time series")
                 X = np.abs(X)
                 lab = "|" + lab + "|"
 
@@ -256,7 +256,7 @@ if approach == "Static":
 
             if standardize == "Yes":
                 if standardize_target == "Tail":
-                    print "I am standardizing your tail"
+                    print("I am standardizing your tail")
                     S = np.array(filter(lambda x: x >= fit_1.power_law.xmin, tail_plus))
                     m = np.mean(S)
                     v = np.std(S)
@@ -264,7 +264,7 @@ if approach == "Static":
 
                     if abs_value == "Yes":
                         if abs_target == "Tail":
-                            print "I am taking the absolute value of your tail"
+                            print("I am taking the absolute value of your tail")
                             X = np.abs(X)
                             lab = "|" + lab + "|"
                     fit_1 = PowerLawFit(X, data_nature, xmin_rule, np.min(X))
@@ -280,7 +280,7 @@ if approach == "Static":
 
             if standardize == "Yes":
                 if standardize_target == "Tail":
-                    print "I am standardizing your tail"
+                    print("I am standardizing your tail")
                     S = np.array(filter(lambda x: x >= fit_2.power_law.xmin, tail_neg))
                     m = np.mean(S)
                     v = np.std(S)
@@ -288,7 +288,7 @@ if approach == "Static":
 
                     if abs_value == "Yes":
                         if abs_target == "Tail":
-                            print "I am taking the absolute value of your tail"
+                            print("I am taking the absolute value of your tail")
                             X = np.abs(X)
                             lab = "|" + lab + "|"
                     fit_2 = PowerLawFit(X, data_nature, xmin_rule, np.min(X))
@@ -1077,11 +1077,9 @@ else:
                         raise
                 os.chdir(subdirectory)
 
-            print "I am analyzing the time series for " + labels[
-                i - 1
-            ] + " between " + begin_date + " and " + end_date
+            print("I am analyzing the time series for " + labels[i - 1] + " between " + begin_date + " and " + end_date)
 
-            print "You opted for the analysis of the " + input_type
+            print("You opted for the analysis of the " + input_type)
 
             if input_type == "Returns":
                 X = np.array(series[tau:]) - np.array(series[0 : (len(series) - tau)])
@@ -1099,14 +1097,14 @@ else:
                 lab = r"$\log$" + "(P(t+" + str(tau) + ")/P(t))"
 
             if standardize == "Yes":
-                print "I am standardizing your time series"
+                print("I am standardizing your time series")
                 S = X
                 m = np.mean(S)
                 v = np.std(S)
                 X = (S - m) / v
 
             if abs_value == "Yes":
-                print "I am taking the absolute value of your time series"
+                print("I am taking the absolute value of your time series")
                 X = np.abs(X)
                 lab = "|" + lab + "|"
 
