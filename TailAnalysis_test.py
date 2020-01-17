@@ -26,30 +26,22 @@ def Extractor(filename, tickers):
             output.append((object[tickers[i]].values).tolist())
         except KeyError:
             print("Ticker " + tickers[i] + " not found in " + filename)
-
     return output
 
 
 def PowerLawFit(data, data_nature, xmin_rule, *args):
 
-    data = np.array(data)[np.nonzero(data)]
+    data1 = np.array(data)[np.nonzero(data)]
+    discrete = False if data_nature == 'Continuous' else True
 
-    if data_nature == "Continuous":
-        if xmin_rule == "Clauset":
-            fit = pl.Fit(data)
-        elif xmin_rule == "Manual":
-            fit = pl.Fit(data, xmin=args[0])
-        else:
-            fit = pl.Fit(data, xmin=np.percentile(data, args[1]))
+    if xmin_rule == "Clauset":
+        xmin = None
+    elif xmin_rule == "Manual":
+        xmin = args[0]
     else:
-        if xmin_rule == "Clauset":
-            fit = pl.Fit(data, discrete=True)
-        elif xmin_rule == "Manual":
-            fit = pl.Fit(data, discrete=True, xmin=args[0])
-        else:
-            fit = pl.Fit(data, discrete=True,
-                         xmin=np.percentile(data, args[1]))
-    return fit
+        xmin = np.percentile(data, args[1])
+
+    return pl.Fit(data1, discrete=discrete, xmin=xmin)
 
 
 #####################################
