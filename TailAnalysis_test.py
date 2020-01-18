@@ -47,50 +47,49 @@ def PowerLawFit(data, data_nature, xmin_rule, xmin_value, xmin_sign):
     return pl.Fit(data1, discrete=discrete, xmin=xmin)
 
 
-#  def fit_tail(tail_data, data_nature, xmin_rule, *args):
 def fit_tail(tail_selected, tail_data):
 
     if tail_selected == "Right" or tail_selected == "Both":
         tail_plus = tail_data
         fit_right = PowerLawFit(tail_plus, data_nature,
                                 xmin_rule, xmin_value, xmin_sign)
-        #  if standardize == "Yes":
-        #      if standardize_target == "Tail":
-        #          print("I am standardizing your tail")
-        #          S = np.array(filter(lambda x: x >= fit_1.power_law.xmin,
-        #                              tail_plus))
-        #          m = np.mean(S)
-        #          v = np.std(S)
-        #          X = (S - m) / v
-        #          if abs_value == "Yes":
-        #              if abs_target == "Tail":
-        #                  print("I am taking the absolute "
-        #                        " value of your tail")
-        #                  X = np.abs(X)
-        #                  lab = "|" + lab + "|"
-        #          fit_1 =PowerLawFit(X, data_nature, xmin_rule, np.min(X))
+        # TODO: test standardization branch
+        if standardize == "Yes" and standardize_target == "Tail":
+            xmin = fit_right.power_law.xmin
+            fit_right = standardize_tail(tail_plus, xmin)
 
     if tail_selected == "Left" or tail_selected == "Both":
         tail_neg = (np.dot(-1.0, tail_data)).tolist()
         fit_left = PowerLawFit(tail_neg, data_nature,
                                xmin_rule, xmin_value, xmin_sign)
-        #  if standardize == "Yes":
-        #      if standardize_target == "Tail":
-        #          print("I am standardizing your tail")
-        #          S = np.array(filter(lambda x: x >= fit_2.power_law.xmin,
-        #                              tail_neg))
-        #          m = np.mean(S)
-        #          v = np.std(S)
-        #          X = (S - m) / v
-        #          if abs_value == "Yes":
-        #              if abs_target == "Tail":
-        #                  print("I am taking the absolute "
-        #                        "value of your tail")
-        #                  X = np.abs(X)
-        #                  lab = "|" + lab + "|"
-        #          fit_2 =PowerLawFit(X, data_nature, xmin_rule, np.min(X))
+        # TODO: test standardization branch
+        if standardize == "Yes" and standardize_target == "Tail":
+            xmin = fit_left.power_law.xmin
+            fit_right = standardize_tail(tail_neg, xmin)
 
     return tail_plus, tail_neg, fit_right, fit_left
+
+
+# TODO: test standardization function
+def standardize_tail(tail_data, xmin):
+    print("I am standardizing your tail")
+    S = np.array(tail_data)
+    S = S[S >= xmin]
+    m = np.mean(S)
+    v = np.std(S)
+    X = (S - m) / v
+
+    if abs_value == "Yes" and abs_target == "Tail":
+        X = absolutize_tail(X)
+
+    return PowerLawFit(X, data_nature, xmin_rule, np.min(X))
+
+
+# TODO: test absolutize function
+def absolutize_tail(tail_data):
+    print("I am taking the absolute value of your tail")
+    #  lab = "|" + lab + "|"
+    return np.abs(tail_data)
 
 
 #####################################
@@ -115,7 +114,10 @@ input_type = "Log-Returns"
 tau = 1
 
 standardize = "No"
+standardize_target = "Tail"  # choices is one of ['Full Series', 'Tail']
+
 abs_value = "No"
+abs_target = "Tail"  # choices is one of ['Full Series', 'Tail']
 
 approach = "Rolling"
 an_freq = 1
