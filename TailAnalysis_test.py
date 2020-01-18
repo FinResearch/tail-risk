@@ -93,23 +93,25 @@ def results_lists_init():
     return {l: [] for l in labels}
 
 
-# initialize lists used to store results (16 total)
+# Global Variable Initializations
+
+# lists to store the results (16 total)
 results = results_lists_init()
+
+initial_index = database[0].index(initial_date)
+final_index = database[0].index(final_date)
+dates = database[0][initial_index: (final_index + 1)]
+labelstep = (
+    22
+    if len(dates) <= 252
+    else 66
+    if (len(dates) > 252 and len(dates) <= 756)
+    else 121
+)
+N = len(database)
 
 
 if approach == "Static":
-
-    initial_index = database[0].index(initial_date)
-    final_index = database[0].index(final_date)
-    dates = database[0][initial_index: (final_index + 1)]
-    labelstep = (
-        22
-        if len(dates) <= 252
-        else 66
-        if (len(dates) > 252 and len(dates) <= 756)
-        else 121
-    )
-    N = len(database)
 
     # TODO: add list below to results_lists_init function
     tail_statistics = []
@@ -958,18 +960,6 @@ else:
     #          default = ("C:\Users\\alber\Dropbox\Research"
     #                     "\IP\Econophysics\Final Code Hurst Exponent\\"),
     #      )
-
-    initial_index = database[0].index(initial_date)
-    final_index = database[0].index(final_date)
-    dates = database[0][initial_index: (final_index + 1)]
-    labelstep = (
-        22
-        if len(dates) <= 252
-        else 66
-        if (len(dates) > 252 and len(dates) <= 756)
-        else 121
-    )
-    N = len(database)
 
     temp = []
 
