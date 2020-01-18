@@ -191,6 +191,7 @@ if approach == "Static":
             )
             lab = r"$\log$" + "(P(t+" + str(tau) + ")/P(t))"
 
+        # TODO: replace below with standardize_tail()
         #  if standardize == "Yes":
         #      if standardize_target == "Full Series":
         #          print("I am standardizing your time series")
@@ -199,6 +200,7 @@ if approach == "Static":
         #          v = np.std(S)
         #          X = (S - m) / v
 
+        # TODO: replace below with absolutize_tail()
         #  if abs_value == "Yes":
         #      if abs_target == "Full Series":
         #          print("I am taking the absolute value of your time series")
@@ -207,24 +209,27 @@ if approach == "Static":
 
         tail_plus, tail_neg, fit_1, fit_2 = fit_tail(tail_selected, X)
 
+        # TODO: when only Right or Left tail selected,
+        #       the other fit object will be None
+        alpha1 = fit_1.power_law.alpha
+        xmin1 = fit_1.power_law.xmin
+        s_err1 = fit_1.power_law.sigma
+
+        alpha2 = fit_2.power_law.alpha
+        xmin2 = fit_2.power_law.xmin
+        s_err2 = fit_2.power_law.sigma
+
         if tail_selected == "Right" or tail_selected == "Both":
-            alpha1 = fit_1.power_law.alpha
-            xmin1 = fit_1.power_law.xmin
-            s_err1 = fit_1.power_law.sigma
             p1 = plpva.plpva(tail_plus.tolist(), float(xmin1),
                              "reps", c_iter, "silent")
-            #  positive_alpha_KS.append(p1[0])
             results["pos_α_ks"].append(p1[0])
 
         if tail_selected == "Left" or tail_selected == "Both":
-            alpha2 = fit_2.power_law.alpha
-            xmin2 = fit_2.power_law.xmin
-            s_err2 = fit_2.power_law.sigma
             p2 = plpva.plpva(np.array(tail_neg).tolist(),
                              float(xmin2), "reps", c_iter, "silent")
-            #  negative_alpha_KS.append(p2[0])
             results["neg_α_ks"].append(p2[0])
 
+        # Figures Plot & Show Sections below
         if tail_selected == "Right" or tail_selected == "Both":
 
             plt.figure("Right tail scaling for " + labels[i - 1])
@@ -509,45 +514,25 @@ if approach == "Static":
 
         if tail_selected == "Right" or tail_selected == "Both":
 
-            #  positive_alpha_vec.append(alpha1)
             results["pos_α_vec"].append(alpha1)
-            #  positive_upper_bound.append(
-            #      alpha1 + (st.norm.ppf(1-multiplier * significance))*s_err1)
             results["pos_up_bound"].append(
                 alpha1 + (st.norm.ppf(1 - multiplier * significance)) * s_err1)
-            #  positive_lower_bound.append(
-            #      alpha1 - (st.norm.ppf(1-multiplier * significance))*s_err1)
             results["pos_low_bound"].append(
                 alpha1 - (st.norm.ppf(1 - multiplier * significance)) * s_err1)
-            #  positive_abs_length.append(len(filter(lambda x: x >= xmin1,
-            #                                        tail_plus)))
             results["pos_abs_len"].append(len(filter(lambda x: x >= xmin1,
                                                      tail_plus)))
-            #  positive_rel_length.append(
-            #      len(filter(lambda x: x >= xmin1, tail_plus)) /
-            #      float(len(tail_plus)))
             results["pos_rel_len"].append(
                 len(filter(lambda x: x >= xmin1, tail_plus)) /
                 float(len(tail_plus)))
 
         if tail_selected == "Left" or tail_selected == "Both":
-            #  negative_alpha_vec.append(alpha2)
             results["neg_α_vec"].append(alpha2)
-            #  negative_upper_bound.append(
-            #      alpha2 + (st.norm.ppf(1-multiplier * significance))*s_err2)
             results["neg_up_bound"].append(
                 alpha2 + (st.norm.ppf(1 - multiplier * significance)) * s_err2)
-            #  negative_lower_bound.append(
-            #      alpha2 - (st.norm.ppf(1-multiplier * significance))*s_err2)
             results["neg_low_bound"].append(
                 alpha2 - (st.norm.ppf(1 - multiplier * significance)) * s_err2)
-            #  negative_abs_length.append(len(filter(lambda x: x >= xmin2,
-            #                                        tail_neg)))
             results["neg_abs_len"].append(len(filter(lambda x: x >= xmin2,
                                                      tail_neg)))
-            #  negative_rel_length.append(
-            #      len(filter(lambda x: x >= xmin2, tail_neg)) /
-            #      float(len(tail_neg)))
             results["neg_rel_len"].append(
                 len(filter(lambda x: x >= xmin2, tail_neg)) /
                 float(len(tail_neg)))
@@ -1065,10 +1050,11 @@ else:
 
             tail_plus, tail_neg, fit_1, fit_2 = fit_tail(tail_selected, X)
 
+            # TODO: when only Right or Left tail selected,
+            #       the other fit object will be None
             alpha1 = fit_1.power_law.alpha
             xmin1 = fit_1.power_law.xmin
             s_err1 = fit_1.power_law.sigma
-
             alpha2 = fit_2.power_law.alpha
             xmin2 = fit_2.power_law.xmin
             s_err2 = fit_2.power_law.sigma
@@ -1311,8 +1297,6 @@ else:
                     alpha1 - (st.norm.ppf(1 - multiplier * significance))
                     * s_err1
                 )
-                #  positive_abs_length.append(len(filter(lambda x: x >= xmin1,
-                #                                        tail_plus)))
                 results["pos_abs_len"].append(len(
                     tail_plus[tail_plus >= xmin1]))
                 results["pos_rel_len"].append(
@@ -1348,8 +1332,6 @@ else:
                     alpha2 - (st.norm.ppf(1 - multiplier * significance))
                     * s_err2
                 )
-                #  negative_abs_length.append(len(filter(lambda x: x >= xmin2,
-                #                                        tail_neg)))
                 # NOTE: tail_plus was already converted
                 tail_neg = np.array(tail_neg)
                 results["neg_abs_len"].append(len(tail_neg[tail_neg >= xmin2]))
