@@ -99,19 +99,6 @@ results = results_lists_init()
 
 if approach == "Static":
 
-    #  positive_alpha_vec = []
-    #  negative_alpha_vec = []
-    #  positive_alpha_KS = []
-    #  negative_alpha_KS = []
-    #  positive_upper_bound = []
-    #  positive_lower_bound = []
-    #  negative_upper_bound = []
-    #  negative_lower_bound = []
-    #  positive_abs_length = []
-    #  positive_rel_length = []
-    #  negative_abs_length = []
-    #  negative_rel_length = []
-
     initial_index = database[0].index(initial_date)
     final_index = database[0].index(final_date)
     dates = database[0][initial_index: (final_index + 1)]
@@ -128,11 +115,6 @@ if approach == "Static":
     tail_statistics = []
 
     for i in range(1, N, 1):
-
-        #  loglikelihood_ratio_right = []
-        #  loglikelihood_pvalue_right = []
-        #  loglikelihood_ratio_left = []
-        #  loglikelihood_pvalue_left = []
 
         print("I am analyzing the time series for " +
               labels[i - 1] + " between " + dates[0] + " and " + dates[-1])
@@ -1016,23 +998,6 @@ else:
         #          if not os.path.isdir(directory):
         #              raise
         #      os.chdir(directory)
-
-        #  positive_alpha_vec = []
-        #  negative_alpha_vec = []
-        #  positive_alpha_KS = []
-        #  negative_alpha_KS = []
-        #  positive_upper_bound = []
-        #  positive_lower_bound = []
-        #  negative_upper_bound = []
-        #  negative_lower_bound = []
-        #  positive_abs_length = []
-        #  positive_rel_length = []
-        #  negative_abs_length = []
-        #  negative_rel_length = []
-        #  loglikelihood_ratio_right = []
-        #  loglikelihood_pvalue_right = []
-        #  loglikelihood_ratio_left = []
-        #  loglikelihood_pvalue_left = []
 
         # TODO: add list below to results_lists_init function
         tail_statistics = []
