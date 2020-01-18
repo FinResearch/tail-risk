@@ -59,7 +59,8 @@ def fit_tail(tail_selected, tail_data):
             fit_right = standardize_tail(tail_plus, xmin)
 
     if tail_selected == "Left" or tail_selected == "Both":
-        tail_neg = (np.dot(-1.0, tail_data)).tolist()
+        #  tail_neg = (np.dot(-1.0, tail_data)).tolist()
+        tail_neg = -1 * tail_data
         fit_left = PowerLawFit(tail_neg, data_nature,
                                xmin_rule, xmin_value, xmin_sign)
         # TODO: test standardization branch
@@ -164,6 +165,8 @@ labelstep = (
 N = len(database)
 
 
+# Execution logic for the actual calculations
+
 if approach == "Static":
 
     # TODO: add list below to results_lists_init function
@@ -220,13 +223,11 @@ if approach == "Static":
         s_err2 = fit_2.power_law.sigma
 
         if tail_selected == "Right" or tail_selected == "Both":
-            p1 = plpva.plpva(tail_plus.tolist(), float(xmin1),
-                             "reps", c_iter, "silent")
+            p1 = plpva.plpva(tail_plus, float(xmin1), "reps", c_iter, "silent")
             results["pos_α_ks"].append(p1[0])
 
         if tail_selected == "Left" or tail_selected == "Both":
-            p2 = plpva.plpva(np.array(tail_neg).tolist(),
-                             float(xmin2), "reps", c_iter, "silent")
+            p2 = plpva.plpva(tail_neg, float(xmin2), "reps", c_iter, "silent")
             results["neg_α_ks"].append(p2[0])
 
         # Figures Plot & Show Sections below
@@ -545,8 +546,10 @@ if approach == "Static":
                 xmin2,
                 s_err1,
                 s_err2,
-                len(filter(lambda x: x >= xmin1, tail_plus)),
-                len(filter(lambda x: x >= xmin2, tail_neg)),
+                #  len(filter(lambda x: x >= xmin1, tail_plus)),
+                #  len(filter(lambda x: x >= xmin2, tail_neg)),
+                len(tail_plus[tail_plus >= xmin1]),
+                len(tail_neg[tail_neg >= xmin2]),
                 p1[0],
                 p2[0],
             ]
@@ -558,7 +561,8 @@ if approach == "Static":
                 0,
                 s_err1,
                 0,
-                len(filter(lambda x: x >= xmin1, tail_plus)),
+                #  len(filter(lambda x: x >= xmin1, tail_plus)),
+                len(tail_plus[tail_plus >= xmin1]),
                 0,
                 p1[0],
                 0,
@@ -572,7 +576,8 @@ if approach == "Static":
                 0,
                 s_err2,
                 0,
-                len(filter(lambda x: x >= xmin2, tail_neg)),
+                #  len(filter(lambda x: x >= xmin2, tail_neg)),
+                len(tail_neg[tail_neg >= xmin2]),
                 0,
                 p2[0],
             ]
@@ -1059,6 +1064,7 @@ else:
             xmin2 = fit_2.power_law.xmin
             s_err2 = fit_2.power_law.sigma
 
+            # Plot Storing if-block
             if plot_storing == "Yes":
 
                 if tail_selected == "Right" or tail_selected == "Both":
@@ -1302,9 +1308,8 @@ else:
                 results["pos_rel_len"].append(
                     len(tail_plus[tail_plus >= xmin1]) /
                     float(len(tail_plus)))
-                p1 = plpva.plpva(
-                    tail_plus.tolist(), float(xmin1), "reps", c_iter, "silent"
-                )
+                p1 = plpva.plpva(tail_plus, float(xmin1),
+                                 "reps", c_iter, "silent")
                 results["pos_α_ks"].append(p1[0])
 
                 distribution_list = ["truncated_power_law",
@@ -1338,10 +1343,8 @@ else:
                 results["neg_rel_len"].append(
                     len(tail_neg[tail_neg >= xmin2]) /
                     float(len(tail_neg)))
-                p2 = plpva.plpva(
-                    np.array(tail_neg).tolist(), float(xmin2), "reps",
-                    c_iter, "silent"
-                )
+                p2 = plpva.plpva(tail_neg, float(xmin2),
+                                 "reps", c_iter, "silent")
                 results["neg_α_ks"].append(p2[0])
 
                 distribution_list = ["truncated_power_law",
@@ -1393,7 +1396,8 @@ else:
                     0,
                     s_err1,
                     0,
-                    len(filter(lambda x: x >= xmin1, tail_plus)),
+                    #  len(filter(lambda x: x >= xmin1, tail_plus)),
+                    len(tail_plus[tail_plus >= xmin1]),
                     0,
                     p1[0],
                     0,
@@ -1419,7 +1423,8 @@ else:
                     0,
                     s_err2,
                     0,
-                    len(filter(lambda x: x >= xmin2, tail_neg)),
+                    #  len(filter(lambda x: x >= xmin2, tail_neg)),
+                    len(tail_neg[tail_neg >= xmin2]),
                     0,
                     p2[0],
                     0,
