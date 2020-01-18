@@ -85,20 +85,19 @@ significance = 0.05
 c_iter = 100
 
 
-if approach == "Static":
+def results_lists_init():
+    labels = ("pos_α_vec", "neg_α_vec", "pos_α_ks", "neg_α_ks",
+              "pos_up_bound", "neg_up_bound", "pos_low_bound", "neg_low_bound",
+              "pos_abs_len", "neg_abs_len", "pos_rel_len", "neg_rel_len",
+              "loglr_right", "loglr_left", "loglpv_right", "loglpv_left")
+    return {l: [] for l in labels}
 
-    positive_alpha_vec = []
-    negative_alpha_vec = []
-    positive_alpha_KS = []
-    negative_alpha_KS = []
-    positive_upper_bound = []
-    positive_lower_bound = []
-    negative_upper_bound = []
-    negative_lower_bound = []
-    positive_abs_length = []
-    positive_rel_length = []
-    negative_abs_length = []
-    negative_rel_length = []
+
+# initialize lists used to store results (16 total)
+results = results_lists_init()
+
+
+if approach == "Static":
 
     #  positive_alpha_vec = []
     #  negative_alpha_vec = []
@@ -112,10 +111,6 @@ if approach == "Static":
     #  positive_rel_length = []
     #  negative_abs_length = []
     #  negative_rel_length = []
-    #  loglikelihood_ratio_right = []
-    #  loglikelihood_pvalue_right = []
-    #  loglikelihood_ratio_left = []
-    #  loglikelihood_pvalue_left = []
 
     initial_index = database[0].index(initial_date)
     final_index = database[0].index(final_date)
@@ -129,14 +124,15 @@ if approach == "Static":
     )
     N = len(database)
 
+    # TODO: add list below to results_lists_init function
     tail_statistics = []
 
     for i in range(1, N, 1):
 
-        loglikelihood_ratio_right = []
-        loglikelihood_pvalue_right = []
-        loglikelihood_ratio_left = []
-        loglikelihood_pvalue_left = []
+        #  loglikelihood_ratio_right = []
+        #  loglikelihood_pvalue_right = []
+        #  loglikelihood_ratio_left = []
+        #  loglikelihood_pvalue_left = []
 
         print("I am analyzing the time series for " +
               labels[i - 1] + " between " + dates[0] + " and " + dates[-1])
@@ -233,7 +229,8 @@ if approach == "Static":
             s_err1 = fit_1.power_law.sigma
             p1 = plpva.plpva(tail_plus.tolist(), float(xmin1),
                              "reps", c_iter, "silent")
-            positive_alpha_KS.append(p1[0])
+            #  positive_alpha_KS.append(p1[0])
+            results["pos_α_ks"].append(p1[0])
 
         if tail_selected == "Left" or tail_selected == "Both":
             alpha2 = fit_2.power_law.alpha
@@ -241,7 +238,8 @@ if approach == "Static":
             s_err2 = fit_2.power_law.sigma
             p2 = plpva.plpva(np.array(tail_neg).tolist(),
                              float(xmin2), "reps", c_iter, "silent")
-            negative_alpha_KS.append(p2[0])
+            #  negative_alpha_KS.append(p2[0])
+            results["neg_α_ks"].append(p2[0])
 
         if tail_selected == "Right" or tail_selected == "Both":
 
@@ -327,18 +325,20 @@ if approach == "Static":
                                  "exponential", "lognormal"]
             for pdf in distribution_list:
                 R, p = fit_1.distribution_compare(
-                    "power_law", pdf, normalized_ratio=True
-                )
-                loglikelihood_ratio_right.append(R)
-                loglikelihood_pvalue_right.append(p)
+                    "power_law", pdf, normalized_ratio=True)
+                #  loglikelihood_ratio_right.append(R)
+                results["loglr_right"].append(R)
+                #  loglikelihood_pvalue_right.append(p)
+                results["loglpv_right"].append(p)
 
             z.figure("Log Likelihood ratio for the right tail for " +
                      labels[i - 1])
+            #  z.bar(
+            #      np.arange(0, len(loglikelihood_ratio_right), 1),
+            #      loglikelihood_ratio_right, 1,)
             z.bar(
-                np.arange(0, len(loglikelihood_ratio_right), 1),
-                loglikelihood_ratio_right,
-                1,
-            )
+                np.arange(0, len(results["loglr_right"]), 1),
+                results["loglr_right"], 1,)
             z.xticks(np.arange(0.5, len(distribution_list) + 0.5, 1),
                      distribution_list)
             z.ylabel("R")
@@ -358,11 +358,12 @@ if approach == "Static":
 
             z.figure("Log Likelihood ratio p-values for the right tail for " +
                      labels[i - 1])
+            #  z.bar(
+            #      np.arange(0, len(loglikelihood_pvalue_right), 1),
+            #      loglikelihood_pvalue_right, 1,)
             z.bar(
-                np.arange(0, len(loglikelihood_pvalue_right), 1),
-                loglikelihood_pvalue_right,
-                1,
-            )
+                np.arange(0, len(results["loglpv_right"]), 1),
+                results["loglpv_right"], 1,)
             z.xticks(np.arange(0.5, len(distribution_list) + 0.5, 1),
                      distribution_list)
             z.ylabel("R")
@@ -466,16 +467,19 @@ if approach == "Static":
                 R, p = fit_2.distribution_compare(
                     "power_law", pdf, normalized_ratio=True
                 )
-                loglikelihood_ratio_left.append(R)
-                loglikelihood_pvalue_left.append(p)
+                #  loglikelihood_ratio_left.append(R)
+                results["loglr_left"].append(R)
+                #  loglikelihood_pvalue_left.append(p)
+                results["loglpv_left"].append(p)
 
             z.figure("Log Likelihood ratio for the left tail for " +
                      labels[i - 1])
+            #  z.bar(
+            #      np.arange(0, len(loglikelihood_ratio_left), 1),
+            #      loglikelihood_ratio_left, 1,)
             z.bar(
-                np.arange(0, len(loglikelihood_ratio_left), 1),
-                loglikelihood_ratio_left,
-                1,
-            )
+                np.arange(0, len(results["loglr_left"]), 1),
+                results["loglr_left"], 1,)
             z.xticks(np.arange(0.5, len(distribution_list) + 0.5, 1),
                      distribution_list)
             z.ylabel("R")
@@ -496,11 +500,12 @@ if approach == "Static":
             z.figure(
                 "Log Likelihood ratio p-values for the left tail for " +
                 labels[i - 1])
+            #  z.bar(
+            #      np.arange(0, len(loglikelihood_pvalue_left), 1),
+            #      loglikelihood_pvalue_left, 1,)
             z.bar(
-                np.arange(0, len(loglikelihood_pvalue_left), 1),
-                loglikelihood_pvalue_left,
-                1,
-            )
+                np.arange(0, len(results["loglpv_left"]), 1),
+                results["loglpv_left"], 1,)
             z.xticks(np.arange(0.5, len(distribution_list) + 0.5, 1),
                      distribution_list)
             z.ylabel("R")
@@ -520,34 +525,48 @@ if approach == "Static":
 
         if tail_selected == "Right" or tail_selected == "Both":
 
-            positive_alpha_vec.append(alpha1)
-            positive_upper_bound.append(
-                alpha1 + (st.norm.ppf(1 - multiplier * significance)) * s_err1
-            )
-            positive_lower_bound.append(
-                alpha1 - (st.norm.ppf(1 - multiplier * significance)) * s_err1
-            )
-            positive_abs_length.append(len(filter(lambda x: x >= xmin1,
-                                                  tail_plus)))
-            positive_rel_length.append(
+            #  positive_alpha_vec.append(alpha1)
+            results["pos_α_vec"].append(alpha1)
+            #  positive_upper_bound.append(
+            #      alpha1 + (st.norm.ppf(1-multiplier * significance))*s_err1)
+            results["pos_up_bound"].append(
+                alpha1 + (st.norm.ppf(1 - multiplier * significance)) * s_err1)
+            #  positive_lower_bound.append(
+            #      alpha1 - (st.norm.ppf(1-multiplier * significance))*s_err1)
+            results["pos_low_bound"].append(
+                alpha1 - (st.norm.ppf(1 - multiplier * significance)) * s_err1)
+            #  positive_abs_length.append(len(filter(lambda x: x >= xmin1,
+            #                                        tail_plus)))
+            results["pos_abs_len"].append(len(filter(lambda x: x >= xmin1,
+                                                     tail_plus)))
+            #  positive_rel_length.append(
+            #      len(filter(lambda x: x >= xmin1, tail_plus)) /
+            #      float(len(tail_plus)))
+            results["pos_rel_len"].append(
                 len(filter(lambda x: x >= xmin1, tail_plus)) /
-                float(len(tail_plus))
-            )
+                float(len(tail_plus)))
 
         if tail_selected == "Left" or tail_selected == "Both":
-            negative_alpha_vec.append(alpha2)
-            negative_upper_bound.append(
-                alpha2 + (st.norm.ppf(1 - multiplier * significance)) * s_err2
-            )
-            negative_lower_bound.append(
-                alpha2 - (st.norm.ppf(1 - multiplier * significance)) * s_err2
-            )
-            negative_abs_length.append(len(filter(lambda x: x >= xmin2,
-                                                  tail_neg)))
-            negative_rel_length.append(
+            #  negative_alpha_vec.append(alpha2)
+            results["neg_α_vec"].append(alpha2)
+            #  negative_upper_bound.append(
+            #      alpha2 + (st.norm.ppf(1-multiplier * significance))*s_err2)
+            results["neg_up_bound"].append(
+                alpha2 + (st.norm.ppf(1 - multiplier * significance)) * s_err2)
+            #  negative_lower_bound.append(
+            #      alpha2 - (st.norm.ppf(1-multiplier * significance))*s_err2)
+            results["neg_low_bound"].append(
+                alpha2 - (st.norm.ppf(1 - multiplier * significance)) * s_err2)
+            #  negative_abs_length.append(len(filter(lambda x: x >= xmin2,
+            #                                        tail_neg)))
+            results["neg_abs_len"].append(len(filter(lambda x: x >= xmin2,
+                                                     tail_neg)))
+            #  negative_rel_length.append(
+            #      len(filter(lambda x: x >= xmin2, tail_neg)) /
+            #      float(len(tail_neg)))
+            results["neg_rel_len"].append(
                 len(filter(lambda x: x >= xmin2, tail_neg)) /
-                float(len(tail_neg))
-            )
+                float(len(tail_neg)))
 
         if tail_selected == "Both":
             row = [
@@ -598,7 +617,8 @@ if approach == "Static":
     if tail_selected == "Right" or tail_selected == "Both":
         z.plot(
             range(1, len(labels) + 1, 1),
-            positive_alpha_vec,
+            #  positive_alpha_vec,
+            results["pos_α_vec"],
             marker="^",
             markersize=10.0,
             linewidth=0.0,
@@ -608,7 +628,8 @@ if approach == "Static":
     if tail_selected == "Left" or tail_selected == "Both":
         z.plot(
             range(1, len(labels) + 1, 1),
-            negative_alpha_vec,
+            #  negative_alpha_vec,
+            results["neg_α_vec"],
             marker="^",
             markersize=10.0,
             linewidth=0.0,
@@ -644,7 +665,8 @@ if approach == "Static":
         z.gca().set_position((0.1, 0.20, 0.83, 0.70))
         z.plot(
             range(1, len(labels) + 1, 1),
-            positive_alpha_vec,
+            #  positive_alpha_vec,
+            results["pos_α_vec"],
             marker="o",
             markersize=7.0,
             linewidth=0.0,
@@ -653,7 +675,8 @@ if approach == "Static":
         )
         z.plot(
             range(1, len(labels) + 1, 1),
-            positive_upper_bound,
+            #  positive_upper_bound,
+            results["pos_up_bound"],
             marker="o",
             markersize=7.0,
             linewidth=0.0,
@@ -662,7 +685,8 @@ if approach == "Static":
         )
         z.plot(
             range(1, len(labels) + 1, 1),
-            positive_lower_bound,
+            #  positive_lower_bound,
+            results["pos_low_bound"],
             marker="o",
             markersize=7.0,
             linewidth=0.0,
@@ -711,7 +735,8 @@ if approach == "Static":
         z.gca().set_position((0.1, 0.20, 0.83, 0.70))
         z.plot(
             range(1, len(labels) + 1, 1),
-            negative_alpha_vec,
+            #  negative_alpha_vec,
+            results["neg_α_vec"],
             marker="o",
             markersize=7.0,
             linewidth=0.0,
@@ -720,7 +745,8 @@ if approach == "Static":
         )
         z.plot(
             range(1, len(labels) + 1, 1),
-            negative_upper_bound,
+            #  negative_upper_bound,
+            results["neg_up_bound"],
             marker="o",
             markersize=7.0,
             linewidth=0.0,
@@ -729,7 +755,8 @@ if approach == "Static":
         )
         z.plot(
             range(1, len(labels) + 1, 1),
-            negative_lower_bound,
+            #  negative_lower_bound,
+            results["neg_low_bound"],
             marker="o",
             markersize=7.0,
             linewidth=0.0,
@@ -779,7 +806,8 @@ if approach == "Static":
     if tail_selected == "Right" or tail_selected == "Both":
         z.bar(
             np.arange(0, 2 * len(labels), 2),
-            positive_abs_length,
+            #  positive_abs_length,
+            results["pos_abs_len"],
             amplitude,
             color="green",
             label="Right tail",
@@ -787,7 +815,8 @@ if approach == "Static":
     if tail_selected == "Left" or tail_selected == "Both":
         z.bar(
             np.arange(amplitude, 2 * len(labels) + amplitude, 2),
-            negative_abs_length,
+            #  negative_abs_length,
+            results["neg_abs_len"],
             amplitude,
             color="red",
             label="Left tail",
@@ -819,7 +848,8 @@ if approach == "Static":
     if tail_selected == "Right" or tail_selected == "Both":
         z.bar(
             np.arange(0, 2 * len(labels), 2),
-            positive_rel_length,
+            #  positive_rel_length,
+            results["pos_rel_len"],
             amplitude,
             color="green",
             label="Right tail",
@@ -827,7 +857,8 @@ if approach == "Static":
     if tail_selected == "Left" or tail_selected == "Both":
         z.bar(
             np.arange(amplitude, 2 * len(labels) + amplitude, 2),
-            negative_rel_length,
+            #  negative_rel_length,
+            results["neg_rel_len"],
             amplitude,
             color="red",
             label="Left tail",
@@ -859,7 +890,8 @@ if approach == "Static":
     if tail_selected == "Right" or tail_selected == "Both":
         z.bar(
             np.arange(0, 2 * len(labels), 2),
-            positive_alpha_KS,
+            #  positive_alpha_KS,
+            results["pos_α_ks"],
             amplitude,
             color="green",
             label="Right tail",
@@ -867,7 +899,8 @@ if approach == "Static":
     if tail_selected == "Left" or tail_selected == "Both":
         z.bar(
             np.arange(amplitude, 2 * len(labels) + amplitude, 2),
-            negative_alpha_KS,
+            #  negative_alpha_KS,
+            results["neg_α_ks"],
             amplitude,
             color="red",
             label="Left tail",
@@ -969,6 +1002,7 @@ else:
 
     # int(np.maximum(np.floor(22/float(an_freq)),1.0))
 
+    # TODO: add lists below to results_lists_init function
     positive_alpha_mat = []
     negative_alpha_mat = []
 
@@ -983,23 +1017,24 @@ else:
         #              raise
         #      os.chdir(directory)
 
-        positive_alpha_vec = []
-        negative_alpha_vec = []
-        positive_alpha_KS = []
-        negative_alpha_KS = []
-        positive_upper_bound = []
-        positive_lower_bound = []
-        negative_upper_bound = []
-        negative_lower_bound = []
-        positive_abs_length = []
-        positive_rel_length = []
-        negative_abs_length = []
-        negative_rel_length = []
-        loglikelihood_ratio_right = []
-        loglikelihood_pvalue_right = []
-        loglikelihood_ratio_left = []
-        loglikelihood_pvalue_left = []
+        #  positive_alpha_vec = []
+        #  negative_alpha_vec = []
+        #  positive_alpha_KS = []
+        #  negative_alpha_KS = []
+        #  positive_upper_bound = []
+        #  positive_lower_bound = []
+        #  negative_upper_bound = []
+        #  negative_lower_bound = []
+        #  positive_abs_length = []
+        #  positive_rel_length = []
+        #  negative_abs_length = []
+        #  negative_rel_length = []
+        #  loglikelihood_ratio_right = []
+        #  loglikelihood_pvalue_right = []
+        #  loglikelihood_ratio_left = []
+        #  loglikelihood_pvalue_left = []
 
+        # TODO: add list below to results_lists_init function
         tail_statistics = []
 
         for l in range(initial_index, final_index + 1, an_freq):
@@ -1335,24 +1370,25 @@ else:
 
             if tail_selected == "Right" or tail_selected == "Both":
 
-                positive_alpha_vec.append(alpha1)
-                positive_upper_bound.append(
+                results["pos_α_vec"].append(alpha1)
+                results["pos_up_bound"].append(
                     alpha1 + (st.norm.ppf(1 - multiplier * significance))
-                    * s_err1
-                )
-                positive_lower_bound.append(
+                    * s_err1)
+                results["pos_low_bound"].append(
                     alpha1 - (st.norm.ppf(1 - multiplier * significance))
                     * s_err1
                 )
                 #  positive_abs_length.append(len(filter(lambda x: x >= xmin1,
                 #                                        tail_plus)))
-                positive_abs_length.append(len(tail_plus[tail_plus >= xmin1]))
-                positive_rel_length.append(len(tail_plus[tail_plus >= xmin1]) /
-                                           float(len(tail_plus)))
+                results["pos_abs_len"].append(len(
+                    tail_plus[tail_plus >= xmin1]))
+                results["pos_rel_len"].append(
+                    len(tail_plus[tail_plus >= xmin1]) /
+                    float(len(tail_plus)))
                 p1 = plpva.plpva(
                     tail_plus.tolist(), float(xmin1), "reps", c_iter, "silent"
                 )
-                positive_alpha_KS.append(p1[0])
+                results["pos_α_ks"].append(p1[0])
 
                 distribution_list = ["truncated_power_law",
                                      "exponential", "lognormal"]
@@ -1365,17 +1401,17 @@ else:
                     daily_r_ratio.append(R)
                     daily_r_p.append(p)
 
-                loglikelihood_ratio_right.append(daily_r_ratio)
-                loglikelihood_pvalue_right.append(daily_r_p)
+                results["loglr_right"].append(daily_r_ratio)
+                results["loglpv_right"].append(daily_r_p)
 
             if tail_selected == "Left" or tail_selected == "Both":
 
-                negative_alpha_vec.append(alpha2)
-                negative_upper_bound.append(
+                results["neg_α_vec"].append(alpha2)
+                results["neg_up_bound"].append(
                     alpha2 + (st.norm.ppf(1 - multiplier * significance))
                     * s_err2
                 )
-                negative_lower_bound.append(
+                results["neg_low_bound"].append(
                     alpha2 - (st.norm.ppf(1 - multiplier * significance))
                     * s_err2
                 )
@@ -1383,14 +1419,15 @@ else:
                 #                                        tail_neg)))
                 # NOTE: tail_plus was already converted
                 tail_neg = np.array(tail_neg)
-                negative_abs_length.append(len(tail_neg[tail_neg >= xmin2]))
-                negative_rel_length.append(len(tail_neg[tail_neg >= xmin2]) /
-                                           float(len(tail_neg)))
+                results["neg_abs_len"].append(len(tail_neg[tail_neg >= xmin2]))
+                results["neg_rel_len"].append(
+                    len(tail_neg[tail_neg >= xmin2]) /
+                    float(len(tail_neg)))
                 p2 = plpva.plpva(
                     np.array(tail_neg).tolist(), float(xmin2), "reps",
                     c_iter, "silent"
                 )
-                negative_alpha_KS.append(p2[0])
+                results["neg_α_ks"].append(p2[0])
 
                 distribution_list = ["truncated_power_law",
                                      "exponential", "lognormal"]
@@ -1403,8 +1440,8 @@ else:
                     daily_l_ratio.append(R)
                     daily_l_p.append(p)
 
-                loglikelihood_ratio_left.append(daily_l_ratio)
-                loglikelihood_pvalue_left.append(daily_l_p)
+                results["loglr_left"].append(daily_l_ratio)
+                results["loglpv_left"].append(daily_l_p)
 
             if tail_selected == "Both":
                 row = [
@@ -1487,20 +1524,20 @@ else:
             tail_statistics.append(row)
 
         if tail_selected == "Right" or tail_selected == "Both":
-            positive_alpha_mat.append(positive_alpha_vec)
+            positive_alpha_mat.append(results["pos_α_vec"])
         if tail_selected == "Left" or tail_selected == "Both":
-            negative_alpha_mat.append(negative_alpha_vec)
+            negative_alpha_mat.append(results["neg_α_vec"])
 
         # Plot the alpha exponent in time (right/left/both tail)
 
         z.figure("Alpha Fitting for " + labels[i - 1])
         z.gca().set_position((0.1, 0.20, 0.83, 0.70))
         if tail_selected == "Right" or tail_selected == "Both":
-            z.plot(positive_alpha_vec, label="Right tail")
-            z.xlim(xmin=0.0, xmax=len(positive_alpha_vec) - 1)
+            z.plot(results["pos_α_vec"], label="Right tail")
+            z.xlim(xmin=0.0, xmax=len(results["pos_α_vec"]) - 1)
         if tail_selected == "Left" or tail_selected == "Both":
-            z.plot(negative_alpha_vec, label="Left tail")
-            z.xlim(xmin=0.0, xmax=len(negative_alpha_vec) - 1)
+            z.plot(results["neg_α_vec"], label="Left tail")
+            z.xlim(xmin=0.0, xmax=len(results["neg_α_vec"]) - 1)
 
         z.ylabel(r"$\alpha$")
         z.title(
@@ -1535,22 +1572,22 @@ else:
             table_vals.append(
                 [
                     "Right",
-                    np.round(np.mean(positive_alpha_vec), 4),
-                    np.round(np.median(positive_alpha_vec), 4),
-                    np.round(np.std(positive_alpha_vec), 4),
-                    np.round(np.min(positive_alpha_vec), 4),
-                    np.round(np.max(positive_alpha_vec), 4),
+                    np.round(np.mean(results["pos_α_vec"]), 4),
+                    np.round(np.median(results["pos_α_vec"]), 4),
+                    np.round(np.std(results["pos_α_vec"]), 4),
+                    np.round(np.min(results["pos_α_vec"]), 4),
+                    np.round(np.max(results["pos_α_vec"]), 4),
                 ]
             )
         if tail_selected == "Left" or tail_selected == "Both":
             table_vals.append(
                 [
                     "Left",
-                    np.round(np.mean(negative_alpha_vec), 4),
-                    np.round(np.median(negative_alpha_vec), 4),
-                    np.round(np.std(negative_alpha_vec), 4),
-                    np.round(np.min(negative_alpha_vec), 4),
-                    np.round(np.max(negative_alpha_vec), 4),
+                    np.round(np.mean(results["neg_α_vec"]), 4),
+                    np.round(np.median(results["neg_α_vec"]), 4),
+                    np.round(np.std(results["neg_α_vec"]), 4),
+                    np.round(np.min(results["neg_α_vec"]), 4),
+                    np.round(np.max(results["neg_α_vec"]), 4),
                 ]
             )
 
@@ -1572,13 +1609,14 @@ else:
 
             z.figure("Time rolling CI for right tail for " + labels[i - 1])
             z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            z.plot(positive_alpha_vec, color="green", label="Right tail")
-            z.plot(positive_upper_bound, color="purple", label="Upper bound")
-            z.plot(positive_lower_bound, color="blue", label="Lower bound")
-            z.plot(np.repeat(3, len(positive_alpha_vec) + 2), color="red")
-            z.plot(np.repeat(2, len(positive_alpha_vec) + 2), color="red")
+            z.plot(results["pos_α_vec"], color="green", label="Right tail")
+            z.plot(results["pos_up_bound"],
+                   color="purple", label="Upper bound")
+            z.plot(results["pos_low_bound"], color="blue", label="Lower bound")
+            z.plot(np.repeat(3, len(results["pos_α_vec"]) + 2), color="red")
+            z.plot(np.repeat(2, len(results["pos_α_vec"]) + 2), color="red")
             z.ylabel(r"$\alpha$")
-            z.xlim(xmin=0.0, xmax=len(positive_alpha_vec) - 1)
+            z.xlim(xmin=0.0, xmax=len(results["pos_α_vec"]) - 1)
             z.xticks(
                 range(0, len(spec_dates), spec_labelstep),
                 [el[3:] for el in spec_dates[0::spec_labelstep]],
@@ -1612,11 +1650,12 @@ else:
 
             z.figure("Time rolling size for right tail for " + labels[i - 1])
             z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            z.plot(positive_abs_length, color="green", label="Right tail")
+            z.plot(results["pos_abs_len"], color="green", label="Right tail")
             if tail_selected == "Both":
-                z.plot(negative_abs_length, color="purple", label="Left tail")
+                z.plot(results["neg_abs_len"],
+                       color="purple", label="Left tail")
             z.ylabel("Tail length")
-            z.xlim(xmin=0.0, xmax=len(positive_abs_length) - 1)
+            z.xlim(xmin=0.0, xmax=len(results["pos_abs_len"]) - 1)
             z.xticks(
                 range(0, len(spec_dates), spec_labelstep),
                 [el[3:] for el in spec_dates[0::spec_labelstep]],
@@ -1640,11 +1679,12 @@ else:
             z.figure("Time rolling relative size for right tail for "
                      + labels[i - 1])
             z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            z.plot(positive_rel_length, color="green", label="Right tail")
+            z.plot(results["pos_rel_len"], color="green", label="Right tail")
             if tail_selected == "Both":
-                z.plot(negative_rel_length, color="purple", label="Left tail")
+                z.plot(results["neg_rel_len"],
+                       color="purple", label="Left tail")
             z.ylabel("Relative tail length")
-            z.xlim(xmin=0.0, xmax=len(positive_rel_length) - 1)
+            z.xlim(xmin=0.0, xmax=len(results["pos_rel_len"]) - 1)
             z.xticks(
                 range(0, len(spec_dates), spec_labelstep),
                 [el[3:] for el in spec_dates[0::spec_labelstep]],
@@ -1667,11 +1707,11 @@ else:
 
             z.figure("Time rolling KS test for right tail for " + labels[i-1])
             z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            z.plot(positive_alpha_KS, color="green", label="Right tail")
+            z.plot(results["pos_α_ks"], color="green", label="Right tail")
             if tail_selected == "Both":
-                z.plot(negative_alpha_KS, color="purple", label="Left tail")
+                z.plot(results["neg_α_ks"], color="purple", label="Left tail")
             z.ylabel("p-value")
-            z.xlim(xmin=0.0, xmax=len(positive_abs_length) - 1)
+            z.xlim(xmin=0.0, xmax=len(results["pos_abs_len"]) - 1)
             z.xticks(
                 range(0, len(spec_dates), spec_labelstep),
                 [el[3:] for el in spec_dates[0::spec_labelstep]],
@@ -1701,19 +1741,19 @@ else:
                 dpi=100,
             )
             z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            IQR = np.percentile(positive_alpha_vec, 75) - np.percentile(
-                positive_alpha_vec, 25
+            IQR = np.percentile(results["pos_α_vec"], 75) - np.percentile(
+                results["pos_α_vec"], 25
             )
-            h = 2 * IQR * np.power(len(positive_alpha_vec), -1.0 / 3.0)
+            h = 2 * IQR * np.power(len(results["pos_α_vec"]), -1.0 / 3.0)
             nbins = np.int(
-                (np.max(positive_alpha_vec) - np.min(positive_alpha_vec)) /
+                (np.max(results["pos_α_vec"]) - np.min(results["pos_α_vec"])) /
                 float(h)
             )
             # Building the histogram and plotting the relevant vertical lines
-            z.hist(positive_alpha_vec, nbins, color="red")
-            out1, bins = z.histogram(positive_alpha_vec, nbins)
+            z.hist(results["pos_α_vec"], nbins, color="red")
+            out1, bins = z.histogram(results["pos_α_vec"], nbins)
             z.plot(
-                np.repeat(np.mean(positive_alpha_vec), np.max(out1) + 1),
+                np.repeat(np.mean(results["pos_α_vec"]), np.max(out1) + 1),
                 range(0, np.max(out1) + 1, 1),
                 color="blue",
                 linewidth=1.5,
@@ -1733,8 +1773,8 @@ else:
                 + " - "
                 + dates[-1]
             )
-            z.xlim(xmin=np.min(positive_alpha_vec),
-                   xmax=np.max(positive_alpha_vec))
+            z.xlim(xmin=np.min(results["pos_α_vec"]),
+                   xmax=np.max(results["pos_α_vec"]))
             z.ylim(ymin=0, ymax=np.max(out1))
             z.legend()
             z.grid()
@@ -1748,10 +1788,10 @@ else:
             table_vals = []
             table_vals.append(
                 [
-                    np.round(np.mean(positive_alpha_vec), 4),
-                    np.round(np.std(positive_alpha_vec), 4),
-                    np.round(np.min(positive_alpha_vec), 4),
-                    np.round(np.max(positive_alpha_vec), 4),
+                    np.round(np.mean(results["pos_α_vec"]), 4),
+                    np.round(np.std(results["pos_α_vec"]), 4),
+                    np.round(np.min(results["pos_α_vec"]), 4),
+                    np.round(np.max(results["pos_α_vec"]), 4),
                 ]
             )
             the_table = plt.table(
@@ -1770,13 +1810,14 @@ else:
 
             z.figure("Time rolling CI for left tail for " + labels[i - 1])
             z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            z.plot(negative_alpha_vec, color="green", label="Right tail")
-            z.plot(negative_upper_bound, color="purple", label="Upper bound")
-            z.plot(negative_lower_bound, color="blue", label="Lower bound")
-            z.plot(np.repeat(3, len(negative_alpha_vec) + 2), color="red")
-            z.plot(np.repeat(2, len(negative_alpha_vec) + 2), color="red")
+            z.plot(results["neg_α_vec"], color="green", label="Right tail")
+            z.plot(results["neg_up_bound"],
+                   color="purple", label="Upper bound")
+            z.plot(results["neg_low_bound"], color="blue", label="Lower bound")
+            z.plot(np.repeat(3, len(results["neg_α_vec"]) + 2), color="red")
+            z.plot(np.repeat(2, len(results["neg_α_vec"]) + 2), color="red")
             z.ylabel(r"$\alpha$")
-            z.xlim(xmin=0.0, xmax=len(negative_alpha_vec) - 1)
+            z.xlim(xmin=0.0, xmax=len(results["neg_α_vec"]) - 1)
             z.xticks(
                 range(0, len(spec_dates), spec_labelstep),
                 [el[3:] for el in spec_dates[0::spec_labelstep]],
@@ -1810,11 +1851,12 @@ else:
 
             z.figure("Time rolling size for left tail for " + labels[i - 1])
             z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            z.plot(negative_abs_length, color="purple", label="Left tail")
+            z.plot(results["neg_abs_len"], color="purple", label="Left tail")
             if tail_selected == "Both":
-                z.plot(positive_abs_length, color="green", label="Right tail")
+                z.plot(results["pos_abs_len"],
+                       color="green", label="Right tail")
             z.ylabel("Tail length")
-            z.xlim(xmin=0.0, xmax=len(negative_abs_length) - 1)
+            z.xlim(xmin=0.0, xmax=len(results["neg_abs_len"]) - 1)
             z.xticks(
                 range(0, len(spec_dates), spec_labelstep),
                 [el[3:] for el in spec_dates[0::spec_labelstep]],
@@ -1838,11 +1880,12 @@ else:
             z.figure("Time rolling relative size for left tail for " +
                      labels[i - 1])
             z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            z.plot(negative_rel_length, color="purple", label="Left tail")
+            z.plot(results["neg_rel_len"], color="purple", label="Left tail")
             if tail_selected == "Both":
-                z.plot(positive_rel_length, color="green", label="Right tail")
+                z.plot(results["pos_rel_len"],
+                       color="green", label="Right tail")
             z.ylabel("Relative tail length")
-            z.xlim(xmin=0.0, xmax=len(negative_rel_length) - 1)
+            z.xlim(xmin=0.0, xmax=len(results["neg_rel_len"]) - 1)
             z.xticks(
                 range(0, len(spec_dates), spec_labelstep),
                 [el[3:] for el in spec_dates[0::spec_labelstep]],
@@ -1865,11 +1908,11 @@ else:
 
             z.figure("Time rolling KS test for left tail for " + labels[i - 1])
             z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            z.plot(negative_alpha_KS, color="purple", label="Left tail")
+            z.plot(results["neg_α_ks"], color="purple", label="Left tail")
             if tail_selected == "Both":
-                z.plot(positive_alpha_KS, color="green", label="Right tail")
+                z.plot(results["pos_α_ks"], color="green", label="Right tail")
             z.ylabel("p-value")
-            z.xlim(xmin=0.0, xmax=len(negative_abs_length) - 1)
+            z.xlim(xmin=0.0, xmax=len(results["neg_abs_len"]) - 1)
             z.xticks(
                 range(0, len(spec_dates), spec_labelstep),
                 [el[3:] for el in spec_dates[0::spec_labelstep]],
@@ -1899,19 +1942,19 @@ else:
                 dpi=100,
             )
             z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            IQR = np.percentile(negative_alpha_vec, 75) - np.percentile(
-                negative_alpha_vec, 25
+            IQR = np.percentile(results["neg_α_vec"], 75) - np.percentile(
+                results["neg_α_vec"], 25
             )
-            h = 2 * IQR * np.power(len(negative_alpha_vec), -1.0 / 3.0)
+            h = 2 * IQR * np.power(len(results["neg_α_vec"]), -1.0 / 3.0)
             nbins = np.int(
-                (np.max(negative_alpha_vec) - np.min(negative_alpha_vec)) /
+                (np.max(results["neg_α_vec"]) - np.min(results["neg_α_vec"])) /
                 float(h)
             )
             # Building the histogram and plotting the relevant vertical lines
-            z.hist(negative_alpha_vec, nbins, color="red")
-            out1, bins = z.histogram(negative_alpha_vec, nbins)
+            z.hist(results["neg_α_vec"], nbins, color="red")
+            out1, bins = z.histogram(results["neg_α_vec"], nbins)
             z.plot(
-                np.repeat(np.mean(negative_alpha_vec), np.max(out1) + 1),
+                np.repeat(np.mean(results["neg_α_vec"]), np.max(out1) + 1),
                 range(0, np.max(out1) + 1, 1),
                 color="blue",
                 linewidth=1.5,
@@ -1931,8 +1974,8 @@ else:
                 + " - "
                 + dates[-1]
             )
-            z.xlim(xmin=np.min(negative_alpha_vec),
-                   xmax=np.max(negative_alpha_vec))
+            z.xlim(xmin=np.min(results["neg_α_vec"]),
+                   xmax=np.max(results["neg_α_vec"]))
             z.ylim(ymin=0, ymax=np.max(out1))
             z.legend()
             z.grid()
@@ -1946,10 +1989,10 @@ else:
             table_vals = []
             table_vals.append(
                 [
-                    np.round(np.mean(negative_alpha_vec), 4),
-                    np.round(np.std(negative_alpha_vec), 4),
-                    np.round(np.min(negative_alpha_vec), 4),
-                    np.round(np.max(negative_alpha_vec), 4),
+                    np.round(np.mean(results["neg_α_vec"]), 4),
+                    np.round(np.std(results["neg_α_vec"]), 4),
+                    np.round(np.min(results["neg_α_vec"]), 4),
+                    np.round(np.max(results["neg_α_vec"]), 4),
                 ]
             )
             the_table = plt.table(
