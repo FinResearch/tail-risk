@@ -174,19 +174,10 @@ def results_lists_init():
     return {l: [] for l in labels}
 
 
-#  def tail_stats_lists_init():
-#      labels = ("α1", "α2", "xmin1", "xmin2", "s_err1", "s_err2",
-#                "tail_size1", "tail_size2", "ks_pv1", "ks_pv2")
-#      return {l: [] for l in labels}
-
-
 # INITIALIZE non-user specified global variables
 
 # lists to store the results for plotting (16 total)
 results = results_lists_init()
-
-# lists to store the results for output csv (10 total)
-#  tail_statistics = tail_stats_lists_init()
 
 initial_index = database[0].index(initial_date)
 final_index = database[0].index(final_date)
@@ -906,9 +897,6 @@ if approach == "Static":
 
     # Print the figures
 
-    #  matrix_form = np.array(tail_statistics)
-    #  matrix_form_transpose = np.transpose(matrix_form)
-
     filename = "TailStatistics_Overall.csv"
     labels_colvec = np.array(labels).reshape(len(labels), 1)
     df_data = np.hstack((labels_colvec, tail_statistics))
@@ -925,39 +913,6 @@ if approach == "Static":
                       "Negative Tail KS p-value"]
     df = pd.DataFrame(df_data, columns=column_headers)
     df.to_csv(filename, index=False)
-
-    #  df = pd.DataFrame(
-    #      {
-    #          "Input": labels,
-    #          "Positive Tail Exponent": matrix_form_transpose[0],
-    #          "Negative Tail Exponent": matrix_form_transpose[1],
-    #          "Positive Tail xmin": matrix_form_transpose[2],
-    #          "Negative Tail xmin": matrix_form_transpose[3],
-    #          "Positive Tail S.Err": matrix_form_transpose[4],
-    #          "Negative Tail S.Err": matrix_form_transpose[5],
-    #          "Positive Tail Size": matrix_form_transpose[6],
-    #          "Negative Tail Size": matrix_form_transpose[7],
-    #          "Positive Tail KS p-value": matrix_form_transpose[8],
-    #          "Negative Tail KS p-value": matrix_form_transpose[9],
-    #      }
-    #  )
-
-    # TODO: this indexing seems to be completely redundant
-    #  df = df[
-    #      [
-    #          "Input",
-    #          "Positive Tail Exponent",
-    #          "Negative Tail Exponent",
-    #          "Positive Tail xmin",
-    #          "Negative Tail xmin",
-    #          "Positive Tail S.Err",
-    #          "Negative Tail S.Err",
-    #          "Positive Tail Size",
-    #          "Negative Tail Size",
-    #          "Positive Tail KS p-value",
-    #          "Negative Tail KS p-value",
-    #      ]
-    #  ]
 
 else:
 
@@ -1410,85 +1365,6 @@ else:
                        + logl_tstat_left)
 
             tail_statistics.append(row)
-
-            #  if tail_selected == "Both":
-            #      row = [
-            #          alpha1,
-            #          alpha2,
-            #          xmin1,
-            #          xmin2,
-            #          s_err1,
-            #          s_err2,
-            #          len(tail_plus[tail_plus >= xmin1]),
-            #          len(tail_neg[tail_neg >= xmin2]),
-            #          p1[0],
-            #          p2[0],
-            #          daily_r_ratio[0],
-            #          daily_r_ratio[1],
-            #          daily_r_ratio[2],
-            #          daily_r_p[0],
-            #          daily_r_p[1],
-            #          daily_r_p[2],
-            #          daily_l_ratio[0],
-            #          daily_l_ratio[1],
-            #          daily_l_ratio[2],
-            #          daily_l_p[0],
-            #          daily_l_p[1],
-            #          daily_l_p[2],
-            #      ]
-            #  if tail_selected == "Right":
-            #      row = [
-            #          alpha1,
-            #          0,
-            #          xmin1,
-            #          0,
-            #          s_err1,
-            #          0,
-            #          #  len(filter(lambda x: x >= xmin1, tail_plus)),
-            #          len(tail_plus[tail_plus >= xmin1]),
-            #          0,
-            #          p1[0],
-            #          0,
-            #          daily_r_ratio[0],
-            #          daily_r_ratio[1],
-            #          daily_r_ratio[2],
-            #          daily_r_p[0],
-            #          daily_r_p[1],
-            #          daily_r_p[2],
-            #          0,
-            #          0,
-            #          0,
-            #          0,
-            #          0,
-            #          0,
-            #      ]
-            #  if tail_selected == "Left":
-            #      row = [
-            #          0,
-            #          alpha2,
-            #          0,
-            #          xmin2,
-            #          0,
-            #          s_err2,
-            #          0,
-            #          #  len(filter(lambda x: x >= xmin2, tail_neg)),
-            #          len(tail_neg[tail_neg >= xmin2]),
-            #          0,
-            #          p2[0],
-            #          0,
-            #          0,
-            #          0,
-            #          0,
-            #          0,
-            #          0,
-            #          daily_l_ratio[0],
-            #          daily_l_ratio[1],
-            #          daily_l_ratio[2],
-            #          daily_l_p[0],
-            #          daily_l_p[1],
-            #          daily_l_p[2],
-            #      ]
-            #  tail_statistics.append(row)
 
         if tail_selected == "Right" or tail_selected == "Both":
             positive_alpha_mat.append(results["pos_α_vec"])
@@ -1976,9 +1852,6 @@ else:
 
         # Print the figures
 
-        #  matrix_form = np.array(tail_statistics)
-        #  matrix_form_transpose = np.transpose(matrix_form)
-
         filename = ("TailStatistics_504_d=1_pn_normalized_" +
                     labels[i - 1] + "_KS.csv")
         date_colvec = np.array(spec_dates).reshape(len(spec_dates), 1)
@@ -2008,63 +1881,6 @@ else:
                           "LL p-value Left Tail LogN"]
         df = pd.DataFrame(df_data, columns=column_headers)
         df.to_csv(filename, index=False)
-
-        #  df = pd.DataFrame(
-        #      {
-        #          "Date": spec_dates,
-        #          "Positive Tail Exponent": matrix_form_transpose[0],
-        #          "Negative Tail Exponent": matrix_form_transpose[1],
-        #          "Positive Tail xmin": matrix_form_transpose[2],
-        #          "Negative Tail xmin": matrix_form_transpose[3],
-        #          "Positive Tail S.Err": matrix_form_transpose[4],
-        #          "Negative Tail S.Err": matrix_form_transpose[5],
-        #          "Positive Tail Size": matrix_form_transpose[6],
-        #          "Negative Tail Size": matrix_form_transpose[7],
-        #          "Positive Tail KS p-value": matrix_form_transpose[8],
-        #          "Negative Tail KS p-value": matrix_form_transpose[9],
-        #          "LL Ratio Right Tail TPL": matrix_form_transpose[10],
-        #          "LL Ratio Right Tail Exp": matrix_form_transpose[11],
-        #          "LL Ratio Right Tail LogN": matrix_form_transpose[12],
-        #          "LL p-value Right Tail TPL": matrix_form_transpose[13],
-        #          "LL p-value Right Tail Exp": matrix_form_transpose[14],
-        #          "LL p-value Right Tail LogN": matrix_form_transpose[15],
-        #          "LL Ratio Left Tail TPL": matrix_form_transpose[16],
-        #          "LL Ratio Left Tail Exp": matrix_form_transpose[17],
-        #          "LL Ratio Left Tail LogN": matrix_form_transpose[18],
-        #          "LL p-value Left Tail TPL": matrix_form_transpose[19],
-        #          "LL p-value Left Tail Exp": matrix_form_transpose[20],
-        #          "LL p-value Left Tail LogN": matrix_form_transpose[21],
-        #      }
-        #  )
-
-        # TODO: this indexing seems to be completely redundant
-        #  df = df[
-        #      [
-        #          "Date",
-        #          "Positive Tail Exponent",
-        #          "Negative Tail Exponent",
-        #          "Positive Tail xmin",
-        #          "Negative Tail xmin",
-        #          "Positive Tail S.Err",
-        #          "Negative Tail S.Err",
-        #          "Positive Tail Size",
-        #          "Negative Tail Size",
-        #          "Positive Tail KS p-value",
-        #          "Negative Tail KS p-value",
-        #          "LL Ratio Right Tail TPL",
-        #          "LL Ratio Right Tail Exp",
-        #          "LL Ratio Right Tail LogN",
-        #          "LL p-value Right Tail TPL",
-        #          "LL p-value Right Tail Exp",
-        #          "LL p-value Right Tail LogN",
-        #          "LL Ratio Left Tail TPL",
-        #          "LL Ratio Left Tail Exp",
-        #          "LL Ratio Left Tail LogN",
-        #          "LL p-value Left Tail TPL",
-        #          "LL p-value Left Tail Exp",
-        #          "LL p-value Left Tail LogN",
-        #      ]
-        #  ]
 
     if tail_selected == "Right" or tail_selected == "Both":
         z.figure("Positive Power Law Boxplot")
