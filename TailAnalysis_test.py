@@ -196,7 +196,7 @@ N = len(database)
 
 if approach == "Static":
 
-    # TODO: add list below to results_lists_init function
+    # TODO: add list below to results_lists_init function?
     tail_statistics = []
 
     for i in range(1, N, 1):
@@ -895,8 +895,7 @@ if approach == "Static":
     z.grid()
     # z.show()
 
-    # Print the figures
-
+    # Write Tail Statistics to CSV file
     filename = "TailStatistics_Overall.csv"
     labels_colvec = np.array(labels).reshape(len(labels), 1)
     df_data = np.hstack((labels_colvec, tail_statistics))
@@ -914,7 +913,7 @@ if approach == "Static":
     df = pd.DataFrame(df_data, columns=column_headers)
     df.to_csv(filename, index=False)
 
-else:
+elif approach == "Rolling":
 
     #  question      = "Do you want to save the sequential scaling plot?"
     #  choices      = ['Yes', 'No']
@@ -1850,8 +1849,7 @@ else:
             the_table.scale(0.5, 0.5)
             # z.show()
 
-        # Print the figures
-
+        # Write Tail Statistics to CSV file
         filename = ("TailStatistics_504_d=1_pn_normalized_" +
                     labels[i - 1] + "_KS.csv")
         date_colvec = np.array(spec_dates).reshape(len(spec_dates), 1)
