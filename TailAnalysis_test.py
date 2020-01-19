@@ -7,6 +7,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import pylab as z
 
+from types import SimpleNamespace
+
 import scipy.stats as st
 import powerlaw as pl
 #  import easygui as eg
@@ -194,6 +196,24 @@ labelstep = (22 if len(dates) <= 252 else
              66 if (len(dates) > 252 and len(dates) <= 756) else
              121)
 N = len(database)
+
+
+# TODO: set values of these dynamically based on user input
+# object to hold all options data determined by user input data
+options_data = {"standardize": False,
+                "absolutize": False,
+                "approach": "Rolling",
+                "analysis_freq": 1,
+                "use_right_tail": (True if tail_selected in ["Right", "Both"]
+                                   else False),
+                "use_left_tail": (True if tail_selected in ["Left", "Both"]
+                                  else False),
+                "data_nature": "Continuous",
+                "xmin_rule": "Clauset",
+                "dates": dates,
+                "labelstep": labelstep}
+# TODO: add "labels" and other important values into options dict
+options = SimpleNamespace(**options_data)
 
 
 # Execution logic for the actual calculations
