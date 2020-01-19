@@ -103,3 +103,6 @@ def alpha_fitting(label, data, opts, show_plot=False):
 
     if show_plot:
         z.show()
+    else:
+        # TODO: implement plot saving functionality?
+        pass
