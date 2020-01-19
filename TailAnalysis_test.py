@@ -106,7 +106,8 @@ labels = fieldValues
 
 database = Extractor(database_name, labels)
 
-initial_date = "1/1/2016"
+#  initial_date = "1/1/2016"
+initial_date = "2/5/2016"
 final_date = "5/5/2016"
 lookback = 504
 
