@@ -15,6 +15,8 @@ import powerlaw as pl
 
 import plpva as plpva
 
+import plot_funcs.alpha_fitting as pfaf
+
 #####################################
 # Tools Functions                   #
 #####################################
@@ -1396,80 +1398,7 @@ elif approach == "Rolling" or approach == "Increasing":
             negative_alpha_mat.append(results["neg_α_vec"])
 
         # Plot the alpha exponent in time (right/left/both tail)
-
-        z.figure("Alpha Fitting for " + labels[i - 1])
-        z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-        if tail_selected == "Right" or tail_selected == "Both":
-            z.plot(results["pos_α_vec"], label="Right tail")
-            z.xlim(xmin=0.0, xmax=len(results["pos_α_vec"]) - 1)
-        if tail_selected == "Left" or tail_selected == "Both":
-            z.plot(results["neg_α_vec"], label="Left tail")
-            z.xlim(xmin=0.0, xmax=len(results["neg_α_vec"]) - 1)
-
-        z.ylabel(r"$\alpha$")
-        z.title(
-            "Time evolution of the parameter "
-            + r"$\alpha$"
-            + " for "
-            + labels[i - 1]
-            + "\n"
-            + "Time period: "
-            + dates[0]
-            + " - "
-            + dates[-1]
-        )
-        z.xticks(
-            range(0, len(spec_dates), spec_labelstep),
-            [el[3:] for el in spec_dates[0::spec_labelstep]],
-            rotation="vertical",
-        )
-        z.grid()
-        z.legend()
-        # A table with the four statistical moments is built
-        col_labels = [
-            "Tail",
-            r"$E[\alpha]$",
-            "Median",
-            r"$\sigma(\alpha)$",
-            "min",
-            "max",
-        ]
-        table_vals = []
-        if tail_selected == "Right" or tail_selected == "Both":
-            table_vals.append(
-                [
-                    "Right",
-                    np.round(np.mean(results["pos_α_vec"]), 4),
-                    np.round(np.median(results["pos_α_vec"]), 4),
-                    np.round(np.std(results["pos_α_vec"]), 4),
-                    np.round(np.min(results["pos_α_vec"]), 4),
-                    np.round(np.max(results["pos_α_vec"]), 4),
-                ]
-            )
-        if tail_selected == "Left" or tail_selected == "Both":
-            table_vals.append(
-                [
-                    "Left",
-                    np.round(np.mean(results["neg_α_vec"]), 4),
-                    np.round(np.median(results["neg_α_vec"]), 4),
-                    np.round(np.std(results["neg_α_vec"]), 4),
-                    np.round(np.min(results["neg_α_vec"]), 4),
-                    np.round(np.max(results["neg_α_vec"]), 4),
-                ]
-            )
-
-        the_table = plt.table(
-            cellText=table_vals,
-            cellLoc="center",
-            colLabels=col_labels,
-            loc="bottom",
-            bbox=[0.0, -0.26, 1.0, 0.10],
-        )
-        the_table.auto_set_font_size(False)
-        the_table.set_fontsize(10)
-        the_table.scale(0.5, 0.5)
-        # z.show()
-        # z.show()
+        pfaf.alpha_fitting(labels[i-1], results, options, show_plot=True)
 
         # Plot the alpha exponent confidence interval in time
         if tail_selected == "Both" or tail_selected == "Right":
