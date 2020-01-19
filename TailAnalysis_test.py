@@ -114,6 +114,12 @@ def get_logl_tstats(daily_log_ratio, daily_log_pv):
     return list((r_tpl, r_exp, r_logn, p_tpl, p_exp, p_logn))
 
 
+# TODO: factor plot making & storing code sections
+# TODO: use config file (json, yaml, toml) for attr. (color, width, etc.)
+# NOTES & IDEAS: create map (json) from plot data to its title, labels, etc.
+# NOTE on refactor order: alpha-fit, time-rolling (4 sets), histogram, boxplot
+
+
 #####################################
 # Script inputs (hardcoded for the time)                     #
 #####################################
@@ -146,7 +152,7 @@ standardize_target = "Tail"  # choices is one of ['Full Series', 'Tail']
 abs_value = "No"
 abs_target = "Tail"  # choices is one of ['Full Series', 'Tail']
 
-approach = "Rolling"
+approach = "Rolling"  # choices is one of ['Static', 'Rolling', 'Increasing']
 an_freq = 1
 tail_selected = "Both"
 data_nature = "Continuous"
@@ -171,6 +177,7 @@ def results_lists_init():
               "pos_up_bound", "neg_up_bound", "pos_low_bound", "neg_low_bound",
               "pos_abs_len", "neg_abs_len", "pos_rel_len", "neg_rel_len",
               "loglr_right", "loglr_left", "loglpv_right", "loglpv_left")
+    # NOTE: length of each list is the number of days -> so use np.ndarray
     return {l: [] for l in labels}
 
 
@@ -182,13 +189,9 @@ results = results_lists_init()
 initial_index = database[0].index(initial_date)
 final_index = database[0].index(final_date)
 dates = database[0][initial_index: (final_index + 1)]
-labelstep = (
-    22
-    if len(dates) <= 252
-    else 66
-    if (len(dates) > 252 and len(dates) <= 756)
-    else 121
-)
+labelstep = (22 if len(dates) <= 252 else
+             66 if (len(dates) > 252 and len(dates) <= 756) else
+             121)
 N = len(database)
 
 
@@ -913,7 +916,7 @@ if approach == "Static":
     df = pd.DataFrame(df_data, columns=column_headers)
     df.to_csv(filename, index=False)
 
-elif approach == "Rolling":
+elif approach == "Rolling" or approach == "Increasing":
 
     #  question      = "Do you want to save the sequential scaling plot?"
     #  choices      = ['Yes', 'No']
@@ -929,7 +932,7 @@ elif approach == "Rolling":
     #                     "\IP\Econophysics\Final Code Hurst Exponent\\"),
     #      )
 
-    temp = []
+    temp = []  # NOTE: appears to be unused
 
     if an_freq > 1:
         spec_dates = []
@@ -942,7 +945,7 @@ elif approach == "Rolling":
 
     # int(np.maximum(np.floor(22/float(an_freq)),1.0))
 
-    # TODO: add lists below to results_lists_init function
+    # TODO: add lists below to results_lists_init function?
     positive_alpha_mat = []
     negative_alpha_mat = []
 
@@ -1042,234 +1045,234 @@ elif approach == "Rolling":
             xmin2 = fit_2.power_law.xmin
             s_err2 = fit_2.power_law.sigma
 
-            # Plot Storing if-block
-            if plot_storing == "Yes":
-
-                if tail_selected == "Right" or tail_selected == "Both":
-
-                    plt.figure(
-                        "Right tail scaling for "
-                        + labels[i - 1]
-                        + begin_date
-                        + "_"
-                        + end_date
-                    )
-                    z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-                    fig4 = fit_1.plot_ccdf(
-                        color="b", linewidth=2, label="Empirical CCDF"
-                    )
-                    fit_1.power_law.plot_ccdf(
-                        color="b", linestyle="-", label="Fitted CCDF", ax=fig4
-                    )
-                    fit_1.plot_pdf(
-                        color="r", linewidth=2, label="Empirical PDF", ax=fig4
-                    )
-                    fit_1.power_law.plot_pdf(
-                        color="r", linestyle="-", label="Fitted PDF", ax=fig4
-                    )
-                    fig4.set_title(
-                        "Log-log plot of the scaling properties "
-                        "of the right-tail for "
-                        + labels[i - 1]
-                        + "\n"
-                        + "Time Period: "
-                        + begin_date
-                        + " - "
-                        + end_date
-                        + ". Input series: "
-                        + lab
-                    )
-                    fig4.grid()
-                    fig4.legend()
-                    col_labels = [
-                        r"$\hat{\alpha}$",
-                        "Standard err.",
-                        r"$x_{min}$",
-                        "size",
-                    ]
-                    table_vals = []
-                    table_vals.append(
-                        [
-                            np.round(alpha1, 4),
-                            np.round(s_err1, 4),
-                            np.round(xmin1, 4),
-                            len(filter(lambda x: x >= xmin1, tail_plus)),
-                        ]
-                    )
-                    the_table = plt.table(
-                        cellText=table_vals,
-                        cellLoc="center",
-                        colLabels=col_labels,
-                        loc="bottom",
-                        bbox=[0.0, -0.26, 1.0, 0.10],
-                    )
-                    the_table.auto_set_font_size(False)
-                    the_table.set_fontsize(10)
-                    the_table.scale(0.5, 0.5)
-                    plt.savefig(
-                        "Right-tail scaling_"
-                        + begin_date
-                        + "_"
-                        + end_date
-                        + "_"
-                        + labels[i - 1]
-                        + ".jpg"
-                    )
-                    plt.close()
-
-                    plt.figure("Right tail comparison for " + labels[i - 1])
-                    fig4 = fit_1.plot_ccdf(
-                        color="b", linewidth=2, label="Empirical CCDF"
-                    )
-                    fit_1.power_law.plot_ccdf(
-                        color="r", linestyle="-", label="Fitted PL", ax=fig4
-                    )
-                    fit_1.truncated_power_law.plot_ccdf(
-                        color="g", linestyle="-", label="Fitted TPL", ax=fig4
-                    )
-                    fit_1.exponential.plot_ccdf(
-                        color="c", linestyle="-", label="Fitted Exp.", ax=fig4
-                    )
-                    fit_1.lognormal.plot_ccdf(
-                        color="m", linestyle="-", label="Fitted LogN.", ax=fig4
-                    )
-                    fig4.set_title(
-                        "Comparison of the distributions "
-                        "fitted on the right-tail for "
-                        + labels[i - 1]
-                        + "\n"
-                        + "Time Period: "
-                        + dates[0]
-                        + " - "
-                        + dates[-1]
-                        + ". Input series: "
-                        + lab
-                    )
-                    fig4.grid()
-                    fig4.legend()
-                    plt.savefig(
-                        "Right-tail fitting comparison_"
-                        + begin_date
-                        + "_"
-                        + end_date
-                        + "_"
-                        + labels[i - 1]
-                        + ".jpg"
-                    )
-                    plt.close()
-
-                if tail_selected == "Left" or tail_selected == "Both":
-
-                    plt.figure(
-                        "Left tail scaling for "
-                        + labels[i - 1]
-                        + begin_date
-                        + "_"
-                        + end_date
-                    )
-                    z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-                    fig4 = fit_2.plot_ccdf(
-                        color="b", linewidth=2, label="Empirical CCDF"
-                    )
-                    fit_2.power_law.plot_ccdf(
-                        color="b", linestyle="-", label="Fitted CCDF", ax=fig4
-                    )
-                    fit_2.plot_pdf(
-                        color="r", linewidth=2, label="Empirical PDF", ax=fig4
-                    )
-                    fit_2.power_law.plot_pdf(
-                        color="r", linestyle="-", label="Fitted PDF", ax=fig4
-                    )
-                    fig4.set_title(
-                        "Log-log plot of the scaling properties "
-                        "of the left-tail for "
-                        + labels[i - 1]
-                        + "\n"
-                        + "Time Period: "
-                        + begin_date
-                        + " - "
-                        + end_date
-                        + ". Input series: "
-                        + lab
-                    )
-                    fig4.grid()
-                    fig4.legend()
-                    col_labels = [
-                        r"$\hat{\alpha}$",
-                        "Standard err.",
-                        r"$x_{min}$",
-                        "size",
-                    ]
-                    table_vals = []
-                    table_vals.append(
-                        [
-                            np.round(alpha2, 4),
-                            np.round(s_err2, 4),
-                            np.round(xmin2, 4),
-                            len(filter(lambda x: x >= xmin2, tail_neg)),
-                        ]
-                    )
-                    the_table = plt.table(
-                        cellText=table_vals,
-                        cellLoc="center",
-                        colLabels=col_labels,
-                        loc="bottom",
-                        bbox=[0.0, -0.26, 1.0, 0.10],
-                    )
-                    the_table.auto_set_font_size(False)
-                    the_table.set_fontsize(10)
-                    the_table.scale(0.5, 0.5)
-                    plt.savefig(
-                        "Left-tail scaling_"
-                        + begin_date
-                        + "_"
-                        + end_date
-                        + "_"
-                        + labels[i - 1]
-                        + ".jpg"
-                    )
-                    plt.close()
-
-                    plt.figure("Left tail comparison for " + labels[i - 1])
-                    fig4 = fit_2.plot_ccdf(
-                        color="b", linewidth=2, label="Empirical CCDF"
-                    )
-                    fit_2.power_law.plot_ccdf(
-                        color="r", linestyle="-", label="Fitted PL", ax=fig4
-                    )
-                    fit_2.truncated_power_law.plot_ccdf(
-                        color="g", linestyle="-", label="Fitted TPL", ax=fig4
-                    )
-                    fit_2.exponential.plot_ccdf(
-                        color="c", linestyle="-", label="Fitted Exp.", ax=fig4
-                    )
-                    fit_2.lognormal.plot_ccdf(
-                        color="m", linestyle="-", label="Fitted LogN.", ax=fig4
-                    )
-                    fig4.set_title(
-                        "Comparison of the distributions fitted "
-                        "on the left-tail for "
-                        + labels[i - 1]
-                        + "\n"
-                        + "Time Period: "
-                        + dates[0]
-                        + " - "
-                        + dates[-1]
-                        + ". Input series: "
-                        + lab
-                    )
-                    fig4.grid()
-                    fig4.legend()
-                    plt.savefig(
-                        "Left-tail fitting comparison_"
-                        + begin_date
-                        + "_"
-                        + end_date
-                        + "_"
-                        + labels[i - 1]
-                        + ".jpg"
-                    )
-                    plt.close()
+            #  # Plot Storing if-block
+            #  if plot_storing == "Yes":
+            #
+            #      if tail_selected == "Right" or tail_selected == "Both":
+            #
+            #          plt.figure(
+            #              "Right tail scaling for "
+            #              + labels[i - 1]
+            #              + begin_date
+            #              + "_"
+            #              + end_date
+            #          )
+            #          z.gca().set_position((0.1, 0.20, 0.83, 0.70))
+            #          fig4 = fit_1.plot_ccdf(
+            #              color="b", linewidth=2, label="Empirical CCDF"
+            #          )
+            #          fit_1.power_law.plot_ccdf(
+            #              color="b", linestyle="-", label="Fitted CCDF", ax=fig4
+            #          )
+            #          fit_1.plot_pdf(
+            #              color="r", linewidth=2, label="Empirical PDF", ax=fig4
+            #          )
+            #          fit_1.power_law.plot_pdf(
+            #              color="r", linestyle="-", label="Fitted PDF", ax=fig4
+            #          )
+            #          fig4.set_title(
+            #              "Log-log plot of the scaling properties "
+            #              "of the right-tail for "
+            #              + labels[i - 1]
+            #              + "\n"
+            #              + "Time Period: "
+            #              + begin_date
+            #              + " - "
+            #              + end_date
+            #              + ". Input series: "
+            #              + lab
+            #          )
+            #          fig4.grid()
+            #          fig4.legend()
+            #          col_labels = [
+            #              r"$\hat{\alpha}$",
+            #              "Standard err.",
+            #              r"$x_{min}$",
+            #              "size",
+            #          ]
+            #          table_vals = []
+            #          table_vals.append(
+            #              [
+            #                  np.round(alpha1, 4),
+            #                  np.round(s_err1, 4),
+            #                  np.round(xmin1, 4),
+            #                  len(filter(lambda x: x >= xmin1, tail_plus)),
+            #              ]
+            #          )
+            #          the_table = plt.table(
+            #              cellText=table_vals,
+            #              cellLoc="center",
+            #              colLabels=col_labels,
+            #              loc="bottom",
+            #              bbox=[0.0, -0.26, 1.0, 0.10],
+            #          )
+            #          the_table.auto_set_font_size(False)
+            #          the_table.set_fontsize(10)
+            #          the_table.scale(0.5, 0.5)
+            #          plt.savefig(
+            #              "Right-tail scaling_"
+            #              + begin_date
+            #              + "_"
+            #              + end_date
+            #              + "_"
+            #              + labels[i - 1]
+            #              + ".jpg"
+            #          )
+            #          plt.close()
+            #
+            #          plt.figure("Right tail comparison for " + labels[i - 1])
+            #          fig4 = fit_1.plot_ccdf(
+            #              color="b", linewidth=2, label="Empirical CCDF"
+            #          )
+            #          fit_1.power_law.plot_ccdf(
+            #              color="r", linestyle="-", label="Fitted PL", ax=fig4
+            #          )
+            #          fit_1.truncated_power_law.plot_ccdf(
+            #              color="g", linestyle="-", label="Fitted TPL", ax=fig4
+            #          )
+            #          fit_1.exponential.plot_ccdf(
+            #              color="c", linestyle="-", label="Fitted Exp.", ax=fig4
+            #          )
+            #          fit_1.lognormal.plot_ccdf(
+            #              color="m", linestyle="-", label="Fitted LogN.", ax=fig4
+            #          )
+            #          fig4.set_title(
+            #              "Comparison of the distributions "
+            #              "fitted on the right-tail for "
+            #              + labels[i - 1]
+            #              + "\n"
+            #              + "Time Period: "
+            #              + dates[0]
+            #              + " - "
+            #              + dates[-1]
+            #              + ". Input series: "
+            #              + lab
+            #          )
+            #          fig4.grid()
+            #          fig4.legend()
+            #          plt.savefig(
+            #              "Right-tail fitting comparison_"
+            #              + begin_date
+            #              + "_"
+            #              + end_date
+            #              + "_"
+            #              + labels[i - 1]
+            #              + ".jpg"
+            #          )
+            #          plt.close()
+            #
+            #      if tail_selected == "Left" or tail_selected == "Both":
+            #
+            #          plt.figure(
+            #              "Left tail scaling for "
+            #              + labels[i - 1]
+            #              + begin_date
+            #              + "_"
+            #              + end_date
+            #          )
+            #          z.gca().set_position((0.1, 0.20, 0.83, 0.70))
+            #          fig4 = fit_2.plot_ccdf(
+            #              color="b", linewidth=2, label="Empirical CCDF"
+            #          )
+            #          fit_2.power_law.plot_ccdf(
+            #              color="b", linestyle="-", label="Fitted CCDF", ax=fig4
+            #          )
+            #          fit_2.plot_pdf(
+            #              color="r", linewidth=2, label="Empirical PDF", ax=fig4
+            #          )
+            #          fit_2.power_law.plot_pdf(
+            #              color="r", linestyle="-", label="Fitted PDF", ax=fig4
+            #          )
+            #          fig4.set_title(
+            #              "Log-log plot of the scaling properties "
+            #              "of the left-tail for "
+            #              + labels[i - 1]
+            #              + "\n"
+            #              + "Time Period: "
+            #              + begin_date
+            #              + " - "
+            #              + end_date
+            #              + ". Input series: "
+            #              + lab
+            #          )
+            #          fig4.grid()
+            #          fig4.legend()
+            #          col_labels = [
+            #              r"$\hat{\alpha}$",
+            #              "Standard err.",
+            #              r"$x_{min}$",
+            #              "size",
+            #          ]
+            #          table_vals = []
+            #          table_vals.append(
+            #              [
+            #                  np.round(alpha2, 4),
+            #                  np.round(s_err2, 4),
+            #                  np.round(xmin2, 4),
+            #                  len(filter(lambda x: x >= xmin2, tail_neg)),
+            #              ]
+            #          )
+            #          the_table = plt.table(
+            #              cellText=table_vals,
+            #              cellLoc="center",
+            #              colLabels=col_labels,
+            #              loc="bottom",
+            #              bbox=[0.0, -0.26, 1.0, 0.10],
+            #          )
+            #          the_table.auto_set_font_size(False)
+            #          the_table.set_fontsize(10)
+            #          the_table.scale(0.5, 0.5)
+            #          plt.savefig(
+            #              "Left-tail scaling_"
+            #              + begin_date
+            #              + "_"
+            #              + end_date
+            #              + "_"
+            #              + labels[i - 1]
+            #              + ".jpg"
+            #          )
+            #          plt.close()
+            #
+            #          plt.figure("Left tail comparison for " + labels[i - 1])
+            #          fig4 = fit_2.plot_ccdf(
+            #              color="b", linewidth=2, label="Empirical CCDF"
+            #          )
+            #          fit_2.power_law.plot_ccdf(
+            #              color="r", linestyle="-", label="Fitted PL", ax=fig4
+            #          )
+            #          fit_2.truncated_power_law.plot_ccdf(
+            #              color="g", linestyle="-", label="Fitted TPL", ax=fig4
+            #          )
+            #          fit_2.exponential.plot_ccdf(
+            #              color="c", linestyle="-", label="Fitted Exp.", ax=fig4
+            #          )
+            #          fit_2.lognormal.plot_ccdf(
+            #              color="m", linestyle="-", label="Fitted LogN.", ax=fig4
+            #          )
+            #          fig4.set_title(
+            #              "Comparison of the distributions fitted "
+            #              "on the left-tail for "
+            #              + labels[i - 1]
+            #              + "\n"
+            #              + "Time Period: "
+            #              + dates[0]
+            #              + " - "
+            #              + dates[-1]
+            #              + ". Input series: "
+            #              + lab
+            #          )
+            #          fig4.grid()
+            #          fig4.legend()
+            #          plt.savefig(
+            #              "Left-tail fitting comparison_"
+            #              + begin_date
+            #              + "_"
+            #              + end_date
+            #              + "_"
+            #              + labels[i - 1]
+            #              + ".jpg"
+            #          )
+            #          plt.close()
 
             if tail_selected == "Right" or tail_selected == "Both":
 
@@ -1317,7 +1320,7 @@ elif approach == "Rolling":
                 )
                 # NOTE: tail_plus was already converted;
                 #       tail_neg now should be a np.ndarray by default
-                tail_neg = np.array(tail_neg)
+                #  tail_neg = np.array(tail_neg)
                 results["neg_abs_len"].append(len(tail_neg[tail_neg >= xmin2]))
                 results["neg_rel_len"].append(
                     len(tail_neg[tail_neg >= xmin2]) /
@@ -1365,6 +1368,7 @@ elif approach == "Rolling":
 
             tail_statistics.append(row)
 
+        # NOTE: these are used for the boxplots
         if tail_selected == "Right" or tail_selected == "Both":
             positive_alpha_mat.append(results["pos_α_vec"])
         if tail_selected == "Left" or tail_selected == "Both":
