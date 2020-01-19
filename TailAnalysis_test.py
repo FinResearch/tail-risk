@@ -13,6 +13,9 @@ import scipy.stats as st
 import powerlaw as pl
 #  import easygui as eg
 
+
+# import own modules
+
 import plpva as plpva
 
 import plot_funcs.alpha_fitting as pfaf
@@ -201,8 +204,9 @@ labelstep = (22 if len(dates) <= 252 else
 N = len(database)
 
 
-# TODO: set values of these dynamically based on user input
 # object to hold all options data determined by user input data
+# NOTE: consider using json (module), dataclasses, namedtuple?
+# TODO: set values of these dynamically based on user input
 options_data = {"standardize": False,
                 "absolutize": False,
                 "approach": "Rolling",
