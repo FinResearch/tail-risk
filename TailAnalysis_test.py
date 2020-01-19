@@ -118,6 +118,7 @@ def get_logl_tstats(daily_log_ratio, daily_log_pv):
 # TODO: use config file (json, yaml, toml) for attr. (color, width, etc.)
 # NOTES & IDEAS: create map (json) from plot data to its title, labels, etc.
 # NOTE on refactor order: alpha-fit, time-rolling (4 sets), histogram, boxplot
+# ASK: plots shown vs. stored are different -> why not store own plots too???
 
 
 #####################################
@@ -1368,7 +1369,7 @@ elif approach == "Rolling" or approach == "Increasing":
 
             tail_statistics.append(row)
 
-        # NOTE: these are used for the boxplots
+        # NOTE: these are used for the boxplots --> beware w/ multiprocessing
         if tail_selected == "Right" or tail_selected == "Both":
             positive_alpha_mat.append(results["pos_α_vec"])
         if tail_selected == "Left" or tail_selected == "Both":
