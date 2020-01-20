@@ -146,8 +146,9 @@ labels = fieldValues
 database = Extractor(database_name, labels)
 
 # FIXME?: using date below -> ValueError: cannot convert float NaN to integer
-#  initial_date = "2/5/2016"
-initial_date = "1/1/2016"
+#  initial_date = "2/5/2016"  # NOTE: len(dates) needs to be > labelstep???
+initial_date = "1/4/2016"
+#  initial_date = "1/1/2016"
 final_date = "5/5/2016"
 lookback = 504
 
