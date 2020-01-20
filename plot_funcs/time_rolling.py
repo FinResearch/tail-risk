@@ -73,6 +73,157 @@ def plot_ci(label, direction, data, opts, show_plot=False):
         pass
 
 
+def plot_abs_size(label, direction, data, opts, show_plot=False):
+
+    # NOTE: use inside function for now; factor out later
+    spec_dates, spec_labelstep = spec_helper(opts)
+
+    sign = "pos" if direction == "right" else "neg"
+    line_color = "green" if direction == "right" else "purple"
+
+    z.figure(f"Time rolling size for {direction} tail for {label}")
+    z.gca().set_position((0.1, 0.20, 0.83, 0.70))
+    z.plot(data[f"{sign}_abs_len"], color=line_color,
+           label=f"{direction.title()} tail")
+
+    # TODO: factor out s.t. this fn need not care about which tail(s) selected
+    if opts.use_right_tail and opts.use_left_tail:
+        opp_dir = "left" if direction == "right" else "left"
+        opp_sign = "pos" if opp_dir == "right" else "neg"
+        opp_line_color = "green" if opp_dir == "right" else "purple"
+        z.plot(data[f"{opp_sign}_abs_len"], color=opp_line_color,
+               label=f"{opp_dir.title()} tail")
+
+    z.ylabel("Tail length")
+    z.xlim(xmin=0.0, xmax=len(data[f"{sign}_abs_len"]) - 1)
+    z.xticks(
+        range(0, len(spec_dates), spec_labelstep),
+        [el[3:] for el in spec_dates[0::spec_labelstep]],
+        rotation="vertical",
+    )
+    z.title(
+        "Rolling tail length for :"
+        + label
+        + "\n"
+        + "Time Period: "
+        + opts.dates[0]
+        + " - "
+        + opts.dates[-1]
+        + ". Input: "
+        #  + lab  # TODO: add this label
+    )
+    z.legend()
+    z.grid()
+
+    # NOTE: if "Both" tails, then need to plot both tails on same figure
+    if show_plot:
+        z.show()
+    else:
+        # TODO: implement plot saving functionality?
+        pass
+
+
+def plot_rel_size(label, direction, data, opts, show_plot=False):
+
+    # NOTE: use inside function for now; factor out later
+    spec_dates, spec_labelstep = spec_helper(opts)
+
+    sign = "pos" if direction == "right" else "neg"
+    line_color = "green" if direction == "right" else "purple"
+
+    z.figure(f"Time rolling relative size for {direction} tail for {label}")
+    z.gca().set_position((0.1, 0.20, 0.83, 0.70))
+    z.plot(data[f"{sign}_rel_len"], color=line_color,
+           label=f"{direction.title()} tail")
+
+    # TODO: factor out s.t. this fn need not care about which tail(s) selected
+    if opts.use_right_tail and opts.use_left_tail:
+        opp_dir = "left" if direction == "right" else "left"
+        opp_sign = "pos" if opp_dir == "right" else "neg"
+        opp_line_color = "green" if opp_dir == "right" else "purple"
+        z.plot(data[f"{opp_sign}_rel_len"], color=opp_line_color,
+               label=f"{opp_dir.title()} tail")
+
+    z.ylabel("Relative tail length")
+    z.xlim(xmin=0.0, xmax=len(data[f"{sign}_rel_len"]) - 1)
+    z.xticks(
+        range(0, len(spec_dates), spec_labelstep),
+        [el[3:] for el in spec_dates[0::spec_labelstep]],
+        rotation="vertical",
+    )
+    z.title(
+        "Rolling relative tail length for :"
+        + label
+        + "\n"
+        + "Time Period: "
+        + opts.dates[0]
+        + " - "
+        + opts.dates[-1]
+        + ". Input: "
+        #  + lab  # TODO: add this label
+    )
+    z.legend()
+    z.grid()
+
+    # NOTE: if "Both" tails, then need to plot both tails on same figure
+    if show_plot:
+        z.show()
+    else:
+        # TODO: implement plot saving functionality?
+        pass
+
+
+def plot_ks_pv(label, direction, data, opts, show_plot=False):
+
+    # NOTE: use inside function for now; factor out later
+    spec_dates, spec_labelstep = spec_helper(opts)
+
+    sign = "pos" if direction == "right" else "neg"
+    line_color = "green" if direction == "right" else "purple"
+
+    z.figure(f"Time rolling KS test for {direction} tail for {label}")
+    z.gca().set_position((0.1, 0.20, 0.83, 0.70))
+    z.plot(data[f"{sign}_α_ks"], color=line_color,
+           label=f"{direction.title()} tail")
+
+    # TODO: factor out s.t. this fn need not care about which tail(s) selected
+    if opts.use_right_tail and opts.use_left_tail:
+        opp_dir = "left" if direction == "right" else "left"
+        opp_sign = "pos" if opp_dir == "right" else "neg"
+        opp_line_color = "green" if opp_dir == "right" else "purple"
+        z.plot(data[f"{opp_sign}_α_ks"], color=opp_line_color,
+               label=f"{opp_dir.title()} tail")
+
+    z.ylabel("p-value")
+    z.xlim(xmin=0.0, xmax=len(data[f"{sign}_abs_len"]) - 1)
+    z.xticks(
+        range(0, len(spec_dates), spec_labelstep),
+        [el[3:] for el in spec_dates[0::spec_labelstep]],
+        rotation="vertical",
+    )
+    z.title(
+        "KS-statistics: rolling p-value obtained from "
+        "Clauset algorithm for "
+        + label
+        + "\n"
+        + "Time Period: "
+        + opts.dates[0]
+        + " - "
+        + opts.dates[-1]
+        + ". Input: "
+        #  + lab  # TODO: add this label
+    )
+    z.legend()
+    z.grid()
+
+    # NOTE: if "Both" tails, then need to plot both tails on same figure
+    if show_plot:
+        z.show()
+    else:
+        # TODO: implement plot saving functionality?
+        pass
+
+
 # Plot the alpha exponent confidence interval in time
 def time_rolling(label, data, opts, show_plot=False):
 
@@ -85,179 +236,8 @@ def time_rolling(label, data, opts, show_plot=False):
     for t in tails_list:
         plot_ci(label, t, data, opts, show_plot=show_plot)
 
-
-#  def hurr():
-#
-#      #  if tail_selected == "Both" or tail_selected == "Right":
-#
-#      z.figure("Time rolling size for right tail for " + labels[i - 1])
-#      z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-#      z.plot(results["pos_abs_len"], color="green", label="Right tail")
-#      if tail_selected == "Both":
-#          z.plot(results["neg_abs_len"],
-#                 color="purple", label="Left tail")
-#      z.ylabel("Tail length")
-#      z.xlim(xmin=0.0, xmax=len(results["pos_abs_len"]) - 1)
-#      z.xticks(
-#          range(0, len(spec_dates), spec_labelstep),
-#          [el[3:] for el in spec_dates[0::spec_labelstep]],
-#          rotation="vertical",
-#      )
-#      z.title(
-#          "Rolling tail length for :"
-#          + labels[i - 1]
-#          + "\n"
-#          + "Time Period: "
-#          + dates[0]
-#          + " - "
-#          + dates[-1]
-#          + ". Input: "
-#          + lab
-#      )
-#      z.legend()
-#      z.grid()
-#      # z.show()
-#
-#      z.figure("Time rolling relative size for right tail for "
-#               + labels[i - 1])
-#      z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-#      z.plot(results["pos_rel_len"], color="green", label="Right tail")
-#      if tail_selected == "Both":
-#          z.plot(results["neg_rel_len"],
-#                 color="purple", label="Left tail")
-#      z.ylabel("Relative tail length")
-#      z.xlim(xmin=0.0, xmax=len(results["pos_rel_len"]) - 1)
-#      z.xticks(
-#          range(0, len(spec_dates), spec_labelstep),
-#          [el[3:] for el in spec_dates[0::spec_labelstep]],
-#          rotation="vertical",
-#      )
-#      z.title(
-#          "Rolling relative tail length for :"
-#          + labels[i - 1]
-#          + "\n"
-#          + "Time Period: "
-#          + dates[0]
-#          + " - "
-#          + dates[-1]
-#          + ". Input: "
-#          + lab
-#      )
-#      z.legend()
-#      z.grid()
-#      # z.show()
-#
-#      z.figure("Time rolling KS test for right tail for " + labels[i-1])
-#      z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-#      z.plot(results["pos_α_ks"], color="green", label="Right tail")
-#      if tail_selected == "Both":
-#          z.plot(results["neg_α_ks"], color="purple", label="Left tail")
-#      z.ylabel("p-value")
-#      z.xlim(xmin=0.0, xmax=len(results["pos_abs_len"]) - 1)
-#      z.xticks(
-#          range(0, len(spec_dates), spec_labelstep),
-#          [el[3:] for el in spec_dates[0::spec_labelstep]],
-#          rotation="vertical",
-#      )
-#      z.title(
-#          "KS-statistics: rolling p-value obtained from "
-#          "Clauset algorithm for "
-#          + labels[i - 1]
-#          + "\n"
-#          + "Time Period: "
-#          + dates[0]
-#          + " - "
-#          + dates[-1]
-#          + ". Input: "
-#          + lab
-#      )
-#      z.legend()
-#      z.grid()
-#      # z.show()
-#
-#      #  if tail_selected == "Both" or tail_selected == "Left":
-#
-#      z.figure("Time rolling size for left tail for " + labels[i - 1])
-#      z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-#      z.plot(results["neg_abs_len"], color="purple", label="Left tail")
-#      if tail_selected == "Both":
-#          z.plot(results["pos_abs_len"],
-#                 color="green", label="Right tail")
-#      z.ylabel("Tail length")
-#      z.xlim(xmin=0.0, xmax=len(results["neg_abs_len"]) - 1)
-#      z.xticks(
-#          range(0, len(spec_dates), spec_labelstep),
-#          [el[3:] for el in spec_dates[0::spec_labelstep]],
-#          rotation="vertical",
-#      )
-#      z.title(
-#          "Rolling tail length for :"
-#          + labels[i - 1]
-#          + "\n"
-#          + "Time Period: "
-#          + dates[0]
-#          + " - "
-#          + dates[-1]
-#          + ". Input: "
-#          + lab
-#      )
-#      z.legend()
-#      z.grid()
-#      # z.show()
-#
-#      z.figure("Time rolling relative size for left tail for " +
-#               labels[i - 1])
-#      z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-#      z.plot(results["neg_rel_len"], color="purple", label="Left tail")
-#      if tail_selected == "Both":
-#          z.plot(results["pos_rel_len"],
-#                 color="green", label="Right tail")
-#      z.ylabel("Relative tail length")
-#      z.xlim(xmin=0.0, xmax=len(results["neg_rel_len"]) - 1)
-#      z.xticks(
-#          range(0, len(spec_dates), spec_labelstep),
-#          [el[3:] for el in spec_dates[0::spec_labelstep]],
-#          rotation="vertical",
-#      )
-#      z.title(
-#          "Rolling relative tail length for :"
-#          + labels[i - 1]
-#          + "\n"
-#          + "Time Period: "
-#          + dates[0]
-#          + " - "
-#          + dates[-1]
-#          + ". Input: "
-#          + lab
-#      )
-#      z.legend()
-#      z.grid()
-#      # z.show()
-#
-#      z.figure("Time rolling KS test for left tail for " + labels[i - 1])
-#      z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-#      z.plot(results["neg_α_ks"], color="purple", label="Left tail")
-#      if tail_selected == "Both":
-#          z.plot(results["pos_α_ks"], color="green", label="Right tail")
-#      z.ylabel("p-value")
-#      z.xlim(xmin=0.0, xmax=len(results["neg_abs_len"]) - 1)
-#      z.xticks(
-#          range(0, len(spec_dates), spec_labelstep),
-#          [el[3:] for el in spec_dates[0::spec_labelstep]],
-#          rotation="vertical",
-#      )
-#      z.title(
-#          "KS-statistics: rolling p-value obtained "
-#          "from Clauset algorithm for "
-#          + labels[i - 1]
-#          + "\n"
-#          + "Time Period: "
-#          + dates[0]
-#          + " - "
-#          + dates[-1]
-#          + ". Input: "
-#          + lab
-#      )
-#      z.legend()
-#      z.grid()
-#      # z.show()
+    # NOTE: when "Both" selected, passing either left or right plots both
+    #       need to figure out how to plot individual ones
+    plot_abs_size(label, "right", data, opts, show_plot=show_plot)
+    plot_rel_size(label, "right", data, opts, show_plot=show_plot)
+    plot_ks_pv(label, "right", data, opts, show_plot=show_plot)

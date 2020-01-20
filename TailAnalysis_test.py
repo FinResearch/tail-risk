@@ -1410,95 +1410,18 @@ elif approach == "Rolling" or approach == "Increasing":
         # Plot the alpha exponent confidence interval in time
         pftr.time_rolling(labels[i-1], results, options, show_plot=True)
 
+        #  NOTE: confirm that these if-block pairs are 
+        #  meant to create duplicate plots when "Both"
+        #  if tail_selected == "Both":
+        #      z.plot(results["neg_abs_len"],
+        #             color="purple", label="Left tail")
+        #  if tail_selected == "Both":
+        #      z.plot(results["pos_abs_len"],
+        #             color="green", label="Right tail")
+
         if tail_selected == "Both" or tail_selected == "Right":
 
-            #  z.figure("Time rolling size for right tail for " + labels[i - 1])
-            #  z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            #  z.plot(results["pos_abs_len"], color="green", label="Right tail")
-            #  if tail_selected == "Both":
-            #      z.plot(results["neg_abs_len"],
-            #             color="purple", label="Left tail")
-            #  z.ylabel("Tail length")
-            #  z.xlim(xmin=0.0, xmax=len(results["pos_abs_len"]) - 1)
-            #  z.xticks(
-            #      range(0, len(spec_dates), spec_labelstep),
-            #      [el[3:] for el in spec_dates[0::spec_labelstep]],
-            #      rotation="vertical",
-            #  )
-            #  z.title(
-            #      "Rolling tail length for :"
-            #      + labels[i - 1]
-            #      + "\n"
-            #      + "Time Period: "
-            #      + dates[0]
-            #      + " - "
-            #      + dates[-1]
-            #      + ". Input: "
-            #      + lab
-            #  )
-            #  z.legend()
-            #  z.grid()
-            #  # z.show()
-            #
-            #  z.figure("Time rolling relative size for right tail for "
-            #           + labels[i - 1])
-            #  z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            #  z.plot(results["pos_rel_len"], color="green", label="Right tail")
-            #  if tail_selected == "Both":
-            #      z.plot(results["neg_rel_len"],
-            #             color="purple", label="Left tail")
-            #  z.ylabel("Relative tail length")
-            #  z.xlim(xmin=0.0, xmax=len(results["pos_rel_len"]) - 1)
-            #  z.xticks(
-            #      range(0, len(spec_dates), spec_labelstep),
-            #      [el[3:] for el in spec_dates[0::spec_labelstep]],
-            #      rotation="vertical",
-            #  )
-            #  z.title(
-            #      "Rolling relative tail length for :"
-            #      + labels[i - 1]
-            #      + "\n"
-            #      + "Time Period: "
-            #      + dates[0]
-            #      + " - "
-            #      + dates[-1]
-            #      + ". Input: "
-            #      + lab
-            #  )
-            #  z.legend()
-            #  z.grid()
-            #  # z.show()
-            #
-            #  z.figure("Time rolling KS test for right tail for " + labels[i-1])
-            #  z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            #  z.plot(results["pos_α_ks"], color="green", label="Right tail")
-            #  if tail_selected == "Both":
-            #      z.plot(results["neg_α_ks"], color="purple", label="Left tail")
-            #  z.ylabel("p-value")
-            #  z.xlim(xmin=0.0, xmax=len(results["pos_abs_len"]) - 1)
-            #  z.xticks(
-            #      range(0, len(spec_dates), spec_labelstep),
-            #      [el[3:] for el in spec_dates[0::spec_labelstep]],
-            #      rotation="vertical",
-            #  )
-            #  z.title(
-            #      "KS-statistics: rolling p-value obtained from "
-            #      "Clauset algorithm for "
-            #      + labels[i - 1]
-            #      + "\n"
-            #      + "Time Period: "
-            #      + dates[0]
-            #      + " - "
-            #      + dates[-1]
-            #      + ". Input: "
-            #      + lab
-            #  )
-            #  z.legend()
-            #  z.grid()
-            #  # z.show()
-
             # Plotting the histograms for the rolling alpha
-
             z.figure(
                 "Histogram of positive tail alphas for " + labels[i - 1],
                 figsize=(8, 6),
@@ -1572,93 +1495,7 @@ elif approach == "Rolling" or approach == "Increasing":
 
         if tail_selected == "Both" or tail_selected == "Left":
 
-            #  z.figure("Time rolling size for left tail for " + labels[i - 1])
-            #  z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            #  z.plot(results["neg_abs_len"], color="purple", label="Left tail")
-            #  if tail_selected == "Both":
-            #      z.plot(results["pos_abs_len"],
-            #             color="green", label="Right tail")
-            #  z.ylabel("Tail length")
-            #  z.xlim(xmin=0.0, xmax=len(results["neg_abs_len"]) - 1)
-            #  z.xticks(
-            #      range(0, len(spec_dates), spec_labelstep),
-            #      [el[3:] for el in spec_dates[0::spec_labelstep]],
-            #      rotation="vertical",
-            #  )
-            #  z.title(
-            #      "Rolling tail length for :"
-            #      + labels[i - 1]
-            #      + "\n"
-            #      + "Time Period: "
-            #      + dates[0]
-            #      + " - "
-            #      + dates[-1]
-            #      + ". Input: "
-            #      + lab
-            #  )
-            #  z.legend()
-            #  z.grid()
-            #  # z.show()
-            #
-            #  z.figure("Time rolling relative size for left tail for " +
-            #           labels[i - 1])
-            #  z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            #  z.plot(results["neg_rel_len"], color="purple", label="Left tail")
-            #  if tail_selected == "Both":
-            #      z.plot(results["pos_rel_len"],
-            #             color="green", label="Right tail")
-            #  z.ylabel("Relative tail length")
-            #  z.xlim(xmin=0.0, xmax=len(results["neg_rel_len"]) - 1)
-            #  z.xticks(
-            #      range(0, len(spec_dates), spec_labelstep),
-            #      [el[3:] for el in spec_dates[0::spec_labelstep]],
-            #      rotation="vertical",
-            #  )
-            #  z.title(
-            #      "Rolling relative tail length for :"
-            #      + labels[i - 1]
-            #      + "\n"
-            #      + "Time Period: "
-            #      + dates[0]
-            #      + " - "
-            #      + dates[-1]
-            #      + ". Input: "
-            #      + lab
-            #  )
-            #  z.legend()
-            #  z.grid()
-            #  # z.show()
-            #
-            #  z.figure("Time rolling KS test for left tail for " + labels[i - 1])
-            #  z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            #  z.plot(results["neg_α_ks"], color="purple", label="Left tail")
-            #  if tail_selected == "Both":
-            #      z.plot(results["pos_α_ks"], color="green", label="Right tail")
-            #  z.ylabel("p-value")
-            #  z.xlim(xmin=0.0, xmax=len(results["neg_abs_len"]) - 1)
-            #  z.xticks(
-            #      range(0, len(spec_dates), spec_labelstep),
-            #      [el[3:] for el in spec_dates[0::spec_labelstep]],
-            #      rotation="vertical",
-            #  )
-            #  z.title(
-            #      "KS-statistics: rolling p-value obtained "
-            #      "from Clauset algorithm for "
-            #      + labels[i - 1]
-            #      + "\n"
-            #      + "Time Period: "
-            #      + dates[0]
-            #      + " - "
-            #      + dates[-1]
-            #      + ". Input: "
-            #      + lab
-            #  )
-            #  z.legend()
-            #  z.grid()
-            #  # z.show()
-
             # Plotting the histograms for the rolling alpha
-
             z.figure(
                 "Histogram of negative tail alphas for " + labels[i - 1],
                 figsize=(8, 6),
