@@ -20,6 +20,7 @@ import plpva as plpva
 
 import plot_funcs.alpha_fitting as pfaf
 import plot_funcs.time_rolling as pftr
+import plot_funcs.hist_alpha as pfha
 
 #####################################
 # Tools Functions                   #
@@ -1409,9 +1410,8 @@ elif approach == "Rolling" or approach == "Increasing":
 
         # Plot the alpha exponent confidence interval in time
         pftr.time_rolling(labels[i-1], results, options, show_plot=True)
-
-        #  NOTE: confirm that these if-block pairs are 
-        #  meant to create duplicate plots when "Both"
+        #  NOTE: confirm that these if-block pairs are for 3 of the Time
+        #        rolling plots meant to create duplicate plots when "Both"
         #  if tail_selected == "Both":
         #      z.plot(results["neg_abs_len"],
         #             color="purple", label="Left tail")
@@ -1419,153 +1419,8 @@ elif approach == "Rolling" or approach == "Increasing":
         #      z.plot(results["pos_abs_len"],
         #             color="green", label="Right tail")
 
-        if tail_selected == "Both" or tail_selected == "Right":
-
-            # Plotting the histograms for the rolling alpha
-            z.figure(
-                "Histogram of positive tail alphas for " + labels[i - 1],
-                figsize=(8, 6),
-                dpi=100,
-            )
-            z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            IQR = np.percentile(results["pos_α_vec"], 75) - np.percentile(
-                results["pos_α_vec"], 25
-            )
-            h = 2 * IQR * np.power(len(results["pos_α_vec"]), -1.0 / 3.0)
-            nbins = np.int(
-                (np.max(results["pos_α_vec"]) - np.min(results["pos_α_vec"])) /
-                float(h)
-            )
-            # Building the histogram and plotting the relevant vertical lines
-            z.hist(results["pos_α_vec"], nbins, color="red")
-            out1, bins = z.histogram(results["pos_α_vec"], nbins)
-            z.plot(
-                np.repeat(np.mean(results["pos_α_vec"]), np.max(out1) + 1),
-                range(0, np.max(out1) + 1, 1),
-                color="blue",
-                linewidth=1.5,
-                label=r"$E[\hat{\alpha}]$",
-            )
-            # Adding the labels, the axis limits, legend and grid
-            z.xlabel(lab)
-            z.ylabel("Absolute frequency")
-            z.title(
-                "Empirical distribution (right tail) of the rolling "
-                + r"$\hat{\alpha}$"
-                + " for "
-                + labels[i - 1]
-                + "\n"
-                + "Time period: "
-                + dates[0]
-                + " - "
-                + dates[-1]
-            )
-            z.xlim(xmin=np.min(results["pos_α_vec"]),
-                   xmax=np.max(results["pos_α_vec"]))
-            z.ylim(ymin=0, ymax=np.max(out1))
-            z.legend()
-            z.grid()
-            # A table with the four statistical moments is built
-            col_labels = [
-                r"$E[\hat{\alpha}]$",
-                r"$\sigma (\hat{\alpha})$",
-                "min",
-                "max",
-            ]
-            table_vals = []
-            table_vals.append(
-                [
-                    np.round(np.mean(results["pos_α_vec"]), 4),
-                    np.round(np.std(results["pos_α_vec"]), 4),
-                    np.round(np.min(results["pos_α_vec"]), 4),
-                    np.round(np.max(results["pos_α_vec"]), 4),
-                ]
-            )
-            the_table = plt.table(
-                cellText=table_vals,
-                cellLoc="center",
-                colLabels=col_labels,
-                loc="bottom",
-                bbox=[0.0, -0.26, 1.0, 0.10],
-            )
-            the_table.auto_set_font_size(False)
-            the_table.set_fontsize(10)
-            the_table.scale(0.5, 0.5)
-            # z.show()
-
-        if tail_selected == "Both" or tail_selected == "Left":
-
-            # Plotting the histograms for the rolling alpha
-            z.figure(
-                "Histogram of negative tail alphas for " + labels[i - 1],
-                figsize=(8, 6),
-                dpi=100,
-            )
-            z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            IQR = np.percentile(results["neg_α_vec"], 75) - np.percentile(
-                results["neg_α_vec"], 25
-            )
-            h = 2 * IQR * np.power(len(results["neg_α_vec"]), -1.0 / 3.0)
-            nbins = np.int(
-                (np.max(results["neg_α_vec"]) - np.min(results["neg_α_vec"])) /
-                float(h)
-            )
-            # Building the histogram and plotting the relevant vertical lines
-            z.hist(results["neg_α_vec"], nbins, color="red")
-            out1, bins = z.histogram(results["neg_α_vec"], nbins)
-            z.plot(
-                np.repeat(np.mean(results["neg_α_vec"]), np.max(out1) + 1),
-                range(0, np.max(out1) + 1, 1),
-                color="blue",
-                linewidth=1.5,
-                label=r"$E[\hat{\alpha}]$",
-            )
-            # Adding the labels, the axis limits, legend and grid
-            z.xlabel(lab)
-            z.ylabel("Absolute frequency")
-            z.title(
-                "Empirical distribution (left tail) of the rolling "
-                + r"$\hat{\alpha}$"
-                + " for "
-                + labels[i - 1]
-                + "\n"
-                + "Time period: "
-                + dates[0]
-                + " - "
-                + dates[-1]
-            )
-            z.xlim(xmin=np.min(results["neg_α_vec"]),
-                   xmax=np.max(results["neg_α_vec"]))
-            z.ylim(ymin=0, ymax=np.max(out1))
-            z.legend()
-            z.grid()
-            # A table with the four statistical moments is built
-            col_labels = [
-                r"$E[\hat{\alpha}]$",
-                r"$\sigma (\hat{\alpha})$",
-                "min",
-                "max",
-            ]
-            table_vals = []
-            table_vals.append(
-                [
-                    np.round(np.mean(results["neg_α_vec"]), 4),
-                    np.round(np.std(results["neg_α_vec"]), 4),
-                    np.round(np.min(results["neg_α_vec"]), 4),
-                    np.round(np.max(results["neg_α_vec"]), 4),
-                ]
-            )
-            the_table = plt.table(
-                cellText=table_vals,
-                cellLoc="center",
-                colLabels=col_labels,
-                loc="bottom",
-                bbox=[0.0, -0.26, 1.0, 0.10],
-            )
-            the_table.auto_set_font_size(False)
-            the_table.set_fontsize(10)
-            the_table.scale(0.5, 0.5)
-            # z.show()
+        # Plotting the histograms for the rolling alpha
+        pfha.hist_alpha(labels[i-1], results, options, show_plot=True)
 
         # Write Tail Statistics to CSV file
         filename = ("TailStatistics_504_d=1_pn_normalized_" +
