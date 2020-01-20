@@ -21,6 +21,7 @@ import plpva as plpva
 import plot_funcs.alpha_fitting as pfaf
 import plot_funcs.time_rolling as pftr
 import plot_funcs.hist_alpha as pfha
+import plot_funcs.boxplot as pfbx
 
 #####################################
 # Tools Functions                   #
@@ -189,6 +190,11 @@ def results_lists_init():
               "pos_abs_len", "neg_abs_len", "pos_rel_len", "neg_rel_len",
               "loglr_right", "loglr_left", "loglpv_right", "loglpv_left")
     # NOTE: length of each list is the number of days -> so use np.ndarray
+    return {l: [] for l in labels}
+
+
+def boxplot_mat_init():
+    labels = ("pos_α_mat", "neg_α_mat")
     return {l: [] for l in labels}
 
 
@@ -977,8 +983,7 @@ elif approach == "Rolling" or approach == "Increasing":
     # int(np.maximum(np.floor(22/float(an_freq)),1.0))
 
     # TODO: add lists below to results_lists_init function?
-    positive_alpha_mat = []
-    negative_alpha_mat = []
+    boxplot_mat = boxplot_mat_init()
 
     for i in range(1, N, 1):
 
@@ -1399,11 +1404,12 @@ elif approach == "Rolling" or approach == "Increasing":
 
             tail_statistics.append(row)
 
-        # NOTE: these are used for the boxplots --> beware w/ multiprocessing
+        # NOTE: these are used for the boxplots
+        # ----> treat w/ care when adding multiprocessing
         if tail_selected == "Right" or tail_selected == "Both":
-            positive_alpha_mat.append(results["pos_α_vec"])
+            boxplot_mat["pos_α_mat"].append(results["pos_α_vec"])
         if tail_selected == "Left" or tail_selected == "Both":
-            negative_alpha_mat.append(results["neg_α_vec"])
+            boxplot_mat["neg_α_mat"].append(results["neg_α_vec"])
 
         # Plot the alpha exponent in time (right/left/both tail)
         pfaf.alpha_fitting(labels[i-1], results, options, show_plot=True)
@@ -1453,44 +1459,5 @@ elif approach == "Rolling" or approach == "Increasing":
         df = pd.DataFrame(df_data, columns=column_headers)
         df.to_csv(filename, index=False)
 
-    if tail_selected == "Right" or tail_selected == "Both":
-        z.figure("Positive Power Law Boxplot")
-        z.boxplot(positive_alpha_mat)
-        z.xticks(range(1, len(labels) + 1, 1), labels)
-        z.xlim(xmin=0.5, xmax=len(labels) + 0.5)
-        z.ylabel(r"$\alpha$")
-        z.title(
-            "Boxplot representation of the "
-            + r"$\alpha$"
-            + "-right tail exponent "
-            + "\n"
-            + "Time Period: "
-            + dates[0]
-            + " - "
-            + dates[-1]
-            + ". Input series: "
-            + lab
-        )
-        z.grid()
-        # z.show()
-
-    if tail_selected == "Left" or tail_selected == "Both":
-        z.figure("Negative Power Law Boxplot")
-        z.boxplot(negative_alpha_mat)
-        z.xticks(range(1, len(labels) + 1, 1), labels)
-        z.xlim(xmin=0.5, xmax=len(labels) + 0.5)
-        z.ylabel(r"$\alpha$")
-        z.title(
-            "Boxplot representation of the "
-            + r"$\alpha$"
-            + "-left tail exponent"
-            + "\n"
-            + "Time Period: "
-            + dates[0]
-            + " - "
-            + dates[-1]
-            + ". Input series: "
-            + lab
-        )
-        z.grid()
-        # z.show()
+    # Plot the boxplots for the alpha tail(s))
+    pfbx.boxplot(labels, boxplot_mat, options, show_plot=True)
