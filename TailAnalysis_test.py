@@ -142,10 +142,10 @@ database_name = "dbMSTR_test.csv"
 
 no_entries = 1
 fieldNames = ["# " + str(i) for i in range(1, no_entries + 1, 1)]
-fieldValues = ["DE 01Y"]  # , "DE 03Y", "DE 05Y", "DE 10Y"]
-labels = fieldValues
+tickers = ["DE 01Y"]  # , "DE 03Y", "DE 05Y", "DE 10Y"]
+#  labels = fieldValues
 
-database = Extractor(database_name, labels)
+database = Extractor(database_name, tickers)
 
 # FIXME?: using date below -> ValueError: cannot convert float NaN to integer
 #  initial_date = "2/5/2016"  # NOTE: len(dates) needs to be > labelstep???
@@ -215,7 +215,8 @@ N = len(database)
 # object to hold all options data determined by user input data
 # NOTE: consider using json (module), dataclasses, namedtuple?
 # TODO: set values of these dynamically based on user input
-options_data = {"standardize": False,
+options_data = {"tickers": tickers,
+                "standardize": False,
                 "absolutize": False,
                 "approach": "Rolling",
                 "analysis_freq": 1,
@@ -242,7 +243,7 @@ if approach == "Static":
     for i in range(1, N, 1):
 
         print("I am analyzing the time series for " +
-              labels[i - 1] + " between " + dates[0] + " and " + dates[-1])
+              tickers[i - 1] + " between " + dates[0] + " and " + dates[-1])
         series = database[i][initial_index: (final_index + 1)]
 
         print("You opted for the analysis of the " + input_type)
@@ -300,7 +301,7 @@ if approach == "Static":
         # Figures Plot & Show Sections below
         if tail_selected == "Right" or tail_selected == "Both":
 
-            plt.figure("Right tail scaling for " + labels[i - 1])
+            plt.figure("Right tail scaling for " + tickers[i - 1])
             z.gca().set_position((0.1, 0.20, 0.83, 0.70))
             fig4 = fit_1.plot_ccdf(color="b", linewidth=2,
                                    label="Empirical CCDF")
@@ -314,7 +315,7 @@ if approach == "Static":
             )
             fig4.set_title(
                 "Log-log plot of the scaling properties of the right-tail for "
-                + labels[i - 1]
+                + tickers[i - 1]
                 + "\n"
                 + "Time Period: "
                 + dates[0]
@@ -348,7 +349,7 @@ if approach == "Static":
             the_table.scale(0.5, 0.5)
             plt.show()
 
-            plt.figure("Right tail comparison for " + labels[i - 1])
+            plt.figure("Right tail comparison for " + tickers[i - 1])
             fig4 = fit_1.plot_ccdf(color="b", linewidth=2,
                                    label="Empirical CCDF")
             fit_1.power_law.plot_ccdf(
@@ -365,7 +366,7 @@ if approach == "Static":
             )
             fig4.set_title(
                 "Comparison of the distributions fitted on the right-tail for "
-                + labels[i - 1]
+                + tickers[i - 1]
                 + "\n"
                 + "Time Period: "
                 + dates[0]
@@ -389,7 +390,7 @@ if approach == "Static":
                 results["loglpv_right"].append(p)
 
             z.figure("Log Likelihood ratio for the right tail for " +
-                     labels[i - 1])
+                     tickers[i - 1])
             #  z.bar(
             #      np.arange(0, len(loglikelihood_ratio_right), 1),
             #      loglikelihood_ratio_right, 1,)
@@ -401,7 +402,7 @@ if approach == "Static":
             z.ylabel("R")
             z.title(
                 "Log-likelihood ratio for "
-                + labels[i - 1]
+                + tickers[i - 1]
                 + "\n"
                 + "Time Period: "
                 + dates[0]
@@ -414,7 +415,7 @@ if approach == "Static":
             # z.show()
 
             z.figure("Log Likelihood ratio p-values for the right tail for " +
-                     labels[i - 1])
+                     tickers[i - 1])
             #  z.bar(
             #      np.arange(0, len(loglikelihood_pvalue_right), 1),
             #      loglikelihood_pvalue_right, 1,)
@@ -426,7 +427,7 @@ if approach == "Static":
             z.ylabel("R")
             z.title(
                 "Log-likelihood ratio p values for "
-                + labels[i - 1]
+                + tickers[i - 1]
                 + "\n"
                 + "Time Period: "
                 + dates[0]
@@ -440,7 +441,7 @@ if approach == "Static":
 
         if tail_selected == "Left" or tail_selected == "Both":
 
-            plt.figure("Left tail scaling for " + labels[i - 1])
+            plt.figure("Left tail scaling for " + tickers[i - 1])
             z.gca().set_position((0.1, 0.20, 0.83, 0.70))
             fig4 = fit_2.plot_ccdf(color="b", linewidth=2,
                                    label="Empirical CCDF")
@@ -454,7 +455,7 @@ if approach == "Static":
             )
             fig4.set_title(
                 "Log-log plot of the scaling properties of the left-tail for "
-                + labels[i - 1]
+                + tickers[i - 1]
                 + "\n"
                 + "Time Period: "
                 + dates[0]
@@ -488,7 +489,7 @@ if approach == "Static":
             the_table.scale(0.5, 0.5)
             plt.show()
 
-            plt.figure("Left tail comparison for " + labels[i - 1])
+            plt.figure("Left tail comparison for " + tickers[i - 1])
             fig4 = fit_2.plot_ccdf(color="b", linewidth=2,
                                    label="Empirical CCDF")
             fit_2.power_law.plot_ccdf(
@@ -505,7 +506,7 @@ if approach == "Static":
             )
             fig4.set_title(
                 "Comparison of the distributions fitted on the left-tail for "
-                + labels[i - 1]
+                + tickers[i - 1]
                 + "\n"
                 + "Time Period: "
                 + dates[0]
@@ -530,7 +531,7 @@ if approach == "Static":
                 results["loglpv_left"].append(p)
 
             z.figure("Log Likelihood ratio for the left tail for " +
-                     labels[i - 1])
+                     tickers[i - 1])
             #  z.bar(
             #      np.arange(0, len(loglikelihood_ratio_left), 1),
             #      loglikelihood_ratio_left, 1,)
@@ -542,7 +543,7 @@ if approach == "Static":
             z.ylabel("R")
             z.title(
                 "Log-likelihood ratio for "
-                + labels[i - 1]
+                + tickers[i - 1]
                 + "\n"
                 + "Time Period: "
                 + dates[0]
@@ -556,7 +557,7 @@ if approach == "Static":
 
             z.figure(
                 "Log Likelihood ratio p-values for the left tail for " +
-                labels[i - 1])
+                tickers[i - 1])
             #  z.bar(
             #      np.arange(0, len(loglikelihood_pvalue_left), 1),
             #      loglikelihood_pvalue_left, 1,)
@@ -568,7 +569,7 @@ if approach == "Static":
             z.ylabel("R")
             z.title(
                 "Log-likelihood ratio p values for "
-                + labels[i - 1]
+                + tickers[i - 1]
                 + "\n"
                 + "Time Period: "
                 + dates[0]
@@ -627,7 +628,7 @@ if approach == "Static":
     z.gca().set_position((0.1, 0.20, 0.83, 0.70))
     if tail_selected == "Right" or tail_selected == "Both":
         z.plot(
-            range(1, len(labels) + 1, 1),
+            range(1, len(tickers) + 1, 1),
             #  positive_alpha_vec,
             results["pos_α_vec"],
             marker="^",
@@ -638,7 +639,7 @@ if approach == "Static":
         )
     if tail_selected == "Left" or tail_selected == "Both":
         z.plot(
-            range(1, len(labels) + 1, 1),
+            range(1, len(tickers) + 1, 1),
             #  negative_alpha_vec,
             results["neg_α_vec"],
             marker="^",
@@ -647,8 +648,8 @@ if approach == "Static":
             color="red",
             label="Left tail",
         )
-    z.xticks(range(1, len(labels) + 1, 1), labels)
-    z.xlim(xmin=0.5, xmax=len(labels) + 0.5)
+    z.xticks(range(1, len(tickers) + 1, 1), tickers)
+    z.xlim(xmin=0.5, xmax=len(tickers) + 0.5)
     z.ylabel(r"$\alpha$")
     z.title(
         "Estimation of the "
@@ -675,7 +676,7 @@ if approach == "Static":
         z.figure("Confidence interval for the right tail")
         z.gca().set_position((0.1, 0.20, 0.83, 0.70))
         z.plot(
-            range(1, len(labels) + 1, 1),
+            range(1, len(tickers) + 1, 1),
             #  positive_alpha_vec,
             results["pos_α_vec"],
             marker="o",
@@ -685,7 +686,7 @@ if approach == "Static":
             label="Right tail",
         )
         z.plot(
-            range(1, len(labels) + 1, 1),
+            range(1, len(tickers) + 1, 1),
             #  positive_upper_bound,
             results["pos_up_bound"],
             marker="o",
@@ -695,7 +696,7 @@ if approach == "Static":
             label="Upper bound",
         )
         z.plot(
-            range(1, len(labels) + 1, 1),
+            range(1, len(tickers) + 1, 1),
             #  positive_lower_bound,
             results["pos_low_bound"],
             marker="o",
@@ -705,15 +706,15 @@ if approach == "Static":
             label="Lower bound",
         )
         z.plot(
-            range(0, len(labels) + 2, 1), np.repeat(3, len(labels) + 2),
+            range(0, len(tickers) + 2, 1), np.repeat(3, len(tickers) + 2),
             color="red"
         )
         z.plot(
-            range(0, len(labels) + 2, 1), np.repeat(2, len(labels) + 2),
+            range(0, len(tickers) + 2, 1), np.repeat(2, len(tickers) + 2),
             color="red"
         )
-        z.xticks(range(1, len(labels) + 1, 1), labels)
-        z.xlim(xmin=0.5, xmax=len(labels) + 0.5)
+        z.xticks(range(1, len(tickers) + 1, 1), tickers)
+        z.xlim(xmin=0.5, xmax=len(tickers) + 0.5)
         z.ylabel(r"$\alpha$")
         z.title(
             "Confidence intervals for the "
@@ -745,7 +746,7 @@ if approach == "Static":
         z.figure("Confidence interval for the left tail")
         z.gca().set_position((0.1, 0.20, 0.83, 0.70))
         z.plot(
-            range(1, len(labels) + 1, 1),
+            range(1, len(tickers) + 1, 1),
             #  negative_alpha_vec,
             results["neg_α_vec"],
             marker="o",
@@ -755,7 +756,7 @@ if approach == "Static":
             label="Left tail",
         )
         z.plot(
-            range(1, len(labels) + 1, 1),
+            range(1, len(tickers) + 1, 1),
             #  negative_upper_bound,
             results["neg_up_bound"],
             marker="o",
@@ -765,7 +766,7 @@ if approach == "Static":
             label="Upper bound",
         )
         z.plot(
-            range(1, len(labels) + 1, 1),
+            range(1, len(tickers) + 1, 1),
             #  negative_lower_bound,
             results["neg_low_bound"],
             marker="o",
@@ -775,15 +776,15 @@ if approach == "Static":
             label="Lower bound",
         )
         z.plot(
-            range(0, len(labels) + 2, 1), np.repeat(3, len(labels) + 2),
+            range(0, len(tickers) + 2, 1), np.repeat(3, len(tickers) + 2),
             color="red"
         )
         z.plot(
-            range(0, len(labels) + 2, 1), np.repeat(2, len(labels) + 2),
+            range(0, len(tickers) + 2, 1), np.repeat(2, len(tickers) + 2),
             color="red"
         )
-        z.xticks(range(1, len(labels) + 1, 1), labels)
-        z.xlim(xmin=0.5, xmax=len(labels) + 0.5)
+        z.xticks(range(1, len(tickers) + 1, 1), tickers)
+        z.xlim(xmin=0.5, xmax=len(tickers) + 0.5)
         z.ylabel(r"$\alpha$")
         z.title(
             "Confidence intervals for the "
@@ -816,7 +817,7 @@ if approach == "Static":
     amplitude = 0.5
     if tail_selected == "Right" or tail_selected == "Both":
         z.bar(
-            np.arange(0, 2 * len(labels), 2),
+            np.arange(0, 2 * len(tickers), 2),
             #  positive_abs_length,
             results["pos_abs_len"],
             amplitude,
@@ -825,14 +826,14 @@ if approach == "Static":
         )
     if tail_selected == "Left" or tail_selected == "Both":
         z.bar(
-            np.arange(amplitude, 2 * len(labels) + amplitude, 2),
+            np.arange(amplitude, 2 * len(tickers) + amplitude, 2),
             #  negative_abs_length,
             results["neg_abs_len"],
             amplitude,
             color="red",
             label="Left tail",
         )
-    z.xticks(np.arange(amplitude, 2 * len(labels) + amplitude, 2), labels)
+    z.xticks(np.arange(amplitude, 2 * len(tickers) + amplitude, 2), tickers)
     z.ylabel("Tail length")
     z.title(
         "Bar chart representation of the length of the tails"
@@ -858,7 +859,7 @@ if approach == "Static":
     amplitude = 0.5
     if tail_selected == "Right" or tail_selected == "Both":
         z.bar(
-            np.arange(0, 2 * len(labels), 2),
+            np.arange(0, 2 * len(tickers), 2),
             #  positive_rel_length,
             results["pos_rel_len"],
             amplitude,
@@ -867,14 +868,14 @@ if approach == "Static":
         )
     if tail_selected == "Left" or tail_selected == "Both":
         z.bar(
-            np.arange(amplitude, 2 * len(labels) + amplitude, 2),
+            np.arange(amplitude, 2 * len(tickers) + amplitude, 2),
             #  negative_rel_length,
             results["neg_rel_len"],
             amplitude,
             color="red",
             label="Left tail",
         )
-    z.xticks(np.arange(amplitude, 2 * len(labels) + amplitude, 2), labels)
+    z.xticks(np.arange(amplitude, 2 * len(tickers) + amplitude, 2), tickers)
     z.ylabel("Tail relative length")
     z.title(
         "Bar chart representation of the relative length of the tails"
@@ -900,7 +901,7 @@ if approach == "Static":
     amplitude = 0.5
     if tail_selected == "Right" or tail_selected == "Both":
         z.bar(
-            np.arange(0, 2 * len(labels), 2),
+            np.arange(0, 2 * len(tickers), 2),
             #  positive_alpha_KS,
             results["pos_α_ks"],
             amplitude,
@@ -909,14 +910,14 @@ if approach == "Static":
         )
     if tail_selected == "Left" or tail_selected == "Both":
         z.bar(
-            np.arange(amplitude, 2 * len(labels) + amplitude, 2),
+            np.arange(amplitude, 2 * len(tickers) + amplitude, 2),
             #  negative_alpha_KS,
             results["neg_α_ks"],
             amplitude,
             color="red",
             label="Left tail",
         )
-    z.xticks(np.arange(amplitude, 2 * len(labels) + amplitude, 2), labels)
+    z.xticks(np.arange(amplitude, 2 * len(tickers) + amplitude, 2), tickers)
     z.ylabel("p-value")
     z.title(
         "KS-statistics: p-value obtained from Clauset algorithm"
@@ -937,8 +938,8 @@ if approach == "Static":
 
     # Write Tail Statistics to CSV file
     filename = "TailStatistics_Overall.csv"
-    labels_colvec = np.array(labels).reshape(len(labels), 1)
-    df_data = np.hstack((labels_colvec, tail_statistics))
+    tickers_colvec = np.array(tickers).reshape(len(tickers), 1)
+    df_data = np.hstack((tickers_colvec, tail_statistics))
     column_headers = ["Input",
                       "Positive Tail Exponent",
                       "Negative Tail Exponent",
@@ -1035,7 +1036,7 @@ elif approach == "Rolling" or approach == "Increasing":
             #      os.chdir(subdirectory)
 
             print("I am analyzing the time series for " +
-                  labels[i - 1] + " between " + begin_date +
+                  tickers[i - 1] + " between " + begin_date +
                   " and " + end_date)
 
             print("You opted for the analysis of the " + input_type)
@@ -1412,10 +1413,10 @@ elif approach == "Rolling" or approach == "Increasing":
             boxplot_mat["neg_α_mat"].append(results["neg_α_vec"])
 
         # Plot the alpha exponent in time (right/left/both tail)
-        pfaf.alpha_fitting(labels[i-1], results, options, show_plot=True)
+        pfaf.alpha_fitting(tickers[i-1], results, options, show_plot=True)
 
         # Plot the alpha exponent confidence interval in time
-        pftr.time_rolling(labels[i-1], results, options, show_plot=True)
+        pftr.time_rolling(tickers[i-1], results, options, show_plot=True)
         #  NOTE: confirm that these if-block pairs are for 3 of the Time
         #        rolling plots meant to create duplicate plots when "Both"
         #  if tail_selected == "Both":
@@ -1426,11 +1427,11 @@ elif approach == "Rolling" or approach == "Increasing":
         #             color="green", label="Right tail")
 
         # Plotting the histograms for the rolling alpha
-        pfha.hist_alpha(labels[i-1], results, options, show_plot=True)
+        pfha.hist_alpha(tickers[i-1], results, options, show_plot=True)
 
         # Write Tail Statistics to CSV file
         filename = ("TailStatistics_504_d=1_pn_normalized_" +
-                    labels[i - 1] + "_KS.csv")
+                    tickers[i - 1] + "_KS.csv")
         date_colvec = np.array(spec_dates).reshape(len(spec_dates), 1)
         df_data = np.hstack((date_colvec, tail_statistics))
         column_headers = ["Date",
@@ -1460,4 +1461,4 @@ elif approach == "Rolling" or approach == "Increasing":
         df.to_csv(filename, index=False)
 
     # Plot the boxplots for the alpha tail(s))
-    pfbx.boxplot(labels, boxplot_mat, options, show_plot=True)
+    pfbx.boxplot(tickers, boxplot_mat, options, show_plot=True)
