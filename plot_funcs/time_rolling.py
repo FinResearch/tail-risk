@@ -1,5 +1,5 @@
 import numpy as np
-#  import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 import pylab as z
 
@@ -17,60 +17,95 @@ def spec_helper(opts):
     return spec_dates, spec_labelstep
 
 
-def plot_ci(label, direction, data, opts, show_plot=False):
+def fig_config(ticker, plot_type, opts):
+    # TODO: set the correct data to be passed to figure_plot & also figure_init
+    pass
 
-    # NOTE: use inside function for now; factor out later
+
+def fig_make(ticker, plt_type, tail_dir, data, opts):
+    """Initialize a unique Matplotlib Figure instance, and returns it
+    TODO: it should not care about the data being plotted nor the opts
+    """
+
+    # NOTE: use inside function for now; factor out later -> into opts?
     spec_dates, spec_labelstep = spec_helper(opts)
 
-    sign = "pos" if direction == "right" else "neg"
+    tail_sgn = "pos" if tail_dir == "right" else "neg"
 
-    z.figure("Time rolling CI for " + direction + " tail for " + label)
-    z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-    z.plot(data[f"{sign}_α_vec"], color="green",
-           label=f"{direction.title()} tail")
-    z.plot(data[f"{sign}_up_bound"], color="purple", label="Upper bound")
-    z.plot(data[f"{sign}_low_bound"], color="blue", label="Lower bound")
-    z.plot(np.repeat(3, len(data[f"{sign}_α_vec"]) + 2), color="red")
-    z.plot(np.repeat(2, len(data[f"{sign}_α_vec"]) + 2), color="red")
-    z.ylabel(r"$\alpha$")
-    z.xlim(xmin=0.0, xmax=len(data[f"{sign}_α_vec"]) - 1)
-    z.xticks(
-        range(0, len(spec_dates), spec_labelstep),
-        [el[3:] for el in spec_dates[0::spec_labelstep]],
-        rotation="vertical",
-    )
-    z.title(
-        "Rolling confidence intervals for the "
-        + r"$\alpha$"
-        + "-"
-        + direction
-        + " tail exponents "
-        + "(c = "
-        + str(1 - opts.significance)
-        + ")"
-        + "\n"
-        + "Ticker: "
-        + label
-        + ".Time Period: "  # ASK: period should be there?
-        + opts.dates[0]
-        + " - "
-        + opts.dates[-1]
-        + ". Input: "
-        #  + lab  # TODO: add this label
-    )
-    z.legend(
-        bbox_to_anchor=(0.0, -0.175, 1.0, 0.02),
-        ncol=3,
-        mode="expand",
-        borderaxespad=0,
-    )
-    z.grid()
+    # TODO: use fig, ax = plt.subplots() idiom to Initialize
+
+    fig_name = f"Time rolling {plt_type} for {tail_dir} tail for {ticker}"
+    fig = plt.figure(fig_name)
+
+    axes_pos = (0.1, 0.20, 0.83, 0.70)
+    ax = fig.add_axes(axes_pos)
+
+    alpha_sym = r"$\alpha$"  # TODO: consider just using unicode char: α
+    ax_title = (f"Rolling confidence intervals for the {alpha_sym}-{tail_dir} "
+                f"tail exponents (c = {1 - opts.significance})\n"
+                f"Ticker: {ticker}. "
+                f"Time Period: {opts.dates[0]} - {opts.dates[-1]}. "
+                f"Input: ")  # + lab  # TODO: add this label
+    ax.set_title(ax_title)
+
+    # TODO: rid dependency on data arg in xmax below
+    ax.set_xlim(xmin=0.0, xmax=len(data[f"{tail_sgn}_α_vec"]) - 1)
+    ax.set_xticks(range(0, len(spec_dates), spec_labelstep))  # must be list?
+    ax.set_xticklabels([el[3:] for el in spec_dates[0::spec_labelstep]],
+                       rotation="vertical")
+
+    ax.set_ylabel(alpha_sym)
+
+    #  ax.legend(bbox_to_anchor=(0.0, -0.175, 1.0, 0.02),
+    #            ncol=3, mode="expand", borderaxespad=0)
+    #  ax.grid()
+
+    return fig
+
+
+def fig_plot(fig, tail_dir, data):
+    """Given the data to plot, add plot them onto the passed figure
+    TODO: it should not care about tail_dir, opts, and other boilerplate
+    """
+
+    tail_sgn = "pos" if tail_dir == "right" else "neg"
+
+    ax = fig.get_axes()[0]  # TODO: pass ax as param to avoid list-index
+    ax.plot(data[f"{tail_sgn}_α_vec"], color="green",
+            label=f"{tail_dir.title()} tail")
+    ax.plot(data[f"{tail_sgn}_up_bound"], color="purple", label="Upper bound")
+    ax.plot(data[f"{tail_sgn}_low_bound"], color="blue", label="Lower bound")
+    ax.plot(np.repeat(3, len(data[f"{tail_sgn}_α_vec"]) + 2), color="red")
+    ax.plot(np.repeat(2, len(data[f"{tail_sgn}_α_vec"]) + 2), color="red")
+
+
+def fig_present(fig, show_plot):  # , save, interact):
+    """Show or save the plot(s)
+    either save individual plots with fig.save,
+    or show the plot(s) using plt.show()
+    TODO: support interative mode
+    """
 
     if show_plot:
-        z.show()
+        plt.show()
     else:
         # TODO: implement plot saving functionality?
         pass
+
+
+def plot_ci(ticker, tail_dir, data, opts, show_plot=False):
+
+    fig = fig_make(ticker, "CI", tail_dir, data, opts)
+    fig_plot(fig, tail_dir, data)
+    fig_present(fig, show_plot)
+
+    #  z.legend(
+    #      bbox_to_anchor=(0.0, -0.175, 1.0, 0.02),
+    #      ncol=3,
+    #      mode="expand",
+    #      borderaxespad=0,
+    #  )
+    #  z.grid()
 
 
 def plot_abs_size(label, direction, data, opts, show_plot=False):
