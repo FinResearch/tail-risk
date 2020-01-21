@@ -1,3 +1,5 @@
+import itertools
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -17,13 +19,66 @@ def spec_helper(opts):
     return spec_dates, spec_labelstep
 
 
-def fig_config(ticker, plot_type, opts):
-    # TODO: set the correct data to be passed to figure_plot & also figure_init
-    pass
+def get_vecs2plot(plot_type, opts):
+    """
+    TODO: set the correct data to be passed to figure_plot & also figure_init
+    """
+
+    plt_typ2vec = {"ci": ["α_vec", "up_bound", "low_bound"],  # conf interval
+                   "as": ["abs_len"],                         # absolute size
+                   "rs": ["rel_len"],                         # relative size
+                   "ks": ["α_ks"]}                            # KS-test
+    vec_prod = itertools.product(["pos", "neg"], plt_typ2vec[f"{plot_type}"])
+    vec_names = [f"{sgn}_{typ}" for sgn, typ in vec_prod]
+
+    if right := opts.use_right_tail:
+        data_pos = [vec for vec in vec_names if "pos" in vec]
+        data_neg = []  # NOTE: this is a hack to make final else convenient
+
+    if left := opts.use_left_tail:
+        data_neg = [vec for vec in vec_names if "neg" in vec]
+
+    if right and left:
+        if plot_type == "ci":
+            data = data_pos, data_neg   # 2-tuple of lists of str
+        else:   # plot_type is one of {absolute size, relative size, KS-test}
+            data = data_pos + data_neg  # single list of str (combined tails)
+    else:
+        data = data_neg or data_pos     # single list of str
+
+    # TODO: return same data type;
+    # either tuple or single list, so all downstream API can be unified
+    return data
 
 
-def fig_make(ticker, plt_type, tail_dir, data, opts):
-    """Initialize a unique Matplotlib Figure instance, and returns it
+def set_line_style(vec_name):
+    """Helper for setting the line style of the line plot
+    :param: vec_name: string name of the vector to be plotted
+    """
+
+    if "pos" in vec_name:
+        label = "Right tail"
+        color = "green"
+    elif "neg" in vec_name:
+        label = "Left tail"
+        color = "purple"
+
+    # overwrite color and line if plotting alpha boundary curves
+    if "up_bound" in vec_name:
+        label = "Upper bound"
+        color = "black"
+    elif "low_bound" in vec_name:
+        label = "Lower bound"
+        color = "blue"
+
+    return {"label": label, "color": color}
+
+
+def fig_config(ticker, plot_type, tail_dir, data, opts):
+    """Initialize a unique Matplotlib Figure instance,
+    configure it appropriately (title, ticks, etc.),
+    to set it up for the actual plotting, then returns it
+
     TODO: it should not care about the data being plotted nor the opts
     """
 
@@ -34,7 +89,7 @@ def fig_make(ticker, plt_type, tail_dir, data, opts):
 
     # TODO: use fig, ax = plt.subplots() idiom to Initialize
 
-    fig_name = f"Time rolling {plt_type} for {tail_dir} tail for {ticker}"
+    fig_name = f"Time rolling {plot_type} for {tail_dir} tail for {ticker}"
     fig = plt.figure(fig_name)
 
     axes_pos = (0.1, 0.20, 0.83, 0.70)
@@ -56,27 +111,31 @@ def fig_make(ticker, plt_type, tail_dir, data, opts):
 
     ax.set_ylabel(alpha_sym)
 
-    #  ax.legend(bbox_to_anchor=(0.0, -0.175, 1.0, 0.02),
-    #            ncol=3, mode="expand", borderaxespad=0)
-    #  ax.grid()
+    ax.legend(bbox_to_anchor=(0.0, -0.175, 1.0, 0.02),
+              ncol=3, mode="expand", borderaxespad=0)
+    ax.grid()
 
     return fig
 
 
-def fig_plot(fig, tail_dir, data):
+def fig_plot(fig, plot_type, data, vec_names):
     """Given the data to plot, add plot them onto the passed figure
     TODO: it should not care about tail_dir, opts, and other boilerplate
     """
 
-    tail_sgn = "pos" if tail_dir == "right" else "neg"
+    ax = fig.get_axes()[0]  # TODO: pass ax as param to avoid list-indexing
 
-    ax = fig.get_axes()[0]  # TODO: pass ax as param to avoid list-index
-    ax.plot(data[f"{tail_sgn}_α_vec"], color="green",
-            label=f"{tail_dir.title()} tail")
-    ax.plot(data[f"{tail_sgn}_up_bound"], color="purple", label="Upper bound")
-    ax.plot(data[f"{tail_sgn}_low_bound"], color="blue", label="Lower bound")
-    ax.plot(np.repeat(3, len(data[f"{tail_sgn}_α_vec"]) + 2), color="red")
-    ax.plot(np.repeat(2, len(data[f"{tail_sgn}_α_vec"]) + 2), color="red")
+    if plot_type == "ci":
+        # plot two constant alpha lines in red
+        n_vec = len(data[vec_names[0]])  # TODO: make available as class attr
+        const2 = np.repeat(2, n_vec + 2)
+        const3 = np.repeat(3, n_vec + 2)
+        ax.plot(const2, color="red")     # TODO: make available as class attr
+        ax.plot(const3, color="red")     # TODO: make available as class attr
+
+    # TODO: rid dependency on data var below; make data a class attr
+    for vn in vec_names:
+        ax.plot(data[vn], **set_line_style(vn))
 
 
 def fig_present(fig, show_plot):  # , save, interact):
@@ -93,19 +152,18 @@ def fig_present(fig, show_plot):  # , save, interact):
         pass
 
 
-def plot_ci(ticker, tail_dir, data, opts, show_plot=False):
+def plot_ci(ticker, data, opts, show_plot=False):
 
-    fig = fig_make(ticker, "CI", tail_dir, data, opts)
-    fig_plot(fig, tail_dir, data)
-    fig_present(fig, show_plot)
+    #  vecs_pos, vecs_neg = get_vecs2plot("ci", opts)
+    vecs2plot_tup = get_vecs2plot("ci", opts)
 
-    #  z.legend(
-    #      bbox_to_anchor=(0.0, -0.175, 1.0, 0.02),
-    #      ncol=3,
-    #      mode="expand",
-    #      borderaxespad=0,
-    #  )
-    #  z.grid()
+    for i, vecs_ls in enumerate(vecs2plot_tup):
+        # TODO: makw tail_dir into attr associated w/ the vec_list itself
+        tail_dir = "right" if i == 0 else "left"
+        fig = fig_config(ticker, "CI", tail_dir, data, opts)
+        fig_plot(fig, "ci", data, vecs_ls)
+        fig_present(fig, show_plot)
+
 
 
 def plot_abs_size(label, direction, data, opts, show_plot=False):
@@ -262,14 +320,7 @@ def plot_ks_pv(label, direction, data, opts, show_plot=False):
 # Plot the alpha exponent confidence interval in time
 def time_rolling(label, data, opts, show_plot=False):
 
-    tails_list = []
-    if opts.use_right_tail:
-        tails_list.append("right")
-    if opts.use_left_tail:
-        tails_list.append("left")
-
-    for t in tails_list:
-        plot_ci(label, t, data, opts, show_plot=show_plot)
+    plot_ci(label, data, opts, show_plot=show_plot)
 
     # NOTE: when "Both" selected, passing either left or right plots both
     #       need to figure out how to plot individual ones
