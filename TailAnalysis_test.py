@@ -165,7 +165,8 @@ abs_value = "No"
 abs_target = "Tail"  # choices is one of ['Full Series', 'Tail']
 
 approach = "Rolling"  # choices is one of ['Static', 'Rolling', 'Increasing']
-an_freq = 1
+anal_freq = 1
+
 tail_selected = "Both"
 data_nature = "Continuous"
 
@@ -181,6 +182,9 @@ else:
 significance = 0.05
 
 c_iter = 100
+
+show_plots = True
+save_plots = False
 
 
 # NOTE: these lists appear to only be used for plotting
@@ -215,22 +219,32 @@ N = len(database)
 # object to hold all options data determined by user input data
 # NOTE: consider using json (module), dataclasses, namedtuple?
 # TODO: set values of these dynamically based on user input
-options_data = {"tickers": tickers,
-                "standardize": False,
+settings_dict = {"tickers": tickers,
+                 "lookback": lookback,
                  "return_type": return_type,
                  "tau": tau,
-                "analysis_freq": 1,
-                "use_right_tail": (True if tail_selected in ["Right", "Both"]
+                 "standardize": False,
+                 "absolutize": False,
+                 "approach": approach,
+                 # NOTE: anal_freq only defined for approach != 'Static'
+                 "anal_freq": anal_freq,
+                 "use_right_tail": (True if tail_selected in ["Right", "Both"]
+                                    else False),
+                 "use_left_tail": (True if tail_selected in ["Left", "Both"]
                                    else False),
-                "use_left_tail": (True if tail_selected in ["Left", "Both"]
-                                  else False),
-                "data_nature": "Continuous",
-                "xmin_rule": "Clauset",
-                "significance": 0.05,
-                "dates": dates,
-                "labelstep": labelstep}
+                 "data_nature": data_nature,
+                 "xmin_rule": xmin_rule,
+                 "significance": significance,
+                 "dates": dates,
+                 "date_i": dates[0],
+                 "date_f": dates[-1],
+                 "labelstep": labelstep,
+                 "spec_dates": dates[::anal_freq] if anal_freq > 1 else dates,
+                 "spec_labelstep": 22 if anal_freq > 1 else labelstep,
+                 "show_plots": show_plots,
+                 "save_plots": save_plots}
 # TODO: add "labels" and other important values into options dict
-options = SimpleNamespace(**options_data)
+settings = SimpleNamespace(**settings_dict)
 
 
 # Execution logic for the actual calculations
@@ -1432,7 +1446,7 @@ elif approach == "Rolling" or approach == "Increasing":
         # Write Tail Statistics to CSV file
         filename = ("TailStatistics_504_d=1_pn_normalized_" +
                     tickers[i - 1] + "_KS.csv")
-        date_colvec = np.array(spec_dates).reshape(len(spec_dates), 1)
+        date_colvec = np.array(settings.dates).reshape(len(settings.dates), 1)
         df_data = np.hstack((date_colvec, tail_statistics))
         column_headers = ["Date",
                           "Positive Tail Exponent",
