@@ -28,7 +28,8 @@ import plot_funcs.boxplot as pfbx
 #####################################
 
 
-def Extractor(filename, tickers):
+# TODO: change Extractor validator to confirm all requested tickers found in csv?
+def validate_tickers(database, tickers):
     object = pd.read_csv(filename)
     output = [(object["Date"].values).tolist()]
     for i in range(0, len(tickers), 1):
@@ -140,19 +141,44 @@ def get_logl_tstats(daily_log_ratio, daily_log_pv):
 
 database_name = "dbMSTR_test.csv"
 
-no_entries = 1
-fieldNames = ["# " + str(i) for i in range(1, no_entries + 1, 1)]
+#  no_entries = 1
+#  fieldNames = ["# " + str(i) for i in range(1, no_entries + 1, 1)]
 tickers = ["DE 01Y"]  # , "DE 03Y", "DE 05Y", "DE 10Y"]
-#  labels = fieldValues
 
-database = Extractor(database_name, tickers)
+database = pd.read_csv(database_name, index_col="Date")[tickers]
+N_db_rec, N_db_tck = database.shape
+assert(N_db_rec == 3333)
+assert(N_db_tck == len(tickers))
+
+db_dates = database.index
 
 # FIXME?: using date below -> ValueError: cannot convert float NaN to integer
 #  initial_date = "2/5/2016"  # NOTE: len(dates) needs to be > labelstep???
-initial_date = "1/4/2016"
+#  date_i = "1/4/2016"
+date_i = "31-03-16"
 #  initial_date = "1/1/2016"
-final_date = "5/5/2016"
+date_f = "5/5/2016"
+# TODO: standardize/validate date format
+# TODO: consider allow for free-forming date range, then pick closest dates
 lookback = 504
+
+ind_i = db_dates.get_loc(date_i)
+ind_f = db_dates.get_loc(date_f)
+n_rec = ind_f - ind_i + 1
+dates = db_dates[ind_i: ind_f + 1]
+assert(len(dates) == n_rec)
+
+labelstep = (22 if n_rec <= 252 else
+             66 if (n_rec > 252 and n_rec <= 756) else
+             121)
+
+# NOTE: data here does not contain values needed in lookback
+# TODO: better name might be dates_analyzed_df
+ticker_df = database.iloc[ind_i: ind_f + 1]
+assert((n_rec, len(tickers)) == ticker_df.shape)
+
+#  N = len(database)
+#  for l in range(initial_index, final_index + 1, anal_freq):
 
 return_type = "log"  # choices is one of ["basic", "relative", "log"]
 
@@ -168,20 +194,26 @@ approach = "Rolling"  # choices is one of ['Static', 'Rolling', 'Increasing']
 anal_freq = 1
 
 tail_selected = "Both"
+use_right_tail = True if tail_selected in ["Right", "Both"] else False
+use_left_tail = True if tail_selected in ["Left", "Both"] else False
+if tail_selected == "Both":
+    multiplier = 0.5
+else:
+    multiplier = 1.0
+
 data_nature = "Continuous"
 
 xmin_rule = "Clauset"
 xmin_value = None  # only used for xmin_rule == "Manual"
 xmin_sign = None  # only used for xmin_rule == "Percentile"
 
-if tail_selected == "Both":
-    multiplier = 0.5
-else:
-    multiplier = 1.0
-
 significance = 0.05
 
 c_iter = 100
+
+spec_dates = dates[::anal_freq] if anal_freq > 1 else dates
+N_spdt = len(spec_dates)
+spec_labelstep = 22 if anal_freq > 1 else labelstep
 
 show_plots = True
 save_plots = False
@@ -206,14 +238,7 @@ def boxplot_mat_init():
 
 # lists to store the results for plotting (16 total)
 results = results_lists_init()
-
-initial_index = database[0].index(initial_date)
-final_index = database[0].index(final_date)
-dates = database[0][initial_index: (final_index + 1)]
-labelstep = (22 if len(dates) <= 252 else
-             66 if (len(dates) > 252 and len(dates) <= 756) else
-             121)
-N = len(database)
+# TODO: zero "results" container on each ticker iteration OR store them all
 
 
 # object to hold all options data determined by user input data
@@ -228,10 +253,8 @@ settings_dict = {"tickers": tickers,
                  "approach": approach,
                  # NOTE: anal_freq only defined for approach != 'Static'
                  "anal_freq": anal_freq,
-                 "use_right_tail": (True if tail_selected in ["Right", "Both"]
-                                    else False),
-                 "use_left_tail": (True if tail_selected in ["Left", "Both"]
-                                   else False),
+                 "use_right_tail": use_right_tail,
+                 "use_left_tail": use_left_tail,
                  "data_nature": data_nature,
                  "xmin_rule": xmin_rule,
                  "significance": significance,
@@ -239,8 +262,8 @@ settings_dict = {"tickers": tickers,
                  "date_i": dates[0],
                  "date_f": dates[-1],
                  "labelstep": labelstep,
-                 "spec_dates": dates[::anal_freq] if anal_freq > 1 else dates,
-                 "spec_labelstep": 22 if anal_freq > 1 else labelstep,
+                 "spec_dates": spec_dates,
+                 "spec_labelstep": spec_labelstep,
                  "show_plots": show_plots,
                  "save_plots": save_plots}
 # TODO: add "labels" and other important values into options dict
@@ -968,7 +991,8 @@ settings = SimpleNamespace(**settings_dict)
 #      df = pd.DataFrame(df_data, columns=column_headers)
 #      df.to_csv(filename, index=False)
 
-elif approach == "Rolling" or approach == "Increasing":
+#  elif approach == "Rolling" or approach == "Increasing":
+if approach == "Rolling" or approach == "Increasing":
 
     #  question      = "Do you want to save the sequential scaling plot?"
     #  choices      = ['Yes', 'No']
@@ -984,14 +1008,18 @@ elif approach == "Rolling" or approach == "Increasing":
     #                     "\IP\Econophysics\Final Code Hurst Exponent\\"),
     #      )
 
-    temp = []  # NOTE: appears to be unused
+    #  temp = []  # NOTE: appears to be unused
 
     # int(np.maximum(np.floor(22/float(an_freq)),1.0))
 
     # TODO: add lists below to results_lists_init function?
     boxplot_mat = boxplot_mat_init()
 
-    for i in range(1, N, 1):
+    #  print(f"N = {N}")
+    #  for i in range(1, N, 1):
+    #  for tck in tickers:
+    for tck in ticker_df:
+        #  print(tck)
 
         #  if plot_storing == "Yes":
         #      directory = motherpath + "PowerLawAnimation\\" + labels[i - 1]
@@ -1005,16 +1033,32 @@ elif approach == "Rolling" or approach == "Increasing":
         # TODO: add list below to results_lists_init function
         tail_statistics = []
 
-        for l in range(initial_index, final_index + 1, anal_freq):
+        #  print(f"# dates: {len(dates)}")
+        #  for l in range(initial_index, final_index + 1, anal_freq):
 
-            if approach == "Rolling":
-                series = database[i][(l + 1 - lookback): (l + 1)]
-                begin_date = database[0][(l + 1 - lookback)]
-                end_date = database[0][l]
-            else:
-                series = database[i][(initial_index + 1 - lookback): (l + 1)]
-                begin_date = database[0][(initial_index + 1 - lookback)]
-                end_date = database[0][l]
+        #  print(len(range(ind_i, ind_f + 1, anal_freq)))
+        #  print(len(spec_dates), type(spec_dates))
+        assert(len(range(ind_i, ind_f + 1, anal_freq)) == len(spec_dates))
+        for l, dt in enumerate(spec_dates, start=ind_i):
+
+            lbk = (l if approach == "Rolling" else ind_i) - lookback + 1
+            #  print(lbk, l+1)
+            #  print(ticker_df[tck].iloc[lbk:l+1])
+            series = database[tck].iloc[lbk:l+1]
+            #  print(series)
+            begin_date = db_dates[lbk]
+            end_date = dt
+            #  print(end_date, db_dates[l])
+            assert(end_date == db_dates[l])
+
+            #  if approach == "Rolling":
+            #      series = database[i][(l + 1 - lookback): (l + 1)]
+            #      begin_date = database[0][(l + 1 - lookback)]
+            #      end_date = database[0][l]
+            #  else:
+            #      series = database[i][(initial_index + 1 - lookback):(l + 1)]
+            #      begin_date = database[0][(initial_index + 1 - lookback)]
+            #      end_date = database[0][l]
 
             #  if plot_storing == "Yes":
             #      subdirectory = (
@@ -1041,43 +1085,70 @@ elif approach == "Rolling" or approach == "Increasing":
             #      os.chdir(subdirectory)
 
             print("I am analyzing the time series for " +
-                  tickers[i - 1] + " between " + begin_date +
+                  tck + " between " + begin_date +
                   " and " + end_date)
 
+            # TODO: add fullname for return_types, ex. {"log": "Log Returns"}
             print("You opted for the analysis of the " + return_type)
 
-            if return_type == "Returns":
-                X = np.array(series[tau:]) - np.array(
-                    series[0: (len(series) - tau)])
-                lab = "P(t+" + str(tau) + ") - P(t)"
-            elif return_type == "Relative returns":
-                X = (
-                    np.array(series[tau:]) /
-                    np.array(series[0: (len(series) - tau)])
-                    - 1.0
-                )
-                lab = "P(t+" + str(tau) + ")/P(t) - 1.0"
-            else:
-                X = np.log(
-                    np.array(series[tau:]) /
-                    np.array(series[0: (len(series) - tau)])
-                )
-                lab = r"$\log$" + "(P(t+" + str(tau) + ")/P(t))"
+            pt_f = series.iloc[tau:]
+            pt_i = series.iloc[0: len(series) - tau]
 
-            if standardize == "Yes":
+            if settings.return_type == "basic":
+                X = pt_f - pt_i
+            elif settings.return_type == "relative":
+                X = pt_f / pt_i - 1.0
+            elif settings.return_type == "log":
+                X = np.log(pt_f/pt_i)
+                print(f"X is\n{X}")
+                print(f"type of X = {type(X)}")
+                # FIXME: currentl this causes ZeroDivisionError: float division by zero in plpva.py
+
+            if settings.standardize is True:
                 print("I am standardizing your time series")
-                S = X
-                m = np.mean(S)
-                v = np.std(S)
-                X = (S - m) / v
+                X = (X - X.mean())/X.std()
 
-            if abs_value == "Yes":
+            if settings.absolutize is True:
                 print("I am taking the absolute value of your time series")
-                X = np.abs(X)
-                lab = "|" + lab + "|"
+                X = X.abs()
 
+            #  print(f"X is {X}")
+
+            #  if return_type == "Returns":
+            #      X = np.array(series[tau:]) - np.array(
+            #          series[0: (len(series) - tau)])
+            #      lab = "P(t+" + str(tau) + ") - P(t)"
+            #  elif return_type == "Relative returns":
+            #      X = (
+            #          np.array(series[tau:]) /
+            #          np.array(series[0: (len(series) - tau)])
+            #          - 1.0
+            #      )
+            #      lab = "P(t+" + str(tau) + ")/P(t) - 1.0"
+            #  else:
+            #      X = np.log(
+            #          np.array(series[tau:]) /
+            #          np.array(series[0: (len(series) - tau)])
+            #      )
+            #      lab = r"$\log$" + "(P(t+" + str(tau) + ")/P(t))"
+
+            #  if standardize == "Yes":
+            #      print("I am standardizing your time series")
+            #      S = X
+            #      m = np.mean(S)
+            #      v = np.std(S)
+            #      X = (S - m) / v
+            #
+            #  if abs_value == "Yes":
+            #      print("I am taking the absolute value of your time series")
+            #      X = np.abs(X)
+            #      lab = "|" + lab + "|"
+
+            print("before fitting")
             tail_plus, tail_neg, fit_1, fit_2 = fit_tail(tail_selected, X)
+            print("after fitting")
 
+            #  print(tail_plus)
             # TODO: when only Right or Left tail selected,
             #       the other fit object will be None
             alpha1 = fit_1.power_law.alpha
@@ -1417,29 +1488,29 @@ elif approach == "Rolling" or approach == "Increasing":
         if tail_selected == "Left" or tail_selected == "Both":
             boxplot_mat["neg_α_mat"].append(results["neg_α_vec"])
 
-        # Plot the alpha exponent in time (right/left/both tail)
-        pfaf.alpha_fitting(tickers[i-1], results, options, show_plot=True)
-        trp= pftr.TimeRollingPlotter(tickers[i-1], settings, results)
-        trp = pftr.TimeRollingPlotter(tickers[i-1], settings, results)
+        #  # Plot the alpha exponent in time (right/left/both tail)
+        pfaf.alpha_fitting(tck, results, settings, show_plot=True)
+        #
+        #  # Plot the alpha exponent confidence interval in time
+        #  pftr.time_rolling(tickers[i-1], results, settings, show_plot=True)
+        #  #  NOTE: confirm that these if-block pairs are for 3 of the Time
+        #  #        rolling plots meant to create duplicate plots when "Both"
+        #  #  if tail_selected == "Both":
+        #  #      z.plot(results["neg_abs_len"],
+        #  #             color="purple", label="Left tail")
+        #  #  if tail_selected == "Both":
+        #  #      z.plot(results["pos_abs_len"],
+        #  #             color="green", label="Right tail")
+        #
+        #  # Plotting the histograms for the rolling alpha
+        #  pfha.hist_alpha(tickers[i-1], results, settings, show_plot=True)
+
+        trp = pftr.TimeRollingPlotter(tck, settings, results)
         trp.plot()
-
-        # Plot the alpha exponent confidence interval in time
-        pftr.time_rolling(tickers[i-1], results, options, show_plot=True)
-        #  NOTE: confirm that these if-block pairs are for 3 of the Time
-        #        rolling plots meant to create duplicate plots when "Both"
-        #  if tail_selected == "Both":
-        #      z.plot(results["neg_abs_len"],
-        #             color="purple", label="Left tail")
-        #  if tail_selected == "Both":
-        #      z.plot(results["pos_abs_len"],
-        #             color="green", label="Right tail")
-
-        # Plotting the histograms for the rolling alpha
-        pfha.hist_alpha(tickers[i-1], results, options, show_plot=True)
 
         # Write Tail Statistics to CSV file
         filename = ("TailStatistics_504_d=1_pn_normalized_" +
-                    tickers[i - 1] + "_KS.csv")
+                    tck + "_KS.csv")
         date_colvec = np.array(settings.dates).reshape(len(settings.dates), 1)
         df_data = np.hstack((date_colvec, tail_statistics))
         column_headers = ["Date",
@@ -1467,6 +1538,7 @@ elif approach == "Rolling" or approach == "Increasing":
                           "LL p-value Left Tail LogN"]
         df = pd.DataFrame(df_data, columns=column_headers)
         df.to_csv(filename, index=False)
+    #  print(list(map(len, results.values())))
 
-    # Plot the boxplots for the alpha tail(s))
-    pfbx.boxplot(tickers, boxplot_mat, options, show_plot=True)
+    #  # Plot the boxplots for the alpha tail(s))
+    #  pfbx.boxplot(tickers, boxplot_mat, settings, show_plot=True)
