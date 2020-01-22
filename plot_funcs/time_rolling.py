@@ -67,22 +67,6 @@ class TimeRollingPlotter:
         self.all_plot_combos = _get_all_plot_combos(settings, plot_types_static_info)
         self.plot_combo_N = len(self.all_plot_combos)
 
-        #  self.plot_types = ("ci", "as", "rs", "ks")
-        #  self.ptyp_nmap = {"ci": "CI",
-        #                    "as": "size",
-        #                    "rs": "relative size",
-        #                    "ks": "KS test"}
-        #  self.plot2vec_types_map = {"ci": ["α_vec", "up_bound", "low_bound"],
-        #                             "as": ["abs_len"],
-        #                             "rs": ["rel_len"],
-        #                             "ks": ["α_ks"]}
-        #  self.vector_types = ("pos_α_vec",     "neg_α_vec",
-        #                       "pos_α_ks",      "neg_α_ks",
-        #                       "pos_up_bound",  "neg_up_bound",
-        #                       "pos_low_bound", "neg_low_bound",
-        #                       "pos_abs_len",   "neg_abs_len",
-        #                       "pos_rel_len",   "neg_rel_len")
-
     # maintenance and book-keeping helper functions
 
     # NOTE: should be called immediately after Initializing the object
@@ -91,10 +75,9 @@ class TimeRollingPlotter:
         self.curr_tdir, self.curr_ptyp = self.all_plot_combos[self.plt_ctr]
         self.curr_tsgn = "pos" if self.curr_tdir == "right" else "neg"
         self.curr_ptsi = self.ptsi[self.curr_ptyp]
-        #  self.curr_tail = "right" if self.settings.use_right_tail else "left"
-        #  self.curr_ticker = self.settings.tickers[0]
         # TODO: will be diff w/ self.ticker once plot unnested in ticker-loop
         self.curr_ticker = self.ticker  # TODO: will be diff when plot unnested
+        #  self.curr_ticker = self.settings.tickers[0]
 
     # TODO: combine _init & _update into a single state method: _get_state?
     def _update_plotter_state(self):
@@ -102,7 +85,6 @@ class TimeRollingPlotter:
         self.curr_tdir, self.curr_ptyp = self.all_plot_combos[self.plt_ctr]
         self.curr_tsgn = "pos" if self.curr_tdir == "right" else "neg"
         self.curr_ptsi = self.ptsi[self.curr_ptyp]
-
         #  self.curr_ticker =  # TODO: update too after plot unnested
 
     # state-dependent and aware methods below
@@ -193,8 +175,6 @@ class TimeRollingPlotter:
 
         sett = self.settings
 
-        #  tail_sgn = "pos" if tail == "right" else "neg"
-
         # TODO: use fig, ax = plt.subplots() idiom to Initialize?
         fig_name = (f"Time rolling {self.curr_ptsi['fig_name']} "
                     f"for {self.curr_tdir} tail for {self.curr_ticker}")
@@ -249,10 +229,6 @@ class TimeRollingPlotter:
         ax.set_ylabel(self.curr_ptsi["ax_ylabel"])
 
         ax.legend(**self.curr_ptsi.get("ax_legend", {}))
-        #  if "legend" in ax_metainfo:
-        #      ax.legend(**ax_metainfo["legend"])
-        #  else:
-        #      ax.legend()
 
         ax.grid()
 
@@ -284,35 +260,3 @@ class TimeRollingPlotter:
             self._config_axes(ax)
             self._present_figure()
             self._update_plotter_state()
-
-
-#  def plot_ci(ticker, data, opts, show_plot=False):
-#
-#      #  vecs_pos, vecs_neg = __get_vecs2plot("ci", opts)
-#      vecs2plot_tup = __get_vecs2plot("ci", opts)
-#
-#      for i, vecs_ls in enumerate(vecs2plot_tup):
-#          # TODO: makw tail_dir into attr associated w/ the vec_list itself
-#          tail_dir = "right" if i == 0 else "left"
-#
-#          alpha_sym = r"$\alpha$"  # TODO: consider just using unicode char: α
-#          ax_title = (f"Rolling confidence intervals for the {alpha_sym}-{tail_dir} "
-#                      f"tail exponents (c = {1 - opts.significance})\n"
-#                      f"Ticker: {ticker}. ")
-#
-#          fig = fig_config(ticker, "CI", tail_dir, data, opts, ax_title)
-#          fig_plot(fig, "ci", data, vecs_ls)
-#          fig_present(fig, show_plot)
-
-
-#  # Plot the alpha exponent confidence interval in time
-#  def time_rolling(label, data, opts, show_plot=False):
-#
-#      plot_ci(label, data, opts, show_plot=show_plot)
-#
-#      # NOTE: when "Both" selected, passing either left or right plots both
-#      #       need to figure out how to plot individual ones
-#      plot_abs_size(label, data, opts, show_plot=show_plot)
-#
-#      plot_rel_size(label, "right", data, opts, show_plot=show_plot)
-#      plot_ks_pv(label, "right", data, opts, show_plot=show_plot)
