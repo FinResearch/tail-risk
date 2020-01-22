@@ -42,7 +42,7 @@ plot_types_static_info = {  # NOTE: will be abbreviated as ptsi
 
 
 # TODO: move this into plotter state generating class later
-def _get_all_plot_combos(settings, ptsi):
+def _get_all_plot_combos(settings, plot_types):
 
     tails = []
     if settings.use_right_tail:
@@ -50,10 +50,11 @@ def _get_all_plot_combos(settings, ptsi):
     if settings.use_left_tail:
         tails.append("left")
 
-    return tuple(itertools.product(tails, ptsi.keys()))
+    return tuple(itertools.product(tails, plot_types))
 
 
-# TODO: consider making these into plot_types_static_info (ptsi) data?
+# TODO: consider making values returned from this function
+#       part of plot_types_static_info (ptsi) data
 def _set_line_style(vec_name):
     """Helper for setting the line style of the line plot
     :param: vec_name: string name of the vector to be plotted
@@ -84,12 +85,11 @@ class TimeRollingPlotter:
     def __init__(self, ticker, settings, data):  # ptsi, data):
         self.ticker = ticker
         self.settings = settings
+        #  self.ptsi = ptsi  # TODO: pass this as a config object
         self.ptsi = plot_types_static_info
-        #  self.ptsi = ptsi
         self.data = data
-        self.dlens = {k: len(v) for k, v in data.items()}  # TODO: assoc to plot_types
-        self.all_plot_combos = _get_all_plot_combos(settings, plot_types_static_info)
-        #  self.plot_combo_N = len(self.all_plot_combos)
+        #  self.dlens = {k: len(v) for k, v in data.items()}  # TODO: assoc to plot_types
+        self.all_plot_combos = _get_all_plot_combos(settings, self.ptsi.keys())
 
     # NOTE: should be called before every _init_figure() call
     def _set_plotter_state(self, tdir, ptyp):
@@ -178,8 +178,8 @@ class TimeRollingPlotter:
 
     def _plot_lines(self, ax):  # , vec_names):
         """Given the data to plot, add plot them onto the passed figure
-        TODO: it should not care about tail_dir, opts, and other boilerplate
         """
+        # TODO: it should not care about tail_dir, opts, and other boilerplate
 
         vecs2plot = self.__get_vecs2plot()[0]
 
@@ -225,12 +225,10 @@ class TimeRollingPlotter:
 
     # NOTE: does this function need to be state aware?
     def _present_figure(self):  # , fig):  # , show_plot=False):
-        """Show or save the plot(s)
-        either save individual plots with fig.save,
-        or show the plot(s) using plt.show()
-        TODO: support interative mode
-        # (..., save, interact):
+        """Show or save the plot(s) either save individual
+        plots with fig.save, or show the plot(s) using plt.show()
         """
+        # TODO: support interative modes
 
         if self.settings.show_plots:
             plt.show()
