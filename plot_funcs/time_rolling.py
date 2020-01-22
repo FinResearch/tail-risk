@@ -53,6 +53,30 @@ def _get_all_plot_combos(settings, ptsi):
     return tuple(itertools.product(tails, ptsi.keys()))
 
 
+# TODO: consider making these into plot_types_static_info (ptsi) data?
+def _set_line_style(vec_name):
+    """Helper for setting the line style of the line plot
+    :param: vec_name: string name of the vector to be plotted
+    """
+
+    if "pos" in vec_name:
+        label = "Right tail"
+        color = "green"
+    elif "neg" in vec_name:
+        label = "Left tail"
+        color = "purple"
+
+    # overwrite color and line when plotting α-bounds
+    if "up_bound" in vec_name:
+        label = "Upper bound"
+        color = "black"
+    elif "low_bound" in vec_name:
+        label = "Lower bound"
+        color = "blue"
+
+    return {"label": label, "color": color}
+
+
 # TODO: consider moving plotter state into own class
 # and use this class only for plotting
 class TimeRollingPlotter:
@@ -120,31 +144,6 @@ class TimeRollingPlotter:
         # either tuple or single list, so all downstream API can be unified
         return (vectors,)
 
-    # TODO: consider moving outside class to be module-level function
-    # OR make them into plot_types_static_info (ptsi) data?
-    @staticmethod
-    def __set_line_style(vec_name):
-        """Helper for setting the line style of the line plot
-        :param: vec_name: string name of the vector to be plotted
-        """
-
-        if "pos" in vec_name:
-            label = "Right tail"
-            color = "green"
-        elif "neg" in vec_name:
-            label = "Left tail"
-            color = "purple"
-
-        # overwrite color and line when plotting α-bounds
-        if "up_bound" in vec_name:
-            label = "Upper bound"
-            color = "black"
-        elif "low_bound" in vec_name:
-            label = "Lower bound"
-            color = "blue"
-
-        return {"label": label, "color": color}
-
     def __gen_ax_title(self):
 
         ticker = self.curr_ticker
@@ -204,8 +203,7 @@ class TimeRollingPlotter:
 
         for vn in vecs2plot:
             # FIXME: same same as FIXME above
-            ax.plot(self.data[vn], **self.__set_line_style(vn))
-            #  ax.plot(self.data[vn], **TimeRollingPlotter.__set_line_style(vn))
+            ax.plot(self.data[vn], **_set_line_style(vn))
 
     def _config_axes(self, ax):
         """
