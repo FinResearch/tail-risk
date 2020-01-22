@@ -89,27 +89,20 @@ class TimeRollingPlotter:
         self.data = data
         self.dlens = {k: len(v) for k, v in data.items()}  # TODO: assoc to plot_types
         self.all_plot_combos = _get_all_plot_combos(settings, plot_types_static_info)
-        self.plot_combo_N = len(self.all_plot_combos)
+        #  self.plot_combo_N = len(self.all_plot_combos)
 
-    # maintenance and book-keeping helper functions
-
-    # NOTE: should be called immediately after Initializing the object
-    def _init_plotter_state(self):
-        self.plt_ctr = 0
-        self.curr_tdir, self.curr_ptyp = self.all_plot_combos[self.plt_ctr]
+    # NOTE: should be called before every _init_figure() call
+    def _set_plotter_state(self, tdir, ptyp):
+        """Sets the current state, i.e. the tail direction, plot
+        type (CI, tail size, KS, etc.), and eventually ticker ID
+        """
+        self.curr_tdir = tdir
+        self.curr_ptyp = ptyp
         self.curr_tsgn = "pos" if self.curr_tdir == "right" else "neg"
         self.curr_ptsi = self.ptsi[self.curr_ptyp]
-        # TODO: will be diff w/ self.ticker once plot unnested in ticker-loop
-        self.curr_ticker = self.ticker  # TODO: will be diff when plot unnested
         #  self.curr_ticker = self.settings.tickers[0]
-
-    # TODO: combine _init & _update into a single state method: _get_state?
-    def _update_plotter_state(self):
-        self.plt_ctr += 1
-        self.curr_tdir, self.curr_ptyp = self.all_plot_combos[self.plt_ctr]
-        self.curr_tsgn = "pos" if self.curr_tdir == "right" else "neg"
-        self.curr_ptsi = self.ptsi[self.curr_ptyp]
-        #  self.curr_ticker =  # TODO: update too after plot unnested
+        self.curr_ticker = self.ticker  # TODO: will be diff when plot unnested
+        # TODO: above will be diff from self.ticker once plot unnested in ticker-loop
 
     # state-dependent and aware methods below
 
@@ -250,11 +243,9 @@ class TimeRollingPlotter:
         This is the public API
         """
 
-        self._init_plotter_state()
-
-        for p in range(self.plot_combo_N):
+        for tdir, ptyp in self.all_plot_combos:
+            self._set_plotter_state(tdir, ptyp)
             ax = self._init_figure()
             self._plot_lines(ax)
             self._config_axes(ax)
             self._present_figure()
-            self._update_plotter_state()
