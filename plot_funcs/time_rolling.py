@@ -41,18 +41,6 @@ plot_types_static_info = {  # NOTE: will be abbreviated as ptsi
 }
 
 
-# TODO: move this into plotter state generating class later
-def _get_all_plot_combos(settings, plot_types):
-
-    tails = []
-    if settings.use_right_tail:
-        tails.append("right")
-    if settings.use_left_tail:
-        tails.append("left")
-
-    return tuple(itertools.product(tails, plot_types))
-
-
 # TODO: consider making values returned from this function
 #       part of plot_types_static_info (ptsi) data
 def _set_line_style(vec_name):
@@ -89,7 +77,20 @@ class TimeRollingPlotter:
         self.ptsi = plot_types_static_info
         self.data = data
         #  self.dlens = {k: len(v) for k, v in data.items()}  # TODO: assoc to plot_types
-        self.all_plot_combos = _get_all_plot_combos(settings, self.ptsi.keys())
+        self.tails_used = self.__get_tails_used()
+        self.all_plot_combos = tuple(product(self.tails_used, self.ptsi.keys()))
+
+    def __get_tails_used(self):
+        """Return tuple containing the tails selected/used
+        """
+
+        tails_used = []
+        if self.settings.use_right_tail:
+            tails_used.append("right")
+        if self.settings.use_left_tail:
+            tails_used.append("left")
+
+        return tuple(tails_used)
 
     # NOTE: should be called before every _init_figure() call
     def _set_plotter_state(self, tdir, ptyp):
