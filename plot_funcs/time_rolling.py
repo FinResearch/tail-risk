@@ -87,6 +87,8 @@ class TimeRollingPlotter:
         #  self.dlens = {k: len(v) for k, v in data.items()}
         self.tails_used = self.__get_tails_used()
         self.all_plot_combos = self.__get_all_plot_combos()
+        self.return_type_label = self.__get_return_type_label()
+
     # Methods for determining state-independent info (called in __init__)
 
     def __get_tails_used(self):
@@ -107,6 +109,23 @@ class TimeRollingPlotter:
         # TODO: i.e. when plt_typ is one of ["as", "rs", "ks"],
         # then need to also do a combined fig of pos+neg tails
         return tuple(product(self.tails_used, self.ptsi.keys()))
+
+    def __get_return_type_label(self):
+
+        pi = "P(t)"
+        pf = f"P(t+{self.settings.tau})"
+
+        if self.settings.return_type == "basic":
+            label = f"{pf} - {pi}"
+        elif self.settings.return_type == "relative":
+            label = f"{pf}/{pi} - 1.0"
+        elif self.settings.return_type == "log":
+            label = rf"$\log$({pf}/{pi})"
+
+        if self.settings.absolutize:
+            label = f"|{label}|"
+
+        return label
 
     # NOTE: should be called before every _init_figure() call
     def _set_plotter_state(self, tdir, ptyp):
@@ -202,8 +221,8 @@ class TimeRollingPlotter:
         sett = self.settings
 
         axtit_uniq = self.__gen_ax_title()
-        axtit_comm = (f"Time Period: {sett.dates[0]} - {sett.dates[-1]}. "
-                      f"Input: ")  # + lab  # TODO: add this label
+        axtit_comm = (f"Time Period: {sett.date_i} - {sett.date_f}. "
+                      f"Input: {self.return_type_label}")
         ax.set_title(axtit_uniq + axtit_comm)
 
         # TODO: use self.dlens to calculate xmax value

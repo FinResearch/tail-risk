@@ -154,7 +154,7 @@ initial_date = "1/4/2016"
 final_date = "5/5/2016"
 lookback = 504
 
-input_type = "Log-Returns"
+return_type = "log"  # choices is one of ["basic", "relative", "log"]
 
 tau = 1
 
@@ -217,8 +217,8 @@ N = len(database)
 # TODO: set values of these dynamically based on user input
 options_data = {"tickers": tickers,
                 "standardize": False,
-                "absolutize": False,
-                "approach": "Rolling",
+                 "return_type": return_type,
+                 "tau": tau,
                 "analysis_freq": 1,
                 "use_right_tail": (True if tail_selected in ["Right", "Both"]
                                    else False),
@@ -246,12 +246,12 @@ if approach == "Static":
               tickers[i - 1] + " between " + dates[0] + " and " + dates[-1])
         series = database[i][initial_index: (final_index + 1)]
 
-        print("You opted for the analysis of the " + input_type)
-        if input_type == "Returns":
+        print("You opted for the analysis of the " + return_type)
+        if return_type == "Returns":
             X = np.array(series[tau:]) - \
                 np.array(series[0: (len(series) - tau)])
             lab = "P(t+" + str(tau) + ") - P(t)"
-        elif input_type == "Relative returns":
+        elif return_type == "Relative returns":
             X = np.array(series[tau:]) / \
                 np.array(series[0: (len(series) - tau)]) - 1.0
             lab = "P(t+" + str(tau) + ")/P(t) - 1.0"
@@ -1039,13 +1039,13 @@ elif approach == "Rolling" or approach == "Increasing":
                   tickers[i - 1] + " between " + begin_date +
                   " and " + end_date)
 
-            print("You opted for the analysis of the " + input_type)
+            print("You opted for the analysis of the " + return_type)
 
-            if input_type == "Returns":
+            if return_type == "Returns":
                 X = np.array(series[tau:]) - np.array(
                     series[0: (len(series) - tau)])
                 lab = "P(t+" + str(tau) + ") - P(t)"
-            elif input_type == "Relative returns":
+            elif return_type == "Relative returns":
                 X = (
                     np.array(series[tau:]) /
                     np.array(series[0: (len(series) - tau)])
