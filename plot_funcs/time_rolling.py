@@ -1,4 +1,4 @@
-import itertools
+from itertools import product
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -69,6 +69,12 @@ def _set_line_style(vec_name):
 # TODO: consider moving plotter state into own class
 # and use this class only for plotting
 class TimeRollingPlotter:
+    """
+    Note on method name conventions: other than the reserved dunder methods,
+    self-defined methods prepended by a double underscore are meant to be
+    called only by other private methods, which are themselves prepended by
+    a single underscore.
+    """
 
     def __init__(self, ticker, settings, data):  # ptsi, data):
         self.ticker = ticker
@@ -115,7 +121,7 @@ class TimeRollingPlotter:
 
         sett = self.settings
 
-        vec_prod = itertools.product(["pos", "neg"],  # tail sign: +/-
+        vec_prod = product(["pos", "neg"],  # tail sign: +/-
                                      self.curr_ptsi["vec_types"])
         vec_names = [f"{sgn}_{typ}" for sgn, typ in vec_prod]
 
