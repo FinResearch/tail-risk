@@ -19,7 +19,7 @@ plot_types_static_info = {  # NOTE: will be abbreviated as ptsi
             "ncol": 3,
             "mode": "expand",
             "borderaxespad": 0
-        }
+        },
     },
     "as":
     {
@@ -87,6 +87,7 @@ class TimeRollingPlotter:
         #  self.dlens = {k: len(v) for k, v in data.items()}
         self.tails_used = self.__get_tails_used()
         self.all_plot_combos = self.__get_all_plot_combos()
+    # Methods for determining state-independent info (called in __init__)
 
     def __get_tails_used(self):
         """Return tuple containing the tails selected/used
@@ -129,6 +130,9 @@ class TimeRollingPlotter:
         # TODO: use this function to do processing on vecs2plot?
         # For example, when plt_typ is one of ["as", "rs", "ks"],
         # then do a combined plot of pos + neg
+
+        # TODO: consider making curr_tsgn into a tuple instead of just a str
+        # so that ("right",) or ("right", "left") can be producted w/ vec_types
         return [f"{self.curr_tsgn}_{ptyp}" for ptyp
                 in self.curr_ptsi["vec_types"]]
 
@@ -139,9 +143,10 @@ class TimeRollingPlotter:
 
         # TODO: consider moving these partial titles into some config obj/file
         if ptyp == "ci":
-            alpha_tex = r"$\alpha$"  # TODO: consider using α unicode char
+            #  alpha_tex = r"$\alpha$"
+            # TODO: consider using 'α' unicode char instead of TeX markup
             ax_title = ("Rolling confidence intervals for the "
-                        f"{alpha_tex}-{self.curr_tdir} tail exponents "
+                        rf"$\alpha$-{self.curr_tdir} tail exponents "
                         f"(c = {1 - self.settings.significance})"
                         f"\nTicker: {ticker}. ")
         elif ptyp == "as":
@@ -222,6 +227,9 @@ class TimeRollingPlotter:
 
         if self.settings.show_plots:
             plt.show()
+
+        if self.settings.save_plots:
+            pass
         else:
             # TODO: implement plot saving functionality here
             pass
