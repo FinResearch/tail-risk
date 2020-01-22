@@ -1,4 +1,4 @@
-from itertools import product
+import itertools.product as prod
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -82,9 +82,10 @@ class TimeRollingPlotter:
         #  self.ptsi = ptsi  # TODO: pass this as a config object
         self.ptsi = plot_types_static_info
         self.data = data
-        #  self.dlens = {k: len(v) for k, v in data.items()}  # TODO: assoc to plot_types
+        # TODO: assoc vec_length attr below to plot_types (ptsi?)
+        #  self.dlens = {k: len(v) for k, v in data.items()}
         self.tails_used = self.__get_tails_used()
-        self.all_plot_combos = tuple(product(self.tails_used, self.ptsi.keys()))
+        self.all_plot_combos = tuple(prod(self.tails_used, self.ptsi.keys()))
 
     def __get_tails_used(self):
         """Return tuple containing the tails selected/used
@@ -109,40 +110,24 @@ class TimeRollingPlotter:
         self.curr_ptsi = self.ptsi[self.curr_ptyp]
         #  self.curr_ticker = self.settings.tickers[0]
         self.curr_ticker = self.ticker  # TODO: will be diff when plot unnested
-        # TODO: above will be diff from self.ticker once plot unnested in ticker-loop
+        # TODO: above will be diff from self.ticker once unnested in tickers
 
     # state-dependent and aware methods below
 
     def __get_vecs2plot(self):
         """
-        TODO: set the correct data to be passed to
-              figure_plot & also figure_init
+        Set the correct data to be passed to _plot_lines()
         """
+        # TODO: use this function to do processing on vecs2plot
+        # for example, when plt_typ is one of ["as", "rs", "ks"],
+        # then do a combined plot of pos + neg
 
-        sett = self.settings
+        #  sett = self.settings
 
-        vec_prod = product(["pos", "neg"],  # tail sign: +/-
-                                     self.curr_ptsi["vec_types"])
-        vec_names = [f"{sgn}_{typ}" for sgn, typ in vec_prod]
-
-        if right := sett.use_right_tail:
-            vec_pos = [vec for vec in vec_names if "pos" in vec]
-            vec_neg = []  # FIXME: convenience hack for the final else
-        if left := sett.use_left_tail:
-            vec_neg = [vec for vec in vec_names if "neg" in vec]
-
-        if right and left:
-            if self.curr_ptyp == "ci":
-                #  vectors = vec_pos, vec_neg   # 2-tuple of lists of str
-                return vec_pos, vec_neg   # 2-tuple of lists of str
-            else:
-                vectors = vec_pos + vec_neg  # single list of str
-        else:
-            vectors = vec_neg or vec_pos     # single list of str
-
-        # TODO: return same type of "vectors";
-        # either tuple or single list, so all downstream API can be unified
-        return (vectors,)
+        #  vec_names = [f"{self.curr_tsgn}_{ptyp}" for ptyp
+        #               in self.curr_ptsi["vec_types"]]
+        return [f"{self.curr_tsgn}_{ptyp}" for ptyp
+                in self.curr_ptsi["vec_types"]]
 
     def __gen_ax_title(self):
 
@@ -172,7 +157,7 @@ class TimeRollingPlotter:
         TODO: it should not care about the data being plotted nor the opts
         """
 
-        sett = self.settings
+        #  sett = self.settings
 
         # TODO: use fig, ax = plt.subplots() idiom to Initialize?
         fig_name = (f"Time rolling {self.curr_ptsi['fig_name']} "
@@ -188,21 +173,18 @@ class TimeRollingPlotter:
         """
         # TODO: it should not care about tail_dir, opts, and other boilerplate
 
-        vecs2plot = self.__get_vecs2plot()[0]
+        vecs2plot = self.__get_vecs2plot()
 
         # plot two constant alpha lines in red
         if self.curr_ptyp == "ci":
-            # FIXME: with "Both" vecs2plot is a tuple of lists, but when "Right" or
-            # "Left" only, it is a list, thus getting the list len() is problematic
-            n_vec = len(self.data[vecs2plot[0]])
             # TODO: make n_vec as class attr and use
+            n_vec = len(self.data[vecs2plot[0]])
             const2 = np.repeat(2, n_vec + 2)
             const3 = np.repeat(3, n_vec + 2)
             ax.plot(const2, color="red")  # TODO: make available as class attr
             ax.plot(const3, color="red")  # TODO: make available as class attr
 
         for vn in vecs2plot:
-            # FIXME: same same as FIXME above
             ax.plot(self.data[vn], **_set_line_style(vn))
 
     def _config_axes(self, ax):
