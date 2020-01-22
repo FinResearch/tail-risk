@@ -986,15 +986,6 @@ elif approach == "Rolling" or approach == "Increasing":
 
     temp = []  # NOTE: appears to be unused
 
-    if an_freq > 1:
-        spec_dates = []
-        for ddd in range(0, len(dates), an_freq):
-            spec_dates.append(dates[ddd])
-        spec_labelstep = 22
-    else:
-        spec_dates = dates
-        spec_labelstep = labelstep
-
     # int(np.maximum(np.floor(22/float(an_freq)),1.0))
 
     # TODO: add lists below to results_lists_init function?
@@ -1014,7 +1005,7 @@ elif approach == "Rolling" or approach == "Increasing":
         # TODO: add list below to results_lists_init function
         tail_statistics = []
 
-        for l in range(initial_index, final_index + 1, an_freq):
+        for l in range(initial_index, final_index + 1, anal_freq):
 
             if approach == "Rolling":
                 series = database[i][(l + 1 - lookback): (l + 1)]
@@ -1428,6 +1419,9 @@ elif approach == "Rolling" or approach == "Increasing":
 
         # Plot the alpha exponent in time (right/left/both tail)
         pfaf.alpha_fitting(tickers[i-1], results, options, show_plot=True)
+        trp= pftr.TimeRollingPlotter(tickers[i-1], settings, results)
+        trp = pftr.TimeRollingPlotter(tickers[i-1], settings, results)
+        trp.plot()
 
         # Plot the alpha exponent confidence interval in time
         pftr.time_rolling(tickers[i-1], results, options, show_plot=True)
