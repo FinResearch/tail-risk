@@ -164,18 +164,18 @@ lookback = 504
 
 ind_i = db_dates.get_loc(date_i)
 ind_f = db_dates.get_loc(date_f)
-n_rec = ind_f - ind_i + 1
+n_vec = ind_f - ind_i + 1
 dates = db_dates[ind_i: ind_f + 1]
-assert(len(dates) == n_rec)
+assert(len(dates) == n_vec)
 
-labelstep = (22 if n_rec <= 252 else
-             66 if (n_rec > 252 and n_rec <= 756) else
+labelstep = (22 if n_vec <= 252 else
+             66 if (n_vec > 252 and n_vec <= 756) else
              121)
 
 # NOTE: data here does not contain values needed in lookback
 # TODO: better name might be dates_analyzed_df
 ticker_df = database.iloc[ind_i: ind_f + 1]
-assert((n_rec, len(tickers)) == ticker_df.shape)
+assert((n_vec, len(tickers)) == ticker_df.shape)
 
 #  N = len(database)
 #  for l in range(initial_index, final_index + 1, anal_freq):
@@ -261,6 +261,7 @@ settings_dict = {"tickers": tickers,
                  "dates": dates,
                  "date_i": dates[0],
                  "date_f": dates[-1],
+                 "n_vec": n_vec,
                  "labelstep": labelstep,
                  "spec_dates": spec_dates,
                  "spec_labelstep": spec_labelstep,
@@ -1077,10 +1078,10 @@ if approach == "Rolling" or approach == "Increasing":
             #      os.chdir(subdirectory)
 
             print(f"I am analyzing the time series for {tck} "
-                  "between {begin_date} and {end_date}")
+                  f"between {begin_date} and {end_date}")
 
             # TODO: add fullname for return_types, ex. {"log": "Log Returns"}
-            print("You opted for the analysis of the {return_type}")
+            print(f"You opted for the analysis of the {return_type}")
 
             pt_f = series[tau:]
             pt_i = series[0: len(series) - tau]
@@ -1100,11 +1101,9 @@ if approach == "Rolling" or approach == "Increasing":
                 print("I am taking the absolute value of your time series")
                 X = X.abs()
 
-            #  print(f"X is {X}")
-
-            print("before fitting")
+            #  print("before fitting")
             tail_plus, tail_neg, fit_1, fit_2 = fit_tail(tail_selected, X)
-            print("after fitting")
+            #  print("after fitting")
 
             #  print(tail_plus)
             # TODO: when only Right or Left tail selected,
@@ -1448,7 +1447,7 @@ if approach == "Rolling" or approach == "Increasing":
 
         #  # Plot the alpha exponent in time (right/left/both tail)
         pfaf.alpha_fitting(tck, results, settings, show_plot=True)
-        #
+
         #  # Plot the alpha exponent confidence interval in time
         #  pftr.time_rolling(tickers[i-1], results, settings, show_plot=True)
         #  #  NOTE: confirm that these if-block pairs are for 3 of the Time
@@ -1459,7 +1458,7 @@ if approach == "Rolling" or approach == "Increasing":
         #  #  if tail_selected == "Both":
         #  #      z.plot(results["pos_abs_len"],
         #  #             color="green", label="Right tail")
-        #
+
         #  # Plotting the histograms for the rolling alpha
         #  pfha.hist_alpha(tickers[i-1], results, settings, show_plot=True)
 
