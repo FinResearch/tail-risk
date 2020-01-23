@@ -66,6 +66,7 @@ def plot_hist(label, direction, data, opts, show_plot=False):
     z.ylim(ymin=0, ymax=np.max(out1))
     z.legend()
     z.grid()
+
     # A table with the four statistical moments is built
     col_labels = [
         r"$E[\hat{\alpha}]$",

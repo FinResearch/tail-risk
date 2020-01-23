@@ -11,14 +11,17 @@ def plot_boxplot(labels, direction, data, opts, show_plot=False):
 
     z.figure(f"{sign_full.title()} Power Law Boxplot")
     z.boxplot(data[f"{sign}_α_mat"])
+
     z.xticks(range(1, len(labels) + 1, 1), labels)
     z.xlim(xmin=0.5, xmax=len(labels) + 0.5)
+
     z.ylabel(r"$\alpha$")
     z.title(
         "Boxplot representation of the "
         + r"$\alpha$"
         + f"-{direction} tail exponent "
         + "\n"
+
         + "Time Period: "
         + opts.dates[0]
         + " - "

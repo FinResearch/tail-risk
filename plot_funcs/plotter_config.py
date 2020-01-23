@@ -3,7 +3,7 @@ import json
 
 #  Figure Information Templates (FIT) Defined Below
 
-# # Tabled Plots FIT
+# # Tabled Figures FIT
 tabled_figure_fit = {
     "αf":  # α-fitting
     {
@@ -28,7 +28,7 @@ tabled_figure_fit = {
     },
     "hg":  # histogram of tail-α
     {
-        "fig_name": "Histogram of ${tail_full_sign} tail alphas for ${ticker}",
+        "fig_name": "Histogram of ${tail_sign_full} tail alphas for ${ticker}",
         "vec_types": ("α_vec",),
         "extra_lines":
         {
@@ -47,6 +47,7 @@ tabled_figure_fit = {
         "ax_ylabel": "Absolute frequency",
         "ax_table":
         {
+            # NOTE: probably should just generate the cell text from the class
             "cellText": "([np.round(fn(${data}[f'${tail_sign}_α_vec']), 4) for fn in (np.mean, np.std, np.min, np.max)], )",
             "cellLoc": "center",
             "colLabels": (r"$E[\hat{\alpha}]$",
@@ -110,9 +111,24 @@ time_rolling_fit = {
 }
 
 
+# # Matrix FIT
+matrix_fit = {
+    "bx":  # boxplot of α-tails
+    {
+        "fig_name": "${tail_sign_full} Power Law Boxplot",
+        #  "vec_types": ("α_vec",),  # NOTE: this is a matrix
+        "ax_title": ("Boxplot representation of the "
+                     r"$\alpha$-${tail_dir} tail exponent\n"),
+        "ax_ylabel": r"$\alpha$",
+    },
+}
+# TODO: consider just doing all this directly in a subclass?
+
+
 fits = {
     "tabled_figure": tabled_figure_fit,
     "time_rolling": time_rolling_fit,
+    "boxplot": matrix_fit,
 }
 
 
