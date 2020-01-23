@@ -1,49 +1,27 @@
-#  import itertools.product as prod
 from itertools import product
+from string import Template
+
+import json
 
 import numpy as np
 import matplotlib.pyplot as plt
 
 
-# object containing static info; i.e. same for plots of the same type
-# TODO: move into separate JSON file in dedicated config directory?
-plot_types_static_info = {  # NOTE: will be abbreviated as ptsi
-    "ci":
-    {
-        "fig_name": "CI",
-        "vec_types": ("α_vec", "up_bound", "low_bound"),
-        "ax_ylabel": r"$\alpha$",
-        "ax_legend":
-        {
-            "bbox_to_anchor": (0.0, -0.175, 1.0, 0.02),
-            "ncol": 3,
-            "mode": "expand",
-            "borderaxespad": 0
-        },
-    },
-    "as":
-    {
-        "fig_name": "size",
-        "vec_types": ("abs_len",),
-        "ax_ylabel": "Tail length",
-    },
-    "rs":
-    {
-        "fig_name": "relative size",
-        "vec_types": ("rel_len",),
-        "ax_ylabel": "Relative tail length",
-    },
-    "ks":
-    {
-        "fig_name": "KS test",
-        "vec_types": ("α_ks",),
-        "ax_ylabel": "p-value",
-    },
-}
+# TODO: consider making this into own class, and pass return val as object
+def get_fits_dict(fit_names):
+    fits_dict = {}
+    for fn in fit_names:
+        with open(f"plot_funcs/fit_{fn}.json") as fp:
+            fits_dict[f"{fn}"] = json.load(fp)
+    return fits_dict
 
 
-# TODO: consider making values returned from this function
-#       part of plot_types_static_info (ptsi) data
+fit_names = ("tabled_plot", "time_rolling",)
+fits_dict = get_fits_dict(fit_names)
+
+
+# TODO: consider making values returned from this function part
+# of plot_types_static_info (ptsi) data --> now: self.curr_ptinfo
 def _set_line_style(vec_name):
     """Helper for setting the line style of the line plot
     :param: vec_name: string name of the vector to be plotted
@@ -77,19 +55,18 @@ class TimeRollingPlotter:
     a single underscore.
     """
 
-    def __init__(self, ticker, settings, data):  # ptsi, data):
+    def __init__(self, ticker, settings, data):  # fits_dict, data):
         """
         :param: ticker: string of ticker name
         :param: settings: SimpleNamespace object containing user-input options
+        :param: fits_dict: figure information templates dict
         :param: data: dictionary of lists/arrays containing data to plot
         """
         self.ticker = ticker
         self.settings = settings
-        #  self.ptsi = ptsi  # TODO: pass this as a config object
-        self.ptsi = plot_types_static_info
+        # FIXME: currently fits_dict below is a module global
+        self.fits_dict = fits_dict["time_rolling"]
         self.data = data
-        # TODO: assoc vec_length attr below to plot_types (ptsi?)
-        #  self.dlens = {k: len(v) for k, v in data.items()}
         self.tails_used = self.__get_tails_used()
         self.all_plot_combos = self.__get_all_plot_combos()
         self.return_type_label = self.__get_return_type_label()
@@ -113,7 +90,7 @@ class TimeRollingPlotter:
         """
         # TODO: i.e. when plt_typ is one of ["as", "rs", "ks"],
         # then need to also do a combined fig of pos+neg tails
-        return tuple(product(self.tails_used, self.ptsi.keys()))
+        return tuple(product(self.tails_used, self.fits_dict.keys()))
 
     def __get_return_type_label(self):
 
@@ -140,12 +117,26 @@ class TimeRollingPlotter:
         self.curr_tdir = tdir
         self.curr_ptyp = ptyp
         self.curr_tsgn = "pos" if self.curr_tdir == "right" else "neg"
-        self.curr_ptsi = self.ptsi[self.curr_ptyp]
-        #  self.curr_ticker = self.settings.tickers[0]
+        # TODO: below will be diff from self.ticker once unnested in tickers
         self.curr_ticker = self.ticker  # TODO: will be diff when plot unnested
-        # TODO: above will be diff from self.ticker once unnested in tickers
+        #  self.curr_ptinfo = self.ptsi[self.curr_ptyp]
+        self.curr_ptinfo = self.__set_ptyp_info()
 
     # State-aware and -dependent methods below
+
+    def __set_ptyp_info(self):
+
+        template_map = {
+            "ticker": self.curr_ticker,
+            "tdir": self.curr_tdir,
+            "n_vec": self.settings.n_vec,
+        }
+
+        ptyp_tmpl_dict = self.fits_dict[self.curr_ptyp]
+        ptyp_template = Template(json.dumps(ptyp_tmpl_dict))
+        made_ptyp_info = ptyp_template.safe_substitute(template_map)
+
+        return json.loads(made_ptyp_info)
 
     def __get_vecs2plot(self):
         """
@@ -158,7 +149,7 @@ class TimeRollingPlotter:
         # TODO: consider making curr_tsgn into a tuple instead of just a str
         # so that ("right",) or ("right", "left") can be producted w/ vec_types
         return [f"{self.curr_tsgn}_{ptyp}" for ptyp
-                in self.curr_ptsi["vec_types"]]
+                in self.curr_ptinfo["vec_types"]]
 
     def __gen_ax_title(self):
 
@@ -191,7 +182,7 @@ class TimeRollingPlotter:
         """
 
         # TODO: use fig, ax = plt.subplots() idiom to Initialize?
-        fig_name = (f"Time rolling {self.curr_ptsi['fig_name']} "
+        fig_name = (f"Time rolling {self.curr_ptinfo['fig_name']} "
                     f"for {self.curr_tdir} tail for {self.curr_ticker}")
         fig = plt.figure(fig_name)
         axes_pos = (0.1, 0.20, 0.83, 0.70)
@@ -206,14 +197,13 @@ class TimeRollingPlotter:
 
         vecs2plot = self.__get_vecs2plot()
 
-        # plot two constant alpha lines in red
-        if self.curr_ptyp == "ci":
-            # TODO: make n_vec as class attr and use
-            n_vec = len(self.data[vecs2plot[0]])
-            const2 = np.repeat(2, n_vec + 2)
-            const3 = np.repeat(3, n_vec + 2)
-            ax.plot(const2, color="red")  # TODO: make available as class attr
-            ax.plot(const3, color="red")  # TODO: make available as class attr
+        if extra_lines := self.curr_ptinfo.get("extra_lines", {}):
+            vectors = extra_lines["vectors"]
+            if isinstance(vectors, str):
+                vectors = eval(vectors)
+            for vec in vectors:
+                # TODO: make sure vec is a 2-tuple to allow x vs. y plotting
+                ax.plot(vec, **extra_lines["line_style"])
 
         for vn in vecs2plot:
             # TODO: try get the line_style from self.curr_ptinfo first
@@ -237,9 +227,9 @@ class TimeRollingPlotter:
                             sett.spec_dates[0::sett.spec_labelstep]],
                            rotation="vertical")
 
-        ax.set_ylabel(self.curr_ptsi["ax_ylabel"])
+        ax.set_ylabel(self.curr_ptinfo["ax_ylabel"])
 
-        ax.legend(**self.curr_ptsi.get("ax_legend", {}))
+        ax.legend(**self.curr_ptinfo.get("ax_legend", {}))
         ax.grid()
 
     # NOTE: does this function need to be state aware?
