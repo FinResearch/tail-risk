@@ -125,13 +125,13 @@ matrix_fit = {
 # TODO: consider just doing all this directly in a subclass?
 
 
-fits = {
+fits_dict = {
     "tabled_figure": tabled_figure_fit,
     "time_rolling": time_rolling_fit,
     "boxplot": matrix_fit,
 }
 
 
-for fit_name, tmpl_dict in fits.items():
+for fit_name, tmpl_dict in fits_dict.items():
     with open(f"fit_{fit_name}.json", "w") as fp:
         json.dump(tmpl_dict, fp)
