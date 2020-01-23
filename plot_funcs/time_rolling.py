@@ -78,6 +78,11 @@ class TimeRollingPlotter:
     """
 
     def __init__(self, ticker, settings, data):  # ptsi, data):
+        """
+        :param: ticker: string of ticker name
+        :param: settings: SimpleNamespace object containing user-input options
+        :param: data: dictionary of lists/arrays containing data to plot
+        """
         self.ticker = ticker
         self.settings = settings
         #  self.ptsi = ptsi  # TODO: pass this as a config object
@@ -89,7 +94,7 @@ class TimeRollingPlotter:
         self.all_plot_combos = self.__get_all_plot_combos()
         self.return_type_label = self.__get_return_type_label()
 
-    # Methods for determining state-independent info (called in __init__)
+    # Methods for determining state-independent info; called in __init__()
 
     def __get_tails_used(self):
         """Return tuple containing the tails selected/used
@@ -112,15 +117,15 @@ class TimeRollingPlotter:
 
     def __get_return_type_label(self):
 
-        pi = "P(t)"
-        pf = f"P(t+{self.settings.tau})"
+        pt_i = "P(t)"
+        pt_f = f"P(t+{self.settings.tau})"
 
         if self.settings.return_type == "basic":
-            label = f"{pf} - {pi}"
+            label = f"{pt_f} - {pt_i}"
         elif self.settings.return_type == "relative":
-            label = f"{pf}/{pi} - 1.0"
+            label = f"{pt_f}/{pt_i} - 1.0"
         elif self.settings.return_type == "log":
-            label = rf"$\log$({pf}/{pi})"
+            label = rf"$\log$({pt_f}/{pt_i})"
 
         if self.settings.absolutize:
             label = f"|{label}|"
@@ -225,8 +230,7 @@ class TimeRollingPlotter:
                       f"Input: {self.return_type_label}")
         ax.set_title(axtit_uniq + axtit_comm)
 
-        # TODO: use self.dlens to calculate xmax value
-        ax.set_xlim(xmin=0.0, xmax=len(self.data[f"{self.curr_tsgn}_α_vec"]) - 1)
+        ax.set_xlim(xmin=0.0, xmax=sett.n_vec-1)
         ax.set_xticks(range(0, len(sett.spec_dates), sett.spec_labelstep))
         ax.set_xticklabels([d[3:] for d in
                             sett.spec_dates[0::sett.spec_labelstep]],
