@@ -7,8 +7,10 @@ import json
 tabled_plot_fit = {
     "αf":  # α-fitting
     {
-        "fig_name": "Alpha Fitting for ${curr_ticker}",
+        "fig_name": "Alpha Fitting for ${ticker}",
         "vec_types": ("α_vec",),
+        "ax_title": ("Time evolution of the parameter "
+                     r"$\alpha$ for ${ticker}\n"),
         "ax_ylabel": r"$\alpha$",
         "ax_table":
         {
@@ -19,20 +21,22 @@ tabled_plot_fit = {
     },
     "hg":  # histogram of tail-α
     {
-        "fig_name": "Histogram of ${curr_tdir} tail alphas for ${curr_ticker}",
+        "fig_name": "Histogram of ${tail_full_sign} tail alphas for ${ticker}",
         "vec_types": ("α_vec",),
         "extra_lines":
         {
             # NOTE: vectors expr encoded as str; use eval() to get value
-            "vectors": (("np.repeat(np.mean(data[f'{sign}_α_vec']), np.max(out1) + 1)",
-                         "range(0, np.max(out1) + 1, 1)"),),
+            #  "vectors": (("np.repeat(np.mean(data[f'{sign}_α_vec']), np.max(out1) + 1)",
+            #               "range(0, np.max(out1) + 1, 1)"),),
             "line_style":
             {
                 "label": r"$E[\hat{\alpha}]$",
                 "color": "blue",
                 "linewidth": 1.5,
-             },
+            },
         },
+        "ax_title": ("Empirical distribution (${tail_dir} tail) of "
+                     r"the rolling $\hat{\alpha}$ for ${ticker}\n"),
         "ax_ylabel": "Absolute frequency",
         "ax_table":
         {
