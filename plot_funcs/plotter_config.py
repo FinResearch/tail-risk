@@ -3,8 +3,8 @@ import json
 
 #  Figure Information Templates (FIT) Defined Below
 
-# Tabled Plots FIT
-tabled_plot_fit = {
+# # Tabled Plots FIT
+tabled_figure_fit = {
     "αf":  # α-fitting
     {
         "fig_name": "Alpha Fitting for ${ticker}",
@@ -14,9 +14,16 @@ tabled_plot_fit = {
         "ax_ylabel": r"$\alpha$",
         "ax_table":
         {
-            "bbox": (0.0, -0.26, 1.0, 0.10),
+            "cellText": [(), (), ],
             "cellLoc": "center",
+            "colLabels": ("Tail",
+                          r"$E[\alpha]$",
+                          "Median",
+                          r"$\sigma(\alpha)$",
+                          "min",
+                          "max",),
             "loc": "bottom",
+            "bbox": (0.0, -0.26, 1.0, 0.10),
         },
     },
     "hg":  # histogram of tail-α
@@ -40,15 +47,21 @@ tabled_plot_fit = {
         "ax_ylabel": "Absolute frequency",
         "ax_table":
         {
-            "bbox": (0.0, -0.26, 1.0, 0.10),
+            "cellText": "([np.round(fn(${data}[f'${tail_sign}_α_vec']), 4) for fn in (np.mean, np.std, np.min, np.max)], )",
             "cellLoc": "center",
+            "colLabels": (r"$E[\hat{\alpha}]$",
+                          r"$\sigma (\hat{\alpha})$",
+                          "min",
+                          "max",),
             "loc": "bottom",
+            "bbox": (0.0, -0.26, 1.0, 0.10),
         },
     },
 }
+# TODO: implement template inheritance for common values
 
 
-#  Time Rolling FIT
+# #  Time Rolling FIT
 time_rolling_fit = {
     "ci":  # time rolling confidence interval
     {
@@ -98,7 +111,7 @@ time_rolling_fit = {
 
 
 fits = {
-    "tabled_plot": tabled_plot_fit,
+    "tabled_figure": tabled_figure_fit,
     "time_rolling": time_rolling_fit,
 }
 

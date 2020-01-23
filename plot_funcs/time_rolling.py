@@ -17,7 +17,7 @@ def get_fits_dict(fit_names):
     return fits_dict
 
 
-fit_names = ("tabled_plot", "time_rolling",)
+fit_names = ("tabled_figure", "time_rolling",)
 # TODO: consider getting this dict data directly from the containing .py file
 fits_dict = get_fits_dict(fit_names)
 # NOTE: need to reload .json templates everytime they're updated
@@ -255,6 +255,24 @@ class TailRiskPlotter(ABC):
             self._plot_lines(ax)
             self._config_axes(ax)
             self._present_figure()
+
+
+class TabledFigurePlotter(TailRiskPlotter):
+
+    def __init__(self, ticker, settings, data):  # fits_dict, data):
+
+        super(TimeRollingPlotter, self).__init__(ticker, settings, data)
+
+        # FIXME: currently fits_dict below is a module global
+        self.fits_dict = fits_dict["tabled_figure"]
+        self.all_plot_combos = self._get_all_plot_combos()
+
+    # NOTE: below is WIP
+    def add_table(self):
+        pass
+
+    def plot(self):
+        pass
 
 
 class TimeRollingPlotter(TailRiskPlotter):
