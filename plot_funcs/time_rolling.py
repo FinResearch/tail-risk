@@ -1,3 +1,4 @@
+from abc import ABC
 from itertools import product
 from string import Template
 
@@ -51,7 +52,7 @@ def _set_line_style(vec_name):
 
 # TODO: consider moving plotter state into own class
 # and use this class only for plotting
-class TimeRollingPlotter:
+class TailRiskPlotter(ABC):
     """
     Note on method name conventions: other than the reserved dunder methods,
     self-defined methods prepended by a double underscore are meant to be
@@ -75,6 +76,9 @@ class TimeRollingPlotter:
                               f"- {self.settings.date_f}. "
                               f"Input: {self.return_type_label}")
         #  # FIXME: currently fits_dict below is a module global
+        #  self.fits_dict = fits_dict["time_rolling"]
+        #  self.all_plot_combos = self.__get_all_plot_combos()
+        #  NOTE: the 2 attr above are initialized in the child class
 
     # Methods for determining state-independent info; called in __init__()
 
@@ -90,12 +94,15 @@ class TimeRollingPlotter:
 
         return tuple(tails_used)
 
-    def __get_all_plot_combos(self):
+    # TODO: consider moving this method into child class
+    def _get_all_plot_combos(self):
         """Return tuple of 2-tups representing all concrete figures requested
         """
         # TODO: i.e. when plt_typ is one of ["as", "rs", "ks"],
         # then need to also do a combined fig of pos+neg tails
         return tuple(product(self.tails_used, self.fits_dict.keys()))
+        # NOTE: consider only generating plot combos for curr_ptinfo?
+        #       b/c self.fits_dict is no longer init'd in this parent class
 
     def __get_return_type_label(self):
 
@@ -248,3 +255,20 @@ class TimeRollingPlotter:
             self._plot_lines(ax)
             self._config_axes(ax)
             self._present_figure()
+
+
+class TimeRollingPlotter(TailRiskPlotter):
+
+    def __init__(self, ticker, settings, data):  # fits_dict, data):
+
+        super(TimeRollingPlotter, self).__init__(ticker, settings, data)
+
+        # FIXME: currently fits_dict below is a module global
+        self.fits_dict = fits_dict["time_rolling"]
+        self.all_plot_combos = self._get_all_plot_combos()
+
+    # NOTE: below is WIP
+    def _get_plot_type_static_info(self):
+        fig_name = (f"Time rolling {self.curr_ptinfo['display_name']} "
+                    f"for {self.curr_tdir} tail for {self.curr_ticker}")
+        self.fig_name = fig_name
