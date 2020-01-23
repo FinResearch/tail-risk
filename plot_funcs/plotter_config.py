@@ -52,7 +52,7 @@ tabled_plot_fit = {
 time_rolling_fit = {
     "ci":  # time rolling confidence interval
     {
-        "fig_name": "CI",
+        "display_name": "CI",
         "vec_types": ("α_vec", "up_bound", "low_bound"),
         "extra_lines":
         {
@@ -74,21 +74,21 @@ time_rolling_fit = {
     },
     "as":  # time rolling absolute size
     {
-        "fig_name": "size",
+        "display_name": "size",
         "vec_types": ("abs_len",),
         "ax_title": "Rolling tail length for: ${ticker}\n",
         "ax_ylabel": "Tail length",
     },
     "rs":  # time rolling relative size
     {
-        "fig_name": "relative size",
+        "display_name": "relative size",
         "vec_types": ("rel_len",),
         "ax_title": "Rolling relative tail length for: ${ticker}\n",
         "ax_ylabel": "Relative tail length",
     },
     "ks":  # time rolling KS-test
     {
-        "fig_name": "KS test",
+        "display_name": "KS test",
         "vec_types": ("α_ks",),
         "ax_title": ("KS-statistics: rolling p-value obtained from "
                      "Clauset algorithm for ${ticker}\n"),

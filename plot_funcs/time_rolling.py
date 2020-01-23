@@ -163,8 +163,8 @@ class TimeRollingPlotter:
         TODO: it should not care about the data being plotted nor the opts
         """
 
-        # TODO: use fig, ax = plt.subplots() idiom to Initialize?
-        fig_name = (f"Time rolling {self.curr_ptinfo['fig_name']} "
+        # TODO: fig_name precedence desc order: curr_ptinfo, object attr
+        fig_name = (f"Time rolling {self.curr_ptinfo['display_name']} "
                     f"for {self.curr_tdir} tail for {self.curr_ticker}")
         fig = plt.figure(fig_name)
         axes_pos = (0.1, 0.20, 0.83, 0.70)
