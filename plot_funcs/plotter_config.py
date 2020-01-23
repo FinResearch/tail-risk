@@ -56,6 +56,9 @@ time_rolling_fit = {
             "vectors": "map(lambda x: np.repeat(x, ${n_vec} + 2), (2, 3))",
             "line_style": {"color": "red"},
         },
+        "ax_title": (r"Rolling confidence intervals for the $\alpha$-"
+                     "${tail_dir} tail exponents (c = 1 - ${significance})\n"
+                     "Ticker: ${ticker}. "),
         "ax_ylabel": r"$\alpha$",
         "ax_legend":
         {
@@ -69,18 +72,22 @@ time_rolling_fit = {
     {
         "fig_name": "size",
         "vec_types": ("abs_len",),
+        "ax_title": "Rolling tail length for: ${ticker}\n",
         "ax_ylabel": "Tail length",
     },
     "rs":  # time rolling relative size
     {
         "fig_name": "relative size",
         "vec_types": ("rel_len",),
+        "ax_title": "Rolling relative tail length for: ${ticker}\n",
         "ax_ylabel": "Relative tail length",
     },
     "ks":  # time rolling KS-test
     {
         "fig_name": "KS test",
         "vec_types": ("α_ks",),
+        "ax_title": ("KS-statistics: rolling p-value obtained from "
+                     "Clauset algorithm for ${ticker}\n"),
         "ax_ylabel": "p-value",
     },
 }

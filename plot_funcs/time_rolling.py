@@ -70,6 +70,9 @@ class TimeRollingPlotter:
         self.tails_used = self.__get_tails_used()
         self.all_plot_combos = self.__get_all_plot_combos()
         self.return_type_label = self.__get_return_type_label()
+        self.ax_title_base = (f"Time Period: {self.settings.date_i} "
+                              f"- {self.settings.date_f}. "
+                              f"Input: {self.return_type_label}")
 
     # Methods for determining state-independent info; called in __init__()
 
@@ -151,28 +154,7 @@ class TimeRollingPlotter:
         return [f"{self.curr_tsgn}_{ptyp}" for ptyp
                 in self.curr_ptinfo["vec_types"]]
 
-    def __gen_ax_title(self):
-
-        ticker = self.curr_ticker
-        ptyp = self.curr_ptyp
-
-        # TODO: consider moving these partial titles into some config obj/file
-        if ptyp == "ci":
-            #  alpha_tex = r"$\alpha$"
-            # TODO: consider using 'α' unicode char instead of TeX markup
-            ax_title = ("Rolling confidence intervals for the "
-                        rf"$\alpha$-{self.curr_tdir} tail exponents "
-                        f"(c = {1 - self.settings.significance})"
-                        f"\nTicker: {ticker}. ")
-        elif ptyp == "as":
-            ax_title = f"Rolling tail length for: {ticker}\n"
-        elif ptyp == "rs":
-            ax_title = f"Rolling relative tail length for: {ticker}\n"
-        elif ptyp == "ks":
-            ax_title = ("KS-statistics: rolling p-value obtained from "
-                        f"Clauset algorithm for {ticker}\n")
-
-        return ax_title
+    # # methods for the actual plotting of the figure(s)
 
     def _init_figure(self):
         """Initialize a unique Matplotlib Figure instance,
@@ -216,10 +198,7 @@ class TimeRollingPlotter:
 
         sett = self.settings
 
-        axtit_uniq = self.__gen_ax_title()
-        axtit_comm = (f"Time Period: {sett.date_i} - {sett.date_f}. "
-                      f"Input: {self.return_type_label}")
-        ax.set_title(axtit_uniq + axtit_comm)
+        ax.set_title(self.curr_ptinfo["ax_title"] + self.ax_title_base)
 
         ax.set_xlim(xmin=0.0, xmax=sett.n_vec-1)
         ax.set_xticks(range(0, len(sett.spec_dates), sett.spec_labelstep))
