@@ -30,6 +30,7 @@ def alpha_fitting(label, data, opts, show_plot=False):
         + " for "
         + label
         + "\n"
+
         + "Time period: "
         + opts.dates[0]
         + " - "
@@ -37,9 +38,9 @@ def alpha_fitting(label, data, opts, show_plot=False):
     )
 
     # TODO: factor/optimize this out/away
-    if opts.analysis_freq > 1:
+    if opts.anal_freq > 1:
         spec_dates = []
-        for ddd in range(0, len(opts.dates), opts.analysis_freq):
+        for ddd in range(0, len(opts.dates), opts.anal_freq):
             spec_dates.append(opts.dates[ddd])
         spec_labelstep = 22
     else:
