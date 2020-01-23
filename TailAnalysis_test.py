@@ -1041,24 +1041,16 @@ if approach == "Rolling" or approach == "Increasing":
         assert(len(range(ind_i, ind_f + 1, anal_freq)) == len(spec_dates))
         for l, dt in enumerate(spec_dates, start=ind_i):
 
+            # ASK: is the none "Rolling" approach, "Increasing"?
             lbk = (l if approach == "Rolling" else ind_i) - lookback + 1
-            #  print(lbk, l+1)
-            #  print(ticker_df[tck].iloc[lbk:l+1])
-            series = database[tck].iloc[lbk:l+1]
-            #  print(series)
+
+            # NOTE: must convert Series to PandasArray to remove Index,
+            # otherwise all operations will be aligned on their indexes
+            series = database[tck].iloc[lbk: l + 1].array
+
             begin_date = db_dates[lbk]
             end_date = dt
-            #  print(end_date, db_dates[l])
-            assert(end_date == db_dates[l])
-
-            #  if approach == "Rolling":
-            #      series = database[i][(l + 1 - lookback): (l + 1)]
-            #      begin_date = database[0][(l + 1 - lookback)]
-            #      end_date = database[0][l]
-            #  else:
-            #      series = database[i][(initial_index + 1 - lookback):(l + 1)]
-            #      begin_date = database[0][(initial_index + 1 - lookback)]
-            #      end_date = database[0][l]
+            #  assert(end_date == db_dates[l])
 
             #  if plot_storing == "Yes":
             #      subdirectory = (
@@ -1084,15 +1076,14 @@ if approach == "Rolling" or approach == "Increasing":
             #              raise
             #      os.chdir(subdirectory)
 
-            print("I am analyzing the time series for " +
-                  tck + " between " + begin_date +
-                  " and " + end_date)
+            print(f"I am analyzing the time series for {tck} "
+                  "between {begin_date} and {end_date}")
 
             # TODO: add fullname for return_types, ex. {"log": "Log Returns"}
-            print("You opted for the analysis of the " + return_type)
+            print("You opted for the analysis of the {return_type}")
 
-            pt_f = series.iloc[tau:]
-            pt_i = series.iloc[0: len(series) - tau]
+            pt_f = series[tau:]
+            pt_i = series[0: len(series) - tau]
 
             if settings.return_type == "basic":
                 X = pt_f - pt_i
@@ -1100,9 +1091,6 @@ if approach == "Rolling" or approach == "Increasing":
                 X = pt_f / pt_i - 1.0
             elif settings.return_type == "log":
                 X = np.log(pt_f/pt_i)
-                print(f"X is\n{X}")
-                print(f"type of X = {type(X)}")
-                # FIXME: currentl this causes ZeroDivisionError: float division by zero in plpva.py
 
             if settings.standardize is True:
                 print("I am standardizing your time series")
@@ -1113,36 +1101,6 @@ if approach == "Rolling" or approach == "Increasing":
                 X = X.abs()
 
             #  print(f"X is {X}")
-
-            #  if return_type == "Returns":
-            #      X = np.array(series[tau:]) - np.array(
-            #          series[0: (len(series) - tau)])
-            #      lab = "P(t+" + str(tau) + ") - P(t)"
-            #  elif return_type == "Relative returns":
-            #      X = (
-            #          np.array(series[tau:]) /
-            #          np.array(series[0: (len(series) - tau)])
-            #          - 1.0
-            #      )
-            #      lab = "P(t+" + str(tau) + ")/P(t) - 1.0"
-            #  else:
-            #      X = np.log(
-            #          np.array(series[tau:]) /
-            #          np.array(series[0: (len(series) - tau)])
-            #      )
-            #      lab = r"$\log$" + "(P(t+" + str(tau) + ")/P(t))"
-
-            #  if standardize == "Yes":
-            #      print("I am standardizing your time series")
-            #      S = X
-            #      m = np.mean(S)
-            #      v = np.std(S)
-            #      X = (S - m) / v
-            #
-            #  if abs_value == "Yes":
-            #      print("I am taking the absolute value of your time series")
-            #      X = np.abs(X)
-            #      lab = "|" + lab + "|"
 
             print("before fitting")
             tail_plus, tail_neg, fit_1, fit_2 = fit_tail(tail_selected, X)
