@@ -17,11 +17,15 @@ def get_fits_dict(fit_names):
 
 
 fit_names = ("tabled_plot", "time_rolling",)
+# TODO: consider getting this dict data directly from the containing .py file
 fits_dict = get_fits_dict(fit_names)
+# NOTE: need to reload .json templates everytime they're updated
+# TODO: consider making a function that checks for this automatically
 
 
 # TODO: consider making values returned from this function part
 # of plot_types_static_info (ptsi) data --> now: self.curr_ptinfo
+# TODO: alternatively, make this into staticmethod of TimeRollingPlotter
 def _set_line_style(vec_name):
     """Helper for setting the line style of the line plot
     :param: vec_name: string name of the vector to be plotted
@@ -64,15 +68,13 @@ class TimeRollingPlotter:
         """
         self.ticker = ticker
         self.settings = settings
-        # FIXME: currently fits_dict below is a module global
-        self.fits_dict = fits_dict["time_rolling"]
         self.data = data
         self.tails_used = self.__get_tails_used()
-        self.all_plot_combos = self.__get_all_plot_combos()
         self.return_type_label = self.__get_return_type_label()
         self.ax_title_base = (f"Time Period: {self.settings.date_i} "
                               f"- {self.settings.date_f}. "
                               f"Input: {self.return_type_label}")
+        #  # FIXME: currently fits_dict below is a module global
 
     # Methods for determining state-independent info; called in __init__()
 
@@ -122,17 +124,22 @@ class TimeRollingPlotter:
         self.curr_tsgn = "pos" if self.curr_tdir == "right" else "neg"
         # TODO: below will be diff from self.ticker once unnested in tickers
         self.curr_ticker = self.ticker  # TODO: will be diff when plot unnested
-        #  self.curr_ptinfo = self.ptsi[self.curr_ptyp]
+        # TODO: consider adding if-check, to only update self.curr_ptinfo
+        #       if value(s) inside template_map has changed
         self.curr_ptinfo = self.__set_ptyp_info()
 
     # State-aware and -dependent methods below
 
+    # # state management and "bookkeeping" methods
+
     def __set_ptyp_info(self):
 
+        sett = self.settings
         template_map = {
+            "n_vec": sett.n_vec,
+            "significance": sett.significance,
             "ticker": self.curr_ticker,
-            "tdir": self.curr_tdir,
-            "n_vec": self.settings.n_vec,
+            "tail_dir": self.curr_tdir,
         }
 
         ptyp_tmpl_dict = self.fits_dict[self.curr_ptyp]
@@ -166,6 +173,8 @@ class TimeRollingPlotter:
         # TODO: fig_name precedence desc order: curr_ptinfo, object attr
         fig_name = (f"Time rolling {self.curr_ptinfo['display_name']} "
                     f"for {self.curr_tdir} tail for {self.curr_ticker}")
+
+        # TODO: use fig, ax = plt.subplots() idiom to Initialize?
         fig = plt.figure(fig_name)
         axes_pos = (0.1, 0.20, 0.83, 0.70)
         ax = fig.add_axes(axes_pos)
