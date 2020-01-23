@@ -197,12 +197,12 @@ class TimeRollingPlotter:
         axes_pos = (0.1, 0.20, 0.83, 0.70)
         ax = fig.add_axes(axes_pos)
 
+        # TODO: consider attaching to self as self.curr_axes ???
         return ax
 
     def _plot_lines(self, ax):  # , vec_names):
-        """Given the data to plot, add plot them onto the passed figure
+        """Given the data to plot, plot them onto the passed axes
         """
-        # TODO: it should not care about tail_dir, opts, and other boilerplate
 
         vecs2plot = self.__get_vecs2plot()
 
@@ -216,6 +216,7 @@ class TimeRollingPlotter:
             ax.plot(const3, color="red")  # TODO: make available as class attr
 
         for vn in vecs2plot:
+            # TODO: try get the line_style from self.curr_ptinfo first
             ax.plot(self.data[vn], **_set_line_style(vn))
 
     def _config_axes(self, ax):
