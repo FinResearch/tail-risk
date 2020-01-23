@@ -8,4 +8,6 @@
 
 ## Methodology
 
-## Usage
+## Script: Tail Analysis
+
+## Script: Cross Sectional Tail Analysis
