@@ -155,7 +155,7 @@ for fit_name, tmpl_dict in fits_dict.items():
 ptyp_config = {
     "αf":  # α-fitting
     {
-        #  NOTE: multiplicity describes if any given figure instance should
+        #  NOTE: a multiplicity describes if any given figure instance should
         #  contain lines for either L or R tail, or both tails on same the fig
         "multiplicities": ("double",),
     },
