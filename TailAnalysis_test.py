@@ -28,7 +28,7 @@ import plot_funcs.tail_risk_plotter as trp
 #####################################
 
 
-# TODO: change Extractor validator to confirm all requested tickers found in csv?
+# TODO: change Extractor to validator to confirm all requested tickers in csv?
 def validate_tickers(database, tickers):
     object = pd.read_csv(filename)
     output = [(object["Date"].values).tolist()]
@@ -211,8 +211,9 @@ significance = 0.05
 
 c_iter = 100
 
+# NOTE: if anal_freq == 1, then dates also == dates[::anal_freq]
 spec_dates = dates[::anal_freq] if anal_freq > 1 else dates
-N_spdt = len(spec_dates)
+#  n_spdt = len(spec_dates)
 spec_labelstep = 22 if anal_freq > 1 else labelstep
 
 show_plots = True
@@ -261,9 +262,10 @@ settings_dict = {"tickers": tickers,
                  "dates": dates,
                  "date_i": dates[0],
                  "date_f": dates[-1],
-                 "n_vec": n_vec,
+                 "n_vec": n_vec,  # FIXME: should be length of spec_dates?
                  "labelstep": labelstep,
                  "spec_dates": spec_dates,
+                 "n_spdt": len(spec_dates),
                  "spec_labelstep": spec_labelstep,
                  "show_plots": show_plots,
                  "save_plots": save_plots}

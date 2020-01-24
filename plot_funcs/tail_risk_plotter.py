@@ -52,13 +52,12 @@ class TailRiskPlotter(ABC):
         """
         :param: ticker: string of ticker name
         :param: settings: SimpleNamespace object containing user-input options
-        :param: fits_dict: figure information templates dict
         :param: data: dictionary of lists/arrays containing data to plot
         :param: plot_type: str; should be one of (αf, hg, ci, as, rs, ks, bx)
         """
         self.ticker = ticker
         self.settings = settings
-        # TODO: consider passing in only the data needed by the plot_type
+        # TODO: consider passing in only the data needed by the given plot_type
         self.data = data
         # TODO: make validator function for plot_type?
         self.ptyp = plot_type
@@ -270,7 +269,7 @@ class TailRiskPlotter(ABC):
         #  for tdir, ptyp in self.all_plot_combos:
         for mult, tdir in self.plot_combos:
             self._set_plotter_state(mult, tdir)
-            if not self._double_plotted:
+            if not self._double_plotted:  # FIXME: clumsy/ugly to check here
                 ax = self._init_figure()
                 self._plot_lines(ax)
                 self._config_axes(ax)
@@ -308,6 +307,7 @@ class TimeRollingPlotter(TailRiskPlotter):
         super(TimeRollingPlotter, self).__init__(ticker, settings,
                                                  data, plot_type)
         # FIXME: currently fits_dict below is an imported module global
+        # NOTE: self.fits_dict must be instantiated as ptyp_info depends on it
         self.fits_dict = fits_dict["time_rolling"]
         # TODO: consider making fits_dict flat in plot_types level
 
