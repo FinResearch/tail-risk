@@ -277,6 +277,12 @@ class TailRiskPlotter(ABC):
                 self._present_figure()
 
 
+def time_rolling_plotter(ticker, settings, data):
+    for ptyp in fits_dict["time_rolling"].keys():
+        plotter = TimeRollingPlotter(ticker, settings, data, ptyp)
+        plotter.plot()
+
+
 class TabledFigurePlotter(TailRiskPlotter):
 
     def __init__(self, ticker, settings, data):  # fits_dict, data):
@@ -305,8 +311,9 @@ class TimeRollingPlotter(TailRiskPlotter):
         self.fits_dict = fits_dict["time_rolling"]
         # TODO: consider making fits_dict flat in plot_types level
 
-    #  # NOTE: below is WIP
-    #  def _get_plot_type_static_info(self):
-    #      fig_name = (f"Time rolling {self.curr_ptinfo['display_name']} "
-    #                  f"for {self.curr_tdir} tail for {self.curr_ticker}")
-    #      self.fig_name = fig_name
+    # NOTE: below is WIP
+    def plot_ensemble(self):
+        #  for ptyp in fits_dict["time_rolling"].keys():
+        #      plotter = TimeRollingPlotter(ticker, settings, data, ptyp)
+        #      plotter.plot()
+        pass

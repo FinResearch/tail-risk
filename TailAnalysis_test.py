@@ -1462,8 +1462,9 @@ if approach == "Rolling" or approach == "Increasing":
         #  # Plotting the histograms for the rolling alpha
         #  pfha.hist_alpha(tickers[i-1], results, settings, show_plot=True)
 
-        plotter = trp.TimeRollingPlotter(tck, settings, results)
-        plotter.plot()
+        #  plotter = trp.TimeRollingPlotter(tck, settings, results)
+        #  plotter.plot()
+        trp.time_rolling_plotter(tck, settings, results)
 
         # Write Tail Statistics to CSV file
         filename = ("TailStatistics_504_d=1_pn_normalized_" +
