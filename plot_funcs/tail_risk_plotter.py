@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # NOTE: currently module globals
-from plot_funcs.fits_dict import fits_dict
+from plot_funcs.fits_dict import fits_dict, ptyp_config
 # TODO: consider making class for these, and pass them as dict objects
 
 
@@ -62,15 +62,20 @@ class TailRiskPlotter(ABC):
         self.data = data
         # TODO: make validator function for plot_type?
         self.ptyp = plot_type
+        # NOTE: set the entire ptyp_config below if more config flags added
+        #  self.ptyp_config = ptyp_config[self.ptyp]  # FIXME: module global
+        self.multiplicities = ptyp_config[self.ptyp]["multiplicities"]
         self.tails_used = self.__get_tails_used()
+        self.plot_combos = self.__get_plot_combos()
         self.return_type_label = self.__get_return_type_label()
         self.ax_title_base = (f"Time Period: {self.settings.date_i} "
                               f"- {self.settings.date_f}. "
                               f"Input: {self.return_type_label}")
         #  NOTE: the fits_dict attr below now initialized in subclasses
         #  self.fits_dict = fits_dict["time_rolling"]
-        #  self.all_plot_combos = self.__get_all_plot_combos()
-        #  NOTE: the 2 attr above are initialized in the child class
+        #  NOTE: flag below moduates the "double" multiplicity, so that the
+        #  double-tailed figure is only plotted once (b/c using cartesian prod)
+        self._double_plotted = False  # internal flag for bookkeeping
 
     # Methods for determining state-independent info; called in __init__()
 
@@ -87,14 +92,22 @@ class TailRiskPlotter(ABC):
         return tuple(tails_used)
 
     # TODO: consider moving this method into child class
-    def _get_all_plot_combos(self):
+    def __get_plot_combos(self):
         """Return tuple of 2-tups representing all concrete figures requested
         """
-        # TODO: i.e. when plt_typ is one of ["as", "rs", "ks"],
-        # then need to also do a combined fig of pos+neg tails
-        return tuple(product(self.tails_used, self.fits_dict.keys()))
-        # NOTE: consider only generating plot combos for curr_ptinfo?
-        #       b/c self.fits_dict is no longer init'd in this parent class
+
+        mults = (self.multiplicities
+                 if len(self.tails_used) == 2 else ("singles",))
+
+        # TODO: nice to do's/haves in/from this method
+        # 1. do a filtering out of the repeated L+R double-multiplicity
+        # 2. set fig_name to state "both tails" instead of "right" or "left"
+        # * this way plot() method need not explicitly check _double_plotted
+        # * in fact self._double_plotted flag would become obsolete
+
+        # TODO: no need to return as tuple, iff iterating through it
+        #  return tuple(product(mults, self.tails_used))
+        return product(mults, self.tails_used)
 
     def __get_return_type_label(self):
         """This info is independent of the state (ticker, tail, etc.).
@@ -117,12 +130,12 @@ class TailRiskPlotter(ABC):
         return label
 
     # NOTE: should be called before every _init_figure() call
-    def _set_plotter_state(self, tdir, ptyp):
+    def _set_plotter_state(self, mult, tdir):
         """Sets the current state, i.e. the tail direction, plot
         type (CI, tail size, KS, etc.), and eventually ticker ID
         """
+        self.curr_mult = mult  # multiplicity: must be 'single' OR 'double'
         self.curr_tdir = tdir
-        self.curr_ptyp = ptyp
         self.curr_tsgn = "negative" if self.curr_tdir == "left" else "positive"
         self.curr_tsgs = self.curr_tsgn[:3]  # tail sign short form, ex. "pos"
         # TODO: below will be diff from self.ticker once unnested in tickers
@@ -160,14 +173,15 @@ class TailRiskPlotter(ABC):
         """
         Set the correct data to be passed to _plot_lines()
         """
-        # TODO: use this function to do processing on vecs2plot?
-        # For example, when plt_typ is one of ["as", "rs", "ks"],
-        # then do a combined plot of pos + neg
 
-        # TODO: consider making curr_tsgs into a tuple instead of just a str
-        # so that ("right",) or ("right", "left") can be producted w/ vec_types
-        return [f"{self.curr_tsgs}_{ptyp}" for ptyp
-                in self.curr_ptinfo["vec_types"]]
+        if self.curr_mult == "double" and not self._double_plotted:
+            #  self.curr_tdir = "both"  # FIXME: where best to set this?
+            self._double_plotted = True
+            return [f"{tsgs}_{vtyp}" for tsgs, vtyp
+                    in product(("pos", "neg"), self.ptyp_info["vec_types"])]
+        else:
+            return [f"{self.curr_tsgs}_{ptyp}" for ptyp
+                    in self.ptyp_info["vec_types"]]
 
     # # methods for the actual plotting of the figure(s)
     # NOTE: how much state do these methods now depend on, now that
@@ -253,12 +267,14 @@ class TailRiskPlotter(ABC):
         Just initialize a plotter object, and call plotter.plot()
         """
 
-        for tdir, ptyp in self.all_plot_combos:
-            self._set_plotter_state(tdir, ptyp)
-            ax = self._init_figure()
-            self._plot_lines(ax)
-            self._config_axes(ax)
-            self._present_figure()
+        #  for tdir, ptyp in self.all_plot_combos:
+        for mult, tdir in self.plot_combos:
+            self._set_plotter_state(mult, tdir)
+            if not self._double_plotted:
+                ax = self._init_figure()
+                self._plot_lines(ax)
+                self._config_axes(ax)
+                self._present_figure()
 
 
 class TabledFigurePlotter(TailRiskPlotter):

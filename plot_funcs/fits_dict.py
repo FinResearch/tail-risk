@@ -148,3 +148,39 @@ for fit_name, tmpl_dict in fits_dict.items():
 #  # NOTE: need to reload .json templates everytime they're updated
 #  # TODO: consider making a function that checks for this automatically
 #  fits_dict = get_fits_dict(fit_names)
+
+
+# TODO: move the below into own file
+# # Plot Types Config
+ptyp_config = {
+    "αf":  # α-fitting
+    {
+        # NOTE: multiplicity describes if the plot type should contain
+        #       lines from either L/R tails, or both on the same figure
+        "multiplicities": ("double",),
+    },
+    "hg":  # histogram of tail-α
+    {
+        "multiplicities": ("single",),
+    },
+    "ci":  # time rolling confidence interval
+    {
+        "multiplicities": ("single",),
+    },
+    "as":  # time rolling absolute size
+    {
+        "multiplicities": ("single", "double",),
+    },
+    "rs":  # time rolling relative size
+    {
+        "multiplicities": ("single", "double",),
+    },
+    "ks":  # time rolling KS-test
+    {
+        "multiplicities": ("single", "double",),
+    },
+    "bx":  # boxplot of α-tails
+    {
+        "multiplicities": ("single",),
+    },
+}
