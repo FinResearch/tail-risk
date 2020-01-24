@@ -155,8 +155,8 @@ for fit_name, tmpl_dict in fits_dict.items():
 ptyp_config = {
     "αf":  # α-fitting
     {
-        # NOTE: multiplicity describes if the plot type should contain
-        #       lines from either L/R tails, or both on the same figure
+        #  NOTE: multiplicity describes if any given figure instance should
+        #  contain lines for either L or R tail, or both tails on same the fig
         "multiplicities": ("double",),
     },
     "hg":  # histogram of tail-α
