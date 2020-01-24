@@ -135,3 +135,16 @@ fits_dict = {
 for fit_name, tmpl_dict in fits_dict.items():
     with open(f"fit_{fit_name}.json", "w") as fp:
         json.dump(tmpl_dict, fp)
+
+
+# NOTE: below its the deserialization function from tail_risk_plotter
+#  def get_fits_dict(fit_names):
+#      fits_dict = {}
+#      for fn in fit_names:
+#          with open(f"plot_funcs/fit_{fn}.json") as fp:
+#              fits_dict[f"{fn}"] = json.load(fp)
+#      return fits_dict
+#  fit_names = ("tabled_figure", "time_rolling",)
+#  # NOTE: need to reload .json templates everytime they're updated
+#  # TODO: consider making a function that checks for this automatically
+#  fits_dict = get_fits_dict(fit_names)
