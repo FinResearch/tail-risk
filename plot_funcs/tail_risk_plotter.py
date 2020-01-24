@@ -172,7 +172,7 @@ class TailRiskPlotter(ABC):
     #  def __get_vecs2plot(self):
     def _get_vecs2plot(self):
         """
-        Set the correct data to be passed to _plot_lines()
+        Set the correct data to be passed to _plot_vectors()
         """
 
         # TODO: refactor below to be more concise and DRY
@@ -186,6 +186,7 @@ class TailRiskPlotter(ABC):
                     in self.curr_ptinfo["vec_types"]]
 
     # # methods for the actual plotting of the figure(s)
+    # NOTE: plot phases partitioned into 3 for easy overwriting by subclasses
 
     def _init_figure(self):
         """Initialize a unique Matplotlib Figure instance,
@@ -199,50 +200,48 @@ class TailRiskPlotter(ABC):
         axes_pos = (0.1, 0.20, 0.83, 0.70)
         ax = fig.add_axes(axes_pos)
 
-        # TODO: consider attaching to self as self.curr_axes ???
-        return ax
+        #  # TODO: consider attaching to self as self.curr_axes ???
+        #  return ax
+        self.ax = ax
 
-    # TODO: fold this method into _init_figure()?
-    # since all figure specific info are stored inside of fits_dict
-    def _plot_lines(self, ax):  # , vec_names):
+    def _plot_vectors(self):  # , ax):  # , vec_names):
         """Given the data to plot, plot them onto the passed axes
         """
 
-        vecs2plot = self.__get_vecs2plot()
+        vec_names = self._get_vecs2plot()
 
+        # TODO: factor this into own function to keep DRY for histogram
         if extra_lines := self.curr_ptinfo.get("extra_lines", {}):
             vectors = extra_lines["vectors"]
             if isinstance(vectors, str):
                 vectors = eval(vectors)
             for vec in vectors:
                 # TODO: ensure all vecs are 2-tuples to allow x vs. y plotting
-                ax.plot(vec, **extra_lines["line_style"])
+                self.ax.plot(vec, **extra_lines["line_style"])
 
-        for vn in vecs2plot:
+        for vn in vec_names:
             # TODO: get line_style from self.curr_ptinfo first?
-            ax.plot(self.data[vn], **_set_line_style(vn))
+            self.ax.plot(self.data[vn], **_set_line_style(vn))
 
-    # TODO: fold this method into _init_figure()?
-    # since all figure specific info are stored inside of fits_dict
-    def _config_axes(self, ax):
+    def _config_axes(self):  # , ax):
         """
         configure it appropriately after plotting (title, ticks, etc.)
         """
 
         sett = self.settings
 
-        ax.set_title(self.curr_ptinfo["ax_title"] + self.ax_title_base)
+        self.ax.set_title(self.curr_ptinfo["ax_title"] + self.ax_title_base)
 
-        ax.set_xlim(xmin=0.0, xmax=sett.n_vec-1)
-        ax.set_xticks(range(0, sett.n_spdt, sett.spec_labelstep))
-        ax.set_xticklabels([dt[3:] for dt in
+        self.ax.set_xlim(xmin=0.0, xmax=sett.n_vec-1)
+        self.ax.set_xticks(range(0, sett.n_spdt, sett.spec_labelstep))
+        self.ax.set_xticklabels([dt[3:] for dt in
                             sett.spec_dates[0::sett.spec_labelstep]],
                            rotation="vertical")
 
-        ax.set_ylabel(self.curr_ptinfo["ax_ylabel"])
+        self.ax.set_ylabel(self.curr_ptinfo["ax_ylabel"])
 
-        ax.legend(**self.curr_ptinfo.get("ax_legend", {}))
-        ax.grid()
+        self.ax.legend(**self.curr_ptinfo.get("ax_legend", {}))
+        self.ax.grid()
 
     # NOTE: does this function need to be state aware?
     def _present_figure(self):  # , fig):  # , show_plot=False):
@@ -272,15 +271,9 @@ class TailRiskPlotter(ABC):
             self._set_plotter_state(mult, tdir)
             if not self._double_plotted:  # FIXME: clumsy/ugly to check here
                 ax = self._init_figure()
-                self._plot_lines(ax)
-                self._config_axes(ax)
+                self._plot_vectors()  # ax)
+                self._config_axes()  # ax)
                 self._present_figure()
-
-
-def time_rolling_plotter(ticker, settings, data):
-    for ptyp in fits_dict["time_rolling"].keys():
-        plotter = TimeRollingPlotter(ticker, settings, data, ptyp)
-        plotter.plot()
 
 
 class TabledFigurePlotter(TailRiskPlotter):
@@ -351,7 +344,7 @@ class TimeRollingPlotter(TailRiskPlotter):
         super(TimeRollingPlotter, self).__init__(ticker, settings,
                                                  data, plot_type)
         # FIXME: currently fits_dict below is an imported module global
-        # NOTE: self.fits_dict must be instantiated as ptyp_info depends on it
+        # NOTE: self.fits_dict must 1st be instant'd as self.curr_ptinfo req it
         self.fits_dict = fits_dict["time_rolling"]
         # TODO: consider making fits_dict flat in plot_types level
 
@@ -367,3 +360,9 @@ def alpha_fitting_plotter(ticker, settings, data):
     ptyp = list(fits_dict["tabled_figure"].keys())[0]
     plotter = TabledFigurePlotter(ticker, settings, data, ptyp)
     plotter.plot()
+
+
+def time_rolling_plotter(ticker, settings, data):
+    for ptyp in fits_dict["time_rolling"].keys():
+        plotter = TimeRollingPlotter(ticker, settings, data, ptyp)
+        plotter.plot()

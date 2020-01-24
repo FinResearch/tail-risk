@@ -1467,6 +1467,7 @@ if approach == "Rolling" or approach == "Increasing":
 
         #  plotter = trp.TimeRollingPlotter(tck, settings, results)
         #  plotter.plot()
+
         trp.time_rolling_plotter(tck, settings, results)
 
         # Write Tail Statistics to CSV file
