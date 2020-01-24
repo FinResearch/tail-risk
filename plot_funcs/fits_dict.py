@@ -14,9 +14,10 @@ tabled_figure_fit = {
         "ax_ylabel": r"$\alpha$",
         "ax_table":
         {
-            "cellText": [(), (), ],
+            # NOTE: _cellText_gens is prepended w/ _ b/c it's not a table-kwarg
+            "_cellText_gens": "(np.mean, np.median, np.std, np.min, np.max,)",
             "cellLoc": "center",
-            "colLabels": ("Tail",
+            "colLabels": (  # "Tail",
                           r"$E[\alpha]$",
                           "Median",
                           r"$\sigma(\alpha)$",

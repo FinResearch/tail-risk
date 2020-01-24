@@ -1448,7 +1448,8 @@ if approach == "Rolling" or approach == "Increasing":
             boxplot_mat["neg_α_mat"].append(results["neg_α_vec"])
 
         #  # Plot the alpha exponent in time (right/left/both tail)
-        pfaf.alpha_fitting(tck, results, settings, show_plot=True)
+        #  pfaf.alpha_fitting(tck, results, settings, show_plot=True)
+        trp.alpha_fitting_plotter(tck, settings, results)
 
         #  # Plot the alpha exponent confidence interval in time
         #  pftr.time_rolling(tickers[i-1], results, settings, show_plot=True)

@@ -285,22 +285,63 @@ def time_rolling_plotter(ticker, settings, data):
 
 class TabledFigurePlotter(TailRiskPlotter):
 
-    def __init__(self, ticker, settings, data):  # fits_dict, data):
+    def __init__(self, ticker, settings, data, plot_type):  # fits_dict, data):
 
-        super(TimeRollingPlotter, self).__init__(ticker, settings, data)
+        # NOTE: maybe call super() after assigning self.fits_dict ??
+        super(TabledFigurePlotter, self).__init__(ticker, settings,
+                                                  data, plot_type)
 
         # FIXME: currently fits_dict below is a module global
         self.fits_dict = fits_dict["tabled_figure"]
-        self.all_plot_combos = self._get_all_plot_combos()
+        # NOTE: problem :: fits_dict init'd in subclass, but curr_ptinfo is in
+        #       parent; and it is only instantiated on __set_ptyp_info()
+        #  self.table_info = self.curr_ptinfo["ax_table"]
+        self.table_info = self.fits_dict[self.ptyp]["ax_table"]
+        # FIXME: ax_title is messed up
+
+    def __gen_table_text(self):
+
+        # text generating functions; use dict.pop to remove non-table-kwarg
+        print(self.table_info)
+        tgfuncs = eval(self.table_info.pop("_cellText_gens"))
+        print(self.table_info)
         # TODO: make vec_names2plot into obj-attr? (used in both plot & table)
         # doing so also allows __get_vecs2plot to keep __ (subcls name mangled)
+        vec_names = self._get_vecs2plot()
 
-    # NOTE: below is WIP
-    def add_table(self):
-        pass
+        # TODO: need a function that gets "Left" or "Right" strings
+        #       from passed in vectors; OR use extra cell vals
 
+        #  table_vals = []
+        #  for vn in vec_names:
+        #      cells = [np.round(fn(self.data[vn]), 4) for fn in tgfuncs]
+        #      table_vals.append(cells)
+
+        # FIXME: only has 1 row of data
+        return [[np.round(fn(self.data[vn]), 4) for fn in tgfuncs]
+                for vn in vec_names]
+
+    # TODO: consider overwriting _config_axes & add functionality below
+    def _add_table(self):
+
+        cellText = self.__gen_table_text()
+        # TODO: attach Table object to self?
+        table = self.ax.table(cellText=cellText, **self.table_info)
+        table.auto_set_font_size(False)
+        table.set_fontsize(10)
+        table.scale(0.5, 0.5)
+
+    # TODO: pass this into parent's plot() as an optionally called method
     def plot(self):
-        pass
+
+        for mult, tdir in self.plot_combos:
+            self._set_plotter_state(mult, tdir)
+            if not self._double_plotted:
+                ax = self._init_figure()
+                self._plot_vectors()  # ax)
+                self._config_axes()  # ax)
+                self._add_table()
+                self._present_figure()
 
 
 class TimeRollingPlotter(TailRiskPlotter):
@@ -320,3 +361,9 @@ class TimeRollingPlotter(TailRiskPlotter):
         #      plotter = TimeRollingPlotter(ticker, settings, data, ptyp)
         #      plotter.plot()
         pass
+
+
+def alpha_fitting_plotter(ticker, settings, data):
+    ptyp = list(fits_dict["tabled_figure"].keys())[0]
+    plotter = TabledFigurePlotter(ticker, settings, data, ptyp)
+    plotter.plot()
