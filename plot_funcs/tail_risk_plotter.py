@@ -48,17 +48,20 @@ class TailRiskPlotter(ABC):
     a single underscore.
     """
 
-    def __init__(self, ticker, settings, data):  # fits_dict, data):
+    def __init__(self, ticker, settings, data, plot_type):  # fits_dict, data):
         """
         :param: ticker: string of ticker name
         :param: settings: SimpleNamespace object containing user-input options
         :param: fits_dict: figure information templates dict
         :param: data: dictionary of lists/arrays containing data to plot
+        :param: plot_type: str; should be one of (αf, hg, ci, as, rs, ks, bx)
         """
         self.ticker = ticker
         self.settings = settings
         # TODO: consider passing in only the data needed by the plot_type
         self.data = data
+        # TODO: make validator function for plot_type?
+        self.ptyp = plot_type
         self.tails_used = self.__get_tails_used()
         self.return_type_label = self.__get_return_type_label()
         self.ax_title_base = (f"Time Period: {self.settings.date_i} "
@@ -124,9 +127,9 @@ class TailRiskPlotter(ABC):
         self.curr_tsgs = self.curr_tsgn[:3]  # tail sign short form, ex. "pos"
         # TODO: below will be diff from self.ticker once unnested in tickers
         self.curr_ticker = self.ticker  # TODO: will be diff when plot unnested
-        # TODO: consider adding if-check, to only update self.curr_ptinfo
+        # TODO: consider adding if-check, to only update self.ptyp_info
         #       when stateful values inside of template_map changes
-        self.curr_ptinfo = self.__set_ptyp_info()
+        self.ptyp_info = self.__set_ptyp_info()
 
     # State-aware and -dependent methods below
 
@@ -147,7 +150,7 @@ class TailRiskPlotter(ABC):
             "tsgn": self.curr_tsgn,
         }
 
-        ptyp_tmpl_dict = self.fits_dict[self.curr_ptyp]
+        ptyp_tmpl_dict = self.fits_dict[self.ptyp]
         ptyp_template = Template(json.dumps(ptyp_tmpl_dict))
         made_ptyp_info = ptyp_template.safe_substitute(template_map)
 
@@ -167,6 +170,8 @@ class TailRiskPlotter(ABC):
                 in self.curr_ptinfo["vec_types"]]
 
     # # methods for the actual plotting of the figure(s)
+    # NOTE: how much state do these methods now depend on, now that
+    #       ptyp_info has been moved into __init__()?
 
     def _init_figure(self):
         """Initialize a unique Matplotlib Figure instance,
@@ -176,7 +181,7 @@ class TailRiskPlotter(ABC):
         """
 
         # TODO: use fig, ax = plt.subplots() idiom to Initialize?
-        fig = plt.figure(self.curr_ptinfo["fig_name"])
+        fig = plt.figure(self.ptyp_info["fig_name"])
         axes_pos = (0.1, 0.20, 0.83, 0.70)
         ax = fig.add_axes(axes_pos)
 
@@ -191,7 +196,7 @@ class TailRiskPlotter(ABC):
 
         vecs2plot = self.__get_vecs2plot()
 
-        if extra_lines := self.curr_ptinfo.get("extra_lines", {}):
+        if extra_lines := self.ptyp_info.get("extra_lines", {}):
             vectors = extra_lines["vectors"]
             if isinstance(vectors, str):
                 vectors = eval(vectors)
@@ -200,7 +205,7 @@ class TailRiskPlotter(ABC):
                 ax.plot(vec, **extra_lines["line_style"])
 
         for vn in vecs2plot:
-            # TODO: try get the line_style from self.curr_ptinfo first
+            # TODO: try get the line_style from self.ptyp_info first
             ax.plot(self.data[vn], **_set_line_style(vn))
 
     # TODO: fold this method into _init_figure()?
@@ -212,7 +217,7 @@ class TailRiskPlotter(ABC):
 
         sett = self.settings
 
-        ax.set_title(self.curr_ptinfo["ax_title"] + self.ax_title_base)
+        ax.set_title(self.ptyp_info["ax_title"] + self.ax_title_base)
 
         ax.set_xlim(xmin=0.0, xmax=sett.n_vec-1)
         ax.set_xticks(range(0, sett.n_spdt, sett.spec_labelstep))
@@ -220,9 +225,9 @@ class TailRiskPlotter(ABC):
                             sett.spec_dates[0::sett.spec_labelstep]],
                            rotation="vertical")
 
-        ax.set_ylabel(self.curr_ptinfo["ax_ylabel"])
+        ax.set_ylabel(self.ptyp_info["ax_ylabel"])
 
-        ax.legend(**self.curr_ptinfo.get("ax_legend", {}))
+        ax.legend(**self.ptyp_info.get("ax_legend", {}))
         ax.grid()
 
     # NOTE: does this function need to be state aware?
@@ -276,11 +281,10 @@ class TabledFigurePlotter(TailRiskPlotter):
 
 class TimeRollingPlotter(TailRiskPlotter):
 
-    def __init__(self, ticker, settings, data):  # fits_dict, data):
+    def __init__(self, ticker, settings, data, plot_type):  # fits_dict, data):
 
-        super(TimeRollingPlotter, self).__init__(ticker, settings, data)
-
-        # FIXME: currently fits_dict below is a module global
+        super(TimeRollingPlotter, self).__init__(ticker, settings,
+                                                 data, plot_type)
         # FIXME: currently fits_dict below is an imported module global
         self.fits_dict = fits_dict["time_rolling"]
         # TODO: consider making fits_dict flat in plot_types level
