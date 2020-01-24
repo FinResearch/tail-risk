@@ -130,7 +130,8 @@ class TailRiskPlotter(ABC):
         """
         self.curr_tdir = tdir
         self.curr_ptyp = ptyp
-        self.curr_tsgn = "pos" if self.curr_tdir == "right" else "neg"
+        self.curr_tsgn = "negative" if self.curr_tdir == "left" else "positive"
+        self.curr_tsgs = self.curr_tsgn[:3]  # TODO: tail sign short form
         # TODO: below will be diff from self.ticker once unnested in tickers
         self.curr_ticker = self.ticker  # TODO: will be diff when plot unnested
         # TODO: consider adding if-check, to only update self.curr_ptinfo
@@ -144,11 +145,13 @@ class TailRiskPlotter(ABC):
     def __set_ptyp_info(self):
 
         sett = self.settings
+        # TODO: make template_map subclass specific attribute
         template_map = {
             "n_vec": sett.n_vec,
             "significance": sett.significance,
             "ticker": self.curr_ticker,
-            "tail_dir": self.curr_tdir,
+            "tdir": self.curr_tdir,
+            "tsgn": self.curr_tsgn,
         }
 
         ptyp_tmpl_dict = self.fits_dict[self.curr_ptyp]
@@ -165,9 +168,9 @@ class TailRiskPlotter(ABC):
         # For example, when plt_typ is one of ["as", "rs", "ks"],
         # then do a combined plot of pos + neg
 
-        # TODO: consider making curr_tsgn into a tuple instead of just a str
+        # TODO: consider making curr_tsgs into a tuple instead of just a str
         # so that ("right",) or ("right", "left") can be producted w/ vec_types
-        return [f"{self.curr_tsgn}_{ptyp}" for ptyp
+        return [f"{self.curr_tsgs}_{ptyp}" for ptyp
                 in self.curr_ptinfo["vec_types"]]
 
     # # methods for the actual plotting of the figure(s)
@@ -179,12 +182,12 @@ class TailRiskPlotter(ABC):
         TODO: it should not care about the data being plotted nor the opts
         """
 
-        # TODO: fig_name precedence desc order: curr_ptinfo, object attr
-        fig_name = (f"Time rolling {self.curr_ptinfo['display_name']} "
-                    f"for {self.curr_tdir} tail for {self.curr_ticker}")
+        #  # TODO: fig_name precedence desc order: curr_ptinfo, object attr
+        #  fig_name = (f"Time rolling {self.curr_ptinfo['display_name']} "
+        #              f"for {self.curr_tdir} tail for {self.curr_ticker}")
 
         # TODO: use fig, ax = plt.subplots() idiom to Initialize?
-        fig = plt.figure(fig_name)
+        fig = plt.figure(self.curr_ptinfo["fig_name"])
         axes_pos = (0.1, 0.20, 0.83, 0.70)
         ax = fig.add_axes(axes_pos)
 
@@ -202,7 +205,7 @@ class TailRiskPlotter(ABC):
             if isinstance(vectors, str):
                 vectors = eval(vectors)
             for vec in vectors:
-                # TODO: make sure vec is a 2-tuple to allow x vs. y plotting
+                # TODO: ensure all vecs are 2-tuples to allow x vs. y plotting
                 ax.plot(vec, **extra_lines["line_style"])
 
         for vn in vecs2plot:
@@ -287,8 +290,8 @@ class TimeRollingPlotter(TailRiskPlotter):
         self.fits_dict = fits_dict["time_rolling"]
         self.all_plot_combos = self._get_all_plot_combos()
 
-    # NOTE: below is WIP
-    def _get_plot_type_static_info(self):
-        fig_name = (f"Time rolling {self.curr_ptinfo['display_name']} "
-                    f"for {self.curr_tdir} tail for {self.curr_ticker}")
-        self.fig_name = fig_name
+    #  # NOTE: below is WIP
+    #  def _get_plot_type_static_info(self):
+    #      fig_name = (f"Time rolling {self.curr_ptinfo['display_name']} "
+    #                  f"for {self.curr_tdir} tail for {self.curr_ticker}")
+    #      self.fig_name = fig_name

@@ -4,8 +4,8 @@
 #  import os
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import pylab as z
+#  import matplotlib.pyplot as plt
+#  import pylab as z
 
 from types import SimpleNamespace
 
@@ -19,9 +19,9 @@ import powerlaw as pl
 import plpva as plpva
 
 import plot_funcs.alpha_fitting as pfaf
-import plot_funcs.time_rolling as pftr
-import plot_funcs.hist_alpha as pfha
-import plot_funcs.boxplot as pfbx
+import plot_funcs.tail_risk_plotter as trp
+#  import plot_funcs.hist_alpha as pfha
+#  import plot_funcs.boxplot as pfbx
 
 #####################################
 # Tools Functions                   #
@@ -1462,8 +1462,8 @@ if approach == "Rolling" or approach == "Increasing":
         #  # Plotting the histograms for the rolling alpha
         #  pfha.hist_alpha(tickers[i-1], results, settings, show_plot=True)
 
-        trp = pftr.TimeRollingPlotter(tck, settings, results)
-        trp.plot()
+        plotter = trp.TimeRollingPlotter(tck, settings, results)
+        plotter.plot()
 
         # Write Tail Statistics to CSV file
         filename = ("TailStatistics_504_d=1_pn_normalized_" +

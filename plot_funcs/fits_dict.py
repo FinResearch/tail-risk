@@ -28,7 +28,7 @@ tabled_figure_fit = {
     },
     "hg":  # histogram of tail-α
     {
-        "fig_name": "Histogram of ${tail_sign_full} tail alphas for ${ticker}",
+        "fig_name": "Histogram of ${tsgn} tail alphas for ${ticker}",
         "vec_types": ("α_vec",),
         "extra_lines":
         {
@@ -42,13 +42,13 @@ tabled_figure_fit = {
                 "linewidth": 1.5,
             },
         },
-        "ax_title": ("Empirical distribution (${tail_dir} tail) of "
+        "ax_title": ("Empirical distribution (${tdir} tail) of "
                      r"the rolling $\hat{\alpha}$ for ${ticker}\n"),
         "ax_ylabel": "Absolute frequency",
         "ax_table":
         {
             # NOTE: probably should just generate the cell text from the class
-            "cellText": "([np.round(fn(${data}[f'${tail_sign}_α_vec']), 4) for fn in (np.mean, np.std, np.min, np.max)], )",
+            #  "cellText": "([np.round(fn(${data}[f'${tail_sign}_α_vec']), 4) for fn in (np.mean, np.std, np.min, np.max)], )",
             "cellLoc": "center",
             "colLabels": (r"$E[\hat{\alpha}]$",
                           r"$\sigma (\hat{\alpha})$",
@@ -59,14 +59,14 @@ tabled_figure_fit = {
         },
     },
 }
-# TODO: implement template inheritance for common values
+# TODO: implement template inheritance for common fields (ax_table pos, etc.)
 
 
 # #  Time Rolling FIT
 time_rolling_fit = {
     "ci":  # time rolling confidence interval
     {
-        "display_name": "CI",
+        "fig_name": "Time rolling CI for ${tdir} tail for ${ticker}",
         "vec_types": ("α_vec", "up_bound", "low_bound"),
         "extra_lines":
         {
@@ -75,7 +75,7 @@ time_rolling_fit = {
             "line_style": {"color": "red"},
         },
         "ax_title": (r"Rolling confidence intervals for the $\alpha$-"
-                     "${tail_dir} tail exponents (c = 1 - ${significance})\n"
+                     "${tdir} tail exponents (c = 1 - ${significance})\n"
                      "Ticker: ${ticker}. "),
         "ax_ylabel": r"$\alpha$",
         "ax_legend":
@@ -88,21 +88,21 @@ time_rolling_fit = {
     },
     "as":  # time rolling absolute size
     {
-        "display_name": "size",
+        "fig_name": "Time rolling size for ${tdir} tail for ${ticker}",
         "vec_types": ("abs_len",),
         "ax_title": "Rolling tail length for: ${ticker}\n",
         "ax_ylabel": "Tail length",
     },
     "rs":  # time rolling relative size
     {
-        "display_name": "relative size",
+        "fig_name": "Time rolling relative size for ${tdir} tail for ${ticker}",
         "vec_types": ("rel_len",),
         "ax_title": "Rolling relative tail length for: ${ticker}\n",
         "ax_ylabel": "Relative tail length",
     },
     "ks":  # time rolling KS-test
     {
-        "display_name": "KS test",
+        "fig_name": "Time KS test for ${tdir} tail for ${ticker}",
         "vec_types": ("α_ks",),
         "ax_title": ("KS-statistics: rolling p-value obtained from "
                      "Clauset algorithm for ${ticker}\n"),
@@ -115,10 +115,10 @@ time_rolling_fit = {
 matrix_fit = {
     "bx":  # boxplot of α-tails
     {
-        "fig_name": "${tail_sign_full} Power Law Boxplot",
+        "fig_name": "${tsgn} Power Law Boxplot",
         #  "vec_types": ("α_vec",),  # NOTE: this is a matrix
         "ax_title": ("Boxplot representation of the "
-                     r"$\alpha$-${tail_dir} tail exponent\n"),
+                     r"$\alpha$-${tdir} tail exponent\n"),
         "ax_ylabel": r"$\alpha$",
     },
 }
