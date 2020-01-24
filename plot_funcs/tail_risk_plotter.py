@@ -169,7 +169,8 @@ class TailRiskPlotter(ABC):
 
         return json.loads(made_ptyp_info)
 
-    def __get_vecs2plot(self):
+    #  def __get_vecs2plot(self):
+    def _get_vecs2plot(self):
         """
         Set the correct data to be passed to _plot_lines()
         """
@@ -291,6 +292,8 @@ class TabledFigurePlotter(TailRiskPlotter):
         # FIXME: currently fits_dict below is a module global
         self.fits_dict = fits_dict["tabled_figure"]
         self.all_plot_combos = self._get_all_plot_combos()
+        # TODO: make vec_names2plot into obj-attr? (used in both plot & table)
+        # doing so also allows __get_vecs2plot to keep __ (subcls name mangled)
 
     # NOTE: below is WIP
     def add_table(self):
