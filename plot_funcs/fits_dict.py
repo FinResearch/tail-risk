@@ -70,7 +70,7 @@ time_rolling_fit = {
         "vec_types": ("α_vec", "up_bound", "low_bound"),
         "extra_lines":
         {
-            # NOTE: vectors expr encoded as str; use eval() to get value
+            # NOTE: vectors are encoded as str expr; use eval() to get value
             "vectors": "map(lambda x: np.repeat(x, ${n_vec} + 2), (2, 3))",
             "line_style": {"color": "red"},
         },

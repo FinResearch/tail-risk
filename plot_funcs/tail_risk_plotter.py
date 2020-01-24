@@ -7,15 +7,14 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 
-# TODO: consider getting this dict data directly from the containing .py file
+# NOTE: currently module globals
 from plot_funcs.fits_dict import fits_dict
-
-
+# TODO: consider making class for these, and pass them as dict objects
 
 
 # TODO: consider making values returned from this function part
-# of plot_types_static_info (ptsi) data --> now: self.curr_ptinfo
-# TODO: alternatively, make this into staticmethod of TimeRollingPlotter
+# of plot_types_static_info (ptsi) data --> now: self.ptyp_info
+# TODO: alternatively, make this into @staticmethod of TimeRollingPlotter
 def _set_line_style(vec_name):
     """Helper for setting the line style of the line plot
     :param: vec_name: string name of the vector to be plotted
@@ -58,13 +57,14 @@ class TailRiskPlotter(ABC):
         """
         self.ticker = ticker
         self.settings = settings
+        # TODO: consider passing in only the data needed by the plot_type
         self.data = data
         self.tails_used = self.__get_tails_used()
         self.return_type_label = self.__get_return_type_label()
         self.ax_title_base = (f"Time Period: {self.settings.date_i} "
                               f"- {self.settings.date_f}. "
                               f"Input: {self.return_type_label}")
-        #  # FIXME: currently fits_dict below is a module global
+        #  NOTE: the fits_dict attr below now initialized in subclasses
         #  self.fits_dict = fits_dict["time_rolling"]
         #  self.all_plot_combos = self.__get_all_plot_combos()
         #  NOTE: the 2 attr above are initialized in the child class
@@ -94,6 +94,9 @@ class TailRiskPlotter(ABC):
         #       b/c self.fits_dict is no longer init'd in this parent class
 
     def __get_return_type_label(self):
+        """This info is independent of the state (ticker, tail, etc.).
+        Instead it is solely determined by the chosen return type
+        """
 
         pt_i = "P(t)"
         pt_f = f"P(t+{self.settings.tau})"
@@ -118,11 +121,11 @@ class TailRiskPlotter(ABC):
         self.curr_tdir = tdir
         self.curr_ptyp = ptyp
         self.curr_tsgn = "negative" if self.curr_tdir == "left" else "positive"
-        self.curr_tsgs = self.curr_tsgn[:3]  # TODO: tail sign short form
+        self.curr_tsgs = self.curr_tsgn[:3]  # tail sign short form, ex. "pos"
         # TODO: below will be diff from self.ticker once unnested in tickers
         self.curr_ticker = self.ticker  # TODO: will be diff when plot unnested
         # TODO: consider adding if-check, to only update self.curr_ptinfo
-        #       if value(s) inside template_map has changed
+        #       when stateful values inside of template_map changes
         self.curr_ptinfo = self.__set_ptyp_info()
 
     # State-aware and -dependent methods below
@@ -130,9 +133,12 @@ class TailRiskPlotter(ABC):
     # # state management and "bookkeeping" methods
 
     def __set_ptyp_info(self):
+        """Named 'set' b/c there is dynamic info generated as well
+        As opposed to simply fetching static data
+        """
 
         sett = self.settings
-        # TODO: make template_map subclass specific attribute
+        # TODO: make template_map subclass specific attribute?
         template_map = {
             "n_vec": sett.n_vec,
             "significance": sett.significance,
@@ -169,10 +175,6 @@ class TailRiskPlotter(ABC):
         TODO: it should not care about the data being plotted nor the opts
         """
 
-        #  # TODO: fig_name precedence desc order: curr_ptinfo, object attr
-        #  fig_name = (f"Time rolling {self.curr_ptinfo['display_name']} "
-        #              f"for {self.curr_tdir} tail for {self.curr_ticker}")
-
         # TODO: use fig, ax = plt.subplots() idiom to Initialize?
         fig = plt.figure(self.curr_ptinfo["fig_name"])
         axes_pos = (0.1, 0.20, 0.83, 0.70)
@@ -181,6 +183,8 @@ class TailRiskPlotter(ABC):
         # TODO: consider attaching to self as self.curr_axes ???
         return ax
 
+    # TODO: fold this method into _init_figure()?
+    # since all figure specific info are stored inside of fits_dict
     def _plot_lines(self, ax):  # , vec_names):
         """Given the data to plot, plot them onto the passed axes
         """
@@ -199,6 +203,8 @@ class TailRiskPlotter(ABC):
             # TODO: try get the line_style from self.curr_ptinfo first
             ax.plot(self.data[vn], **_set_line_style(vn))
 
+    # TODO: fold this method into _init_figure()?
+    # since all figure specific info are stored inside of fits_dict
     def _config_axes(self, ax):
         """
         configure it appropriately after plotting (title, ticks, etc.)
@@ -209,8 +215,8 @@ class TailRiskPlotter(ABC):
         ax.set_title(self.curr_ptinfo["ax_title"] + self.ax_title_base)
 
         ax.set_xlim(xmin=0.0, xmax=sett.n_vec-1)
-        ax.set_xticks(range(0, len(sett.spec_dates), sett.spec_labelstep))
-        ax.set_xticklabels([d[3:] for d in
+        ax.set_xticks(range(0, sett.n_spdt, sett.spec_labelstep))
+        ax.set_xticklabels([dt[3:] for dt in
                             sett.spec_dates[0::sett.spec_labelstep]],
                            rotation="vertical")
 
@@ -235,6 +241,7 @@ class TailRiskPlotter(ABC):
             # TODO: implement plot saving functionality here
             pass
 
+    # TODO: add *methods parameters to be optionally called?
     def plot(self):
         """
         This is the publicly exposed API to this class.
@@ -274,8 +281,9 @@ class TimeRollingPlotter(TailRiskPlotter):
         super(TimeRollingPlotter, self).__init__(ticker, settings, data)
 
         # FIXME: currently fits_dict below is a module global
+        # FIXME: currently fits_dict below is an imported module global
         self.fits_dict = fits_dict["time_rolling"]
-        self.all_plot_combos = self._get_all_plot_combos()
+        # TODO: consider making fits_dict flat in plot_types level
 
     #  # NOTE: below is WIP
     #  def _get_plot_type_static_info(self):
