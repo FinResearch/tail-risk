@@ -31,25 +31,25 @@ tabled_figure_fit = {
     {
         "fig_name": "Histogram of ${tsgn} tail alphas for ${ticker}",
         "vec_types": ("α_vec",),
-        "extra_lines":
-        {
-            # NOTE: vectors expr encoded as str; use eval() to get value
-            #  "vectors": (("np.repeat(np.mean(data[f'{sign}_α_vec']), np.max(out1) + 1)",
-            #               "range(0, np.max(out1) + 1, 1)"),),
-            "line_style":
-            {
-                "label": r"$E[\hat{\alpha}]$",
-                "color": "blue",
-                "linewidth": 1.5,
-            },
-        },
+        #  "extra_lines":
+        #  {
+        #      # NOTE: vectors expr encoded as str; use eval() to get value
+        #      #  "vectors": (("np.repeat(np.mean(data[f'{sign}_α_vec']), np.max(out1) + 1)",
+        #      #               "range(0, np.max(out1) + 1, 1)"),),
+        #      "line_style":
+        #      {
+        #          "label": r"$E[\hat{\alpha}]$",
+        #          "color": "blue",
+        #          "linewidth": 1.5,
+        #      },
+        #  },
         "ax_title": ("Empirical distribution (${tdir} tail) of "
                      r"the rolling $\hat{\alpha}$ for ${ticker}\n"),
         "ax_ylabel": "Absolute frequency",
         "ax_table":
         {
-            # NOTE: probably should just generate the cell text from the class
-            #  "cellText": "([np.round(fn(${data}[f'${tail_sign}_α_vec']), 4) for fn in (np.mean, np.std, np.min, np.max)], )",
+            # NOTE: _cellText_gens is prepended w/ _ b/c it's not a table-kwarg
+            "_cellText_gens": "(np.mean, np.std, np.min, np.max,)",
             "cellLoc": "center",
             "colLabels": (r"$E[\hat{\alpha}]$",
                           r"$\sigma (\hat{\alpha})$",

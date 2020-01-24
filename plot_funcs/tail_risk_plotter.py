@@ -337,6 +337,27 @@ class TabledFigurePlotter(TailRiskPlotter):
                 self._present_figure()
 
 
+class AlphaHistogrammer(TabledFigurePlotter):
+
+    def _plot_vectors(self):
+        """Given the data to plot, plot them onto the passed axes
+        """
+
+        vec_names = self.__get_vecs2plot()
+
+        if extra_lines := self.curr_ptinfo.get("extra_lines", {}):
+            vectors = extra_lines["vectors"]
+            if isinstance(vectors, str):
+                vectors = eval(vectors)
+            for vec in vectors:
+                # TODO: ensure all vecs are 2-tuples to allow x vs. y plotting
+                self.ax.plot(vec, **extra_lines["line_style"])
+
+        for vn in vec_names:
+            # TODO: get line_style from self.curr_ptinfo first?
+            self.ax.hist(self.data[vn], **_set_line_style(vn))
+
+
 class TimeRollingPlotter(TailRiskPlotter):
 
     def __init__(self, ticker, settings, data, plot_type):  # fits_dict, data):
