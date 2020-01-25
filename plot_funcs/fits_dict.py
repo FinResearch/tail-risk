@@ -9,8 +9,8 @@ tabled_figure_fit = {
     {
         "fig_name": "Alpha Fitting for ${ticker}",
         "vec_types": ("α_vec",),
-        "ax_title": ("Time evolution of the parameter "
-                     r"$\alpha$ for ${ticker}\n"),
+        "ax_title": (r"Time evolution of the parameter $\alpha$ "
+                     "for ${ticker}\n"),
         "ax_ylabel": r"$\alpha$",
         "ax_table":
         {
@@ -29,7 +29,7 @@ tabled_figure_fit = {
     },
     "hg":  # histogram of tail-α
     {
-        "fig_name": "Histogram of ${tsgn} tail alphas for ${ticker}",
+        "fig_name": "Histogram of ${tsgn} tail α's for ${ticker}",
         "vec_types": ("α_vec",),
         #  "extra_lines":
         #  {
@@ -43,8 +43,9 @@ tabled_figure_fit = {
         #          "linewidth": 1.5,
         #      },
         #  },
-        "ax_title": ("Empirical distribution (${tdir} tail) of "
-                     r"the rolling $\hat{\alpha}$ for ${ticker}\n"),
+        "ax_title": ("Empirical distribution (${tdir} tail) "
+                     r"of the rolling $\hat{\alpha}$ "
+                     "for ${ticker}\n"),
         "ax_ylabel": "Absolute frequency",
         "ax_table":
         {
@@ -118,8 +119,8 @@ matrix_fit = {
     {
         "fig_name": "${tsgn} Power Law Boxplot",
         #  "vec_types": ("α_vec",),  # NOTE: this is a matrix
-        "ax_title": ("Boxplot representation of the "
-                     r"$\alpha$-${tdir} tail exponent\n"),
+        "ax_title": (r"Boxplot representation of the $\alpha$"
+                     "-${tdir} tail exponent\n"),
         "ax_ylabel": r"$\alpha$",
     },
 }

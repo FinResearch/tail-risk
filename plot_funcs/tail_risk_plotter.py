@@ -68,8 +68,7 @@ class TailRiskPlotter(ABC):
         self.plot_combos = self.__get_plot_combos()
         self.return_type_label = self.__get_return_type_label()
         self.ax_title_base = (f"Time Period: {self.settings.date_i} "
-                              f"- {self.settings.date_f}. "
-                              f"Input: {self.return_type_label}")
+                              f"- {self.settings.date_f}")
         #  NOTE: the fits_dict attr below now initialized in subclasses
         #  self.fits_dict = fits_dict["time_rolling"]
         #  NOTE: flag below moduates the "double" multiplicity, so that the
@@ -290,7 +289,6 @@ class TabledFigurePlotter(TailRiskPlotter):
         #       parent; and it is only instantiated on __set_ptyp_info()
         #  self.table_info = self.curr_ptinfo["ax_table"]
         self.table_info = self.fits_dict[self.ptyp]["ax_table"]
-        # FIXME: ax_title is messed up
 
     def __gen_table_text(self):
 
@@ -368,6 +366,8 @@ class TimeRollingPlotter(TailRiskPlotter):
         # NOTE: self.fits_dict must 1st be instant'd as self.curr_ptinfo req it
         self.fits_dict = fits_dict["time_rolling"]
         # TODO: consider making fits_dict flat in plot_types level
+        self.ax_title_base = (f"{self.ax_title_base}. "
+                              f"Input: {self.return_type_label}")
 
     # NOTE: below is WIP
     def plot_ensemble(self):
