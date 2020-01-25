@@ -1,6 +1,3 @@
-import json
-
-
 #  Figure Information Templates (FIT) Defined Below
 
 # # Tabled Figures FIT
@@ -134,9 +131,10 @@ fits_dict = {
 }
 
 
-for fit_name, tmpl_dict in fits_dict.items():
-    with open(f"fit_{fit_name}.json", "w") as fp:
-        json.dump(tmpl_dict, fp)
+#  NOTE: use procedure below if generating JSON configs
+#  for fit_name, tmpl_dict in fits_dict.items():
+#      with open(f"fit_{fit_name}.json", "w") as fp:
+#          json.dump(tmpl_dict, fp)
 
 
 # NOTE: below its the deserialization function from tail_risk_plotter

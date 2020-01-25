@@ -94,6 +94,7 @@ class TailRiskPlotter(ABC):
         """Return tuple of 2-tups representing all concrete figures requested
         """
 
+        # if only single tail selected, then multiplicity is necessarily single
         mults = (self.multiplicities
                  if len(self.tails_used) == 2 else ("singles",))
 
@@ -199,11 +200,9 @@ class TailRiskPlotter(ABC):
         axes_pos = (0.1, 0.20, 0.83, 0.70)
         ax = fig.add_axes(axes_pos)
 
-        #  # TODO: consider attaching to self as self.curr_axes ???
-        #  return ax
         self.ax = ax
 
-    def _plot_vectors(self):  # , ax):  # , vec_names):
+    def _plot_vectors(self):
         """Given the data to plot, plot them onto the passed axes
         """
 
@@ -222,7 +221,7 @@ class TailRiskPlotter(ABC):
             # TODO: get line_style from self.curr_ptinfo first?
             self.ax.plot(self.data[vn], **_set_line_style(vn))
 
-    def _config_axes(self):  # , ax):
+    def _config_axes(self):
         """
         configure it appropriately after plotting (title, ticks, etc.)
         """
@@ -234,8 +233,8 @@ class TailRiskPlotter(ABC):
         self.ax.set_xlim(xmin=0.0, xmax=sett.n_vec-1)
         self.ax.set_xticks(range(0, sett.n_spdt, sett.spec_labelstep))
         self.ax.set_xticklabels([dt[3:] for dt in
-                            sett.spec_dates[0::sett.spec_labelstep]],
-                           rotation="vertical")
+                                 sett.spec_dates[0::sett.spec_labelstep]],
+                                rotation="vertical")
 
         self.ax.set_ylabel(self.curr_ptinfo["ax_ylabel"])
 
@@ -265,13 +264,12 @@ class TailRiskPlotter(ABC):
         Just initialize a plotter object, and call plotter.plot()
         """
 
-        #  for tdir, ptyp in self.all_plot_combos:
         for mult, tdir in self.plot_combos:
             self._set_plotter_state(mult, tdir)
             if not self._double_plotted:  # FIXME: clumsy/ugly to check here
                 ax = self._init_figure()
-                self._plot_vectors()  # ax)
-                self._config_axes()  # ax)
+                self._plot_vectors()
+                self._config_axes()
                 self._present_figure()
 
 
@@ -293,9 +291,7 @@ class TabledFigurePlotter(TailRiskPlotter):
     def __gen_table_text(self):
 
         # text generating functions; use dict.pop to remove non-table-kwarg
-        print(self.table_info)
         tgfuncs = eval(self.table_info.pop("_cellText_gens"))
-        print(self.table_info)
         # TODO: make vec_names2plot into obj-attr? (used in both plot & table)
         # doing so also allows __get_vecs2plot to keep __ (subcls name mangled)
         vec_names = self._get_vecs2plot()
@@ -329,8 +325,8 @@ class TabledFigurePlotter(TailRiskPlotter):
             self._set_plotter_state(mult, tdir)
             if not self._double_plotted:
                 ax = self._init_figure()
-                self._plot_vectors()  # ax)
-                self._config_axes()  # ax)
+                self._plot_vectors()
+                self._config_axes()
                 self._add_table()
                 self._present_figure()
 
