@@ -169,8 +169,7 @@ class TailRiskPlotter(ABC):
 
         return json.loads(made_ptyp_info)
 
-    #  def __get_vecs2plot(self):
-    def _get_vecs2plot(self):
+    def __get_vnames2plot(self):
         """
         Set the correct data to be passed to _plot_vectors()
         """
@@ -179,11 +178,12 @@ class TailRiskPlotter(ABC):
         if self.curr_mult == "double" and not self._double_plotted:
             #  self.curr_tdir = "both"  # FIXME: where best to set this?
             self._double_plotted = True
-            return [f"{tsgs}_{vtyp}" for tsgs, vtyp
-                    in product(("pos", "neg"), self.curr_ptinfo["vec_types"])]
+            tails_to_use = ("pos", "neg",)
         else:
-            return [f"{self.curr_tsgs}_{ptyp}" for ptyp
-                    in self.curr_ptinfo["vec_types"]]
+            tails_to_use = (self.curr_tsgs,)
+
+        return [f"{tsgs}_{vtyp}" for tsgs, vtyp in
+                product(tails_to_use, self.curr_ptinfo["vec_types"])]
 
     # # methods for the actual plotting of the figure(s)
     # NOTE: plot phases partitioned into 3 for easy overwriting by subclasses
@@ -206,7 +206,8 @@ class TailRiskPlotter(ABC):
         """Given the data to plot, plot them onto the passed axes
         """
 
-        vec_names = self._get_vecs2plot()
+        # TODO: consider setting this attribute in __get_vnames2plot func
+        self.vnames2plot = self.__get_vnames2plot()
 
         # TODO: factor this into own function to keep DRY for histogram
         if extra_lines := self.curr_ptinfo.get("extra_lines", {}):
@@ -217,7 +218,7 @@ class TailRiskPlotter(ABC):
                 # TODO: ensure all vecs are 2-tuples to allow x vs. y plotting
                 self.ax.plot(vec, **extra_lines["line_style"])
 
-        for vn in vec_names:
+        for vn in self.vnames2plot:
             # TODO: get line_style from self.curr_ptinfo first?
             self.ax.plot(self.data[vn], **_set_line_style(vn))
 
@@ -292,21 +293,12 @@ class TabledFigurePlotter(TailRiskPlotter):
 
         # text generating functions; use dict.pop to remove non-table-kwarg
         tgfuncs = eval(self.table_info.pop("_cellText_gens"))
-        # TODO: make vec_names2plot into obj-attr? (used in both plot & table)
-        # doing so also allows __get_vecs2plot to keep __ (subcls name mangled)
-        vec_names = self._get_vecs2plot()
 
         # TODO: need a function that gets "Left" or "Right" strings
         #       from passed in vectors; OR use extra cell vals
 
-        #  table_vals = []
-        #  for vn in vec_names:
-        #      cells = [np.round(fn(self.data[vn]), 4) for fn in tgfuncs]
-        #      table_vals.append(cells)
-
-        # FIXME: only has 1 row of data
         return [[np.round(fn(self.data[vn]), 4) for fn in tgfuncs]
-                for vn in vec_names]
+                for vn in self.vnames2plot]
 
     # TODO: consider overwriting _config_axes & add functionality below
     def _add_table(self):
@@ -337,7 +329,7 @@ class AlphaHistogrammer(TabledFigurePlotter):
         """Given the data to plot, plot them onto the passed axes
         """
 
-        vec_names = self.__get_vecs2plot()
+        vec_names = self.__get_vnames2plot()
 
         if extra_lines := self.curr_ptinfo.get("extra_lines", {}):
             vectors = extra_lines["vectors"]
