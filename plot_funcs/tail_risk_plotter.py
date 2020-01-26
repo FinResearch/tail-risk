@@ -306,24 +306,15 @@ class TabledFigurePlotter(TailRiskPlotter):
 
         return cellText
 
+    def _config_axes(self):
+
+        super(TabledFigurePlotter, self)._config_axes()
         cellText = self.__gen_table_text()
-        # TODO: attach Table object to self?
         table = self.ax.table(cellText=cellText, **self.table_info)
+        # TODO: attach Table object to self?
         table.auto_set_font_size(False)
         table.set_fontsize(10)
         table.scale(0.5, 0.5)
-
-    # TODO: pass this into parent's plot() as an optionally called method
-    def plot(self):
-
-        for mult, tdir in self.plot_combos:
-            self._set_plotter_state(mult, tdir)
-            if not self._double_plotted:
-                ax = self._init_figure()
-                self._plot_vectors()
-                self._config_axes()
-                self._add_table()
-                self._present_figure()
 
 
 class AlphaHistogrammer(TabledFigurePlotter):
