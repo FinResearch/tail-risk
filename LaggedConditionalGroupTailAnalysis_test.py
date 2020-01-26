@@ -36,7 +36,7 @@ def Extractor(filename, tickers):
 
 #  question       = "What is the name of the database?"
 #  database_name = eg.enterbox(question, title="DB name", default="dbMSTR_test.csv")
-database_name = "dbMarkit_test.xlsx"
+database_name = "dbMarkitTest.xlsx"
 
 
 #  question       = "How many entries would you like to analyze?"
