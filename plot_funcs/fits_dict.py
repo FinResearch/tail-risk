@@ -10,11 +10,17 @@ tabled_figure_fit = {
                      "for ${ticker}\n"),
         "ax_ylabel": r"$\alpha$",
         "ax_table":
+        # NOTE: ax_table sub-dict is assgn'd to self.table_info in __init__,
+        # thus _set_plotter_state() doesn't update self.table_info (${tdir})
         {
-            # NOTE: _cellText_gens is prepended w/ _ b/c it's not a table-kwarg
+            # NOTE: '_'-prepended fields denote invalid table-kwarg; must pop
             "_cellText_gens": "(np.mean, np.median, np.std, np.min, np.max,)",
+            #  "_extra_cells": (("'${tdir}'.title()", 0),),  # FIXME: see NOTE above
+            # NOTE: the below set-up curr. only supports 1 extra cell per row
+            "_extra_cell": (("Right", 0),  # 2nd element represents insertion
+                            ("Left", 0)),  # position of extra cell
             "cellLoc": "center",
-            "colLabels": (  # "Tail",
+            "colLabels": ("Tail",  # NOTE: this is label for _extra_cell above
                           r"$E[\alpha]$",
                           "Median",
                           r"$\sigma(\alpha)$",

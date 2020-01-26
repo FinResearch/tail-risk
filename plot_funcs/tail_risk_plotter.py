@@ -294,14 +294,17 @@ class TabledFigurePlotter(TailRiskPlotter):
         # text generating functions; use dict.pop to remove non-table-kwarg
         tgfuncs = eval(self.table_info.pop("_cellText_gens"))
 
-        # TODO: need a function that gets "Left" or "Right" strings
-        #       from passed in vectors; OR use extra cell vals
+        extra_cell = self.table_info.pop("_extra_cell", ())
 
-        return [[np.round(fn(self.data[vn]), 4) for fn in tgfuncs]
-                for vn in self.vnames2plot]
+        cellText = []
+        for i, vn in enumerate(self.vnames2plot):
+            row_cells = [np.round(fn(self.data[vn]), 4) for fn in tgfuncs]
+            if extra_cell:
+                cell_val, pos = extra_cell[i]
+                row_cells.insert(pos, cell_val)
+            cellText.append(row_cells)
 
-    # TODO: consider overwriting _config_axes & add functionality below
-    def _add_table(self):
+        return cellText
 
         cellText = self.__gen_table_text()
         # TODO: attach Table object to self?
