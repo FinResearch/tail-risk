@@ -11,16 +11,16 @@ import easygui as eg
 import pandas as pd
 import scipy.stats as st
 
-eng       = matlab.engine.start_matlab()
-directory = os.getcwd()
-eng.cd(directory, nargout=0)
+import plpva_numpy as plpva
+import time
 
 #####################################
 # Tools Functions                   #
 #####################################
+start = time.time()
 
 def Extractor(filename, tickers):
-    object  = pd.read_csv(filename)
+    object  = pd.read_excel(filename)
     output  = [(object['Date'].values).tolist()]
     for i in xrange(0, len(tickers), 1):
         try:
@@ -36,19 +36,30 @@ def Extractor(filename, tickers):
 
 #  question       = "What is the name of the database?"
 #  database_name = eg.enterbox(question, title="DB name", default="dbMSTR_test.csv")
-database_name = "dbMSTR_test.csv"
+database_name = "dbMarkit_test.xlsx"
 
 
 #  question       = "How many entries would you like to analyze?"
 #  no_entries       = int(eg.enterbox(question, title="No. entries", default="5"))
 no_entries = 4
 fieldNames       = ["# " + str(i) for i in xrange(1, no_entries + 1, 1)]
-fieldValues   = ['DE 01Y', 'DE 03Y', 'DE 05Y', 'DE 10Y', #'DE 30Y', 
-                 #  'FR 01Y', 'FR 03Y', 'FR 05Y', 'FR 10Y', 'FR 30Y',
-                 #  'ES 01Y', 'ES 03Y', 'ES 05Y', 'ES 10Y', 'ES 30Y',
-                 #  'PT 01Y', 'PT 03Y', 'PT 05Y', 'PT 10Y', 'PT 30Y',
-                 #  'IT 01Y', 'IT 03Y', 'IT 05Y', 'IT 10Y', 'IT 30Y',
-                 #  'IR 01Y', 'IR 03Y', 'IR 05Y', 'IR 10Y', 'IR 30Y'
+fieldValues   = [
+                 'DE 01Y', 'DE 02Y', 'DE 03Y', 'DE 04Y', 'DE 05Y', 'DE 07Y', 'DE 10Y', 'DE 15Y', 'DE 20Y', 'DE 30Y', 
+                 'AU 01Y', 'AU 02Y', 'AU 03Y', 'AU 04Y', 'AU 05Y', 'AU 07Y', 'AU 10Y', 'AU 15Y', 'AU 20Y', 'AU 30Y',                 
+                 'CY 01Y', 'CY 02Y', 'CY 03Y', 'CY 04Y', 'CY 05Y', 'CY 07Y', 'CY 10Y', 'CY 15Y', 'CY 20Y', 'CY 30Y',
+                 'EE 01Y', 'EE 02Y', 'EE 03Y', 'EE 04Y', 'EE 05Y', 'EE 07Y', 'EE 10Y', 'EE 15Y', 'EE 20Y', 'EE 30Y',
+                 'ES 01Y', 'ES 02Y', 'ES 03Y', 'ES 04Y', 'ES 05Y', 'ES 07Y', 'ES 10Y', 'ES 15Y', 'ES 20Y', 'ES 30Y',                 
+                 'FI 01Y', 'FI 02Y', 'FI 03Y', 'FI 04Y', 'FI 05Y', 'FI 07Y', 'FI 10Y', 'FI 15Y', 'FI 20Y', 'FI 30Y',
+                 'FR 01Y', 'FR 02Y', 'FR 03Y', 'FR 04Y', 'FR 05Y', 'FR 07Y', 'FR 10Y', 'FR 15Y', 'FR 20Y', 'FR 30Y',
+                 'DE 01Y', 'DE 02Y', 'DE 03Y', 'DE 04Y', 'DE 05Y', 'DE 07Y', 'DE 10Y', 'DE 15Y', 'DE 20Y', 'DE 30Y',
+                 'IR 01Y', 'IR 02Y', 'IR 03Y', 'IR 04Y', 'IR 05Y', 'IR 07Y', 'IR 10Y', 'IR 15Y', 'IR 20Y', 'IR 30Y',
+                 'IT 01Y', 'IT 02Y', 'IT 03Y', 'IT 04Y', 'IT 05Y', 'IT 07Y', 'IT 10Y', 'IT 15Y', 'IT 20Y', 'IT 30Y',
+                 'LV 01Y', 'LV 02Y', 'LV 03Y', 'LV 04Y', 'LV 05Y', 'LV 07Y', 'LV 10Y', 'LV 15Y', 'LV 20Y', 'LV 30Y',
+                 'LT 01Y', 'LT 02Y', 'LT 03Y', 'LT 04Y', 'LT 05Y', 'LT 07Y', 'LT 10Y', 'LT 15Y', 'LT 20Y', 'LT 30Y',
+                 'NL 01Y', 'NL 02Y', 'NL 03Y', 'NL 04Y', 'NL 05Y', 'NL 07Y', 'NL 10Y', 'NL 15Y', 'NL 20Y', 'NL 30Y',
+                 'PT 01Y', 'PT 02Y', 'PT 03Y', 'PT 04Y', 'PT 05Y', 'PT 07Y', 'PT 10Y', 'PT 15Y', 'PT 20Y', 'PT 30Y',
+                 'SK 01Y', 'SK 02Y', 'SK 03Y', 'SK 04Y', 'SK 05Y', 'SK 07Y', 'SK 10Y', 'SK 15Y', 'SK 20Y', 'SK 30Y',
+                 'SI 01Y', 'SI 02Y', 'SI 03Y', 'SI 04Y', 'SI 05Y', 'SI 07Y', 'SI 10Y', 'SI 15Y', 'SI 20Y', 'SI 30Y',
                  ]
 #  title           = "Tickers input"
 #  labels        = eg.multenterbox(question, title, fieldNames, fieldValues)
@@ -175,8 +186,8 @@ xmin_rule = "Rolling"
 #          rolling_days = int(eg.enterbox(question, title="rolling days", default="66"))
 #          question     = "How many lags do you want in your average?"
 #          rolling_lags = int(eg.enterbox(question, title="rolling days", default="0"))
-rolling_days = 22
-rolling_lags = 1
+rolling_days = 66
+rolling_lags = 0
 
 if xmin_rule == 'Manual':
         question   = "What is the value for xmin?"
@@ -1073,3 +1084,6 @@ else:
                       'LL Ratio Left Tail TPL','LL Ratio Left Tail Exp','LL Ratio Left Tail LogN','LL p-value Left Tail TPL',\
                       'LL p-value Left Tail Exp','LL p-value Left Tail LogN']]
             df.to_csv(filename, index=False)
+
+end = time.time()
+print(end - start)
