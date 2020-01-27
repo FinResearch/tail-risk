@@ -12,7 +12,7 @@
 
 ## Script: Cross Sectional Tail Analysis
 
-In this section, we explain the functions of the Cross-Sectional Tail Analysis. 
+In this section, we explain the cross-sectional tail analysis script. 
 
 Firstly, we select the name of the database. In our test case, we use a sample database in xlsx format (Excel). Other formats are also supported but require to change the function pd.read_excel(filename). If the database is a comma-separated values (csv) file, the statement "read_csv" is used. 
 
