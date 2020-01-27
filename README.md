@@ -20,5 +20,13 @@ Secondly, we select the number of cross-sectional time series and the correspond
 
 Thirdly, we choose the type of return. In our script, we have defined three types of returns. The log return is defined as log(P(t+δ)/P(t), where (P)  is the price at the time (t) and δ is the time scale. We can perform the tail analysis on different time scales, where δt=1 denotes daily log-returns, δt=5 weekly log-returns and δt= 22 monthly log-returns, for example. The relative return (second option) is defined as (P(t+δ)/P(t))-1. The term return (third option) defines price increments P(t+δ) - P(t). 
 
+Forthly, ...
+
+Fithly, ... 
+
+Sixthly, ... 
+
+Seventhly, we define the amplitude of the sliding time window. This option only applies to the rolling and the increasing time window, but it does not apply to the static analysis. In case the sliding time window is equivalent to one day, the tail statistics are calculated every day from the initial to the final date. In case the sliding time window is five days, the tail statistics are calculated on every fifth day (or only once a week). In simple words, if the difference between the final and initial date is 500 days, and the sliding time window is five days, we calculate 100 tail statistics on every fifth day.  
+
 
 
