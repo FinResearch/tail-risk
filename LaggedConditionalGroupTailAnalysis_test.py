@@ -2,18 +2,20 @@
 # Libraries                         #
 #####################################
 import numpy as np
-import matlab.engine
+#  import matlab.engine
 import os
 import matplotlib.pyplot as plt
 import powerlaw as pl
 import pylab as z
-import easygui as eg
+#  import easygui as eg
 import pandas as pd
 import scipy.stats as st
 
-eng = matlab.engine.start_matlab()
+import plpva as plpva
+
+#  eng = matlab.engine.start_matlab()
 directory = os.getcwd()
-eng.cd(directory, nargout=0)
+#  eng.cd(directory, nargout=0)
 
 #####################################
 # Tools Functions                   #
@@ -314,54 +316,54 @@ if approach == "Static":
         if data_nature == "Continuous":
             if xmin_rule == "Clauset":
                 if tail_selected == "Right" or tail_selected == "Both":
-                    fit_1 = pl.Fit(filter(lambda x: x != 0, tail_plus))
+                    fit_1 = pl.Fit(list(filter(lambda x: x != 0, tail_plus)))
                 if tail_selected == "Left" or tail_selected == "Both":
-                    fit_2 = pl.Fit(filter(lambda x: x != 0, tail_neg))
+                    fit_2 = pl.Fit(list(filter(lambda x: x != 0, tail_neg)))
             elif xmin_rule == "Manual":
                 if tail_selected == "Right" or tail_selected == "Both":
-                    fit_1 = pl.Fit(filter(lambda x: x != 0, tail_plus), xmin=xmin_value)
+                    fit_1 = pl.Fit(list(filter(lambda x: x != 0, tail_plus), xmin=xmin_value))
                 if tail_selected == "Left" or tail_selected == "Both":
-                    fit_2 = pl.Fit(filter(lambda x: x != 0, tail_neg), xmin=xmin_value)
+                    fit_2 = pl.Fit(list(filter(lambda x: x != 0, tail_neg), xmin=xmin_value))
             else:
                 if tail_selected == "Right" or tail_selected == "Both":
                     fit_1 = pl.Fit(
-                        filter(lambda x: x != 0, tail_plus),
+                        list(filter(lambda x: x != 0, tail_plus)),
                         xmin=np.percentile(tail_plus, xmin_sign),
                     )
                 if tail_selected == "Left" or tail_selected == "Both":
                     fit_2 = pl.Fit(
-                        filter(lambda x: x != 0, tail_neg),
+                        list(filter(lambda x: x != 0, tail_neg)),
                         xmin=np.percentile(tail_neg, xmin_sign),
                     )
         else:
             if xmin_rule == "Clauset":
                 if tail_selected == "Right" or tail_selected == "Both":
-                    fit_1 = pl.Fit(filter(lambda x: x != 0, tail_plus), discrete=True)
+                    fit_1 = pl.Fit(list(filter(lambda x: x != 0, tail_plus), discrete=True))
                 if tail_selected == "Left" or tail_selected == "Both":
-                    fit_2 = pl.Fit(filter(lambda x: x != 0, tail_neg), discrete=True)
+                    fit_2 = pl.Fit(list(filter(lambda x: x != 0, tail_neg), discrete=True))
             elif xmin_rule == "Manual":
                 if tail_selected == "Right" or tail_selected == "Both":
                     fit_1 = pl.Fit(
-                        filter(lambda x: x != 0, tail_plus),
+                        list(filter(lambda x: x != 0, tail_plus)),
                         discrete=True,
                         xmin=xmin_value,
                     )
                 if tail_selected == "Left" or tail_selected == "Both":
                     fit_2 = pl.Fit(
-                        filter(lambda x: x != 0, tail_neg),
+                        list(filter(lambda x: x != 0, tail_neg)),
                         discrete=True,
                         xmin=xmin_value,
                     )
             else:
                 if tail_selected == "Right" or tail_selected == "Both":
                     fit_1 = pl.Fit(
-                        filter(lambda x: x != 0, tail_plus),
+                        list(filter(lambda x: x != 0, tail_plus)),
                         discrete=True,
                         xmin=np.percentile(tail_plus, xmin_sign),
                     )
                 if tail_selected == "Left" or tail_selected == "Both":
                     fit_2 = pl.Fit(
-                        filter(lambda x: x != 0, tail_neg),
+                        list(filter(lambda x: x != 0, tail_neg)),
                         discrete=True,
                         xmin=np.percentile(tail_neg, xmin_sign),
                     )
@@ -430,7 +432,7 @@ if approach == "Static":
                     np.round(alpha1, 4),
                     np.round(s_err1, 4),
                     np.round(xmin1, 4),
-                    len(filter(lambda x: x > xmin1, tail_plus)),
+                    len(list(filter(lambda x: x > xmin1, tail_plus)),)
                 ]
             )
             the_table = plt.table(
@@ -558,7 +560,7 @@ if approach == "Static":
                     np.round(alpha2, 4),
                     np.round(s_err2, 4),
                     np.round(xmin2, 4),
-                    len(filter(lambda x: x > xmin2, tail_neg)),
+                    len(list(filter(lambda x: x > xmin2, tail_neg)),)
                 ]
             )
             the_table = plt.table(
@@ -663,9 +665,9 @@ if approach == "Static":
             positive_lower_bound.append(
                 alpha1 - (st.norm.ppf(1 - multiplier * significance)) * s_err1
             )
-            positive_abs_length.append(len(filter(lambda x: x >= xmin1, tail_plus)))
+            positive_abs_length.append(len(list(filter(lambda x: x >= xmin1, tail_plus))))
             positive_rel_length.append(
-                len(filter(lambda x: x >= xmin1, tail_plus)) / float(len(tail_plus))
+                len(list(filter(lambda x: x >= xmin1, tail_plus)) / float(len(tail_plus)))
             )
 
         if tail_selected == "Left" or tail_selected == "Both":
@@ -676,9 +678,9 @@ if approach == "Static":
             negative_lower_bound.append(
                 alpha2 - (st.norm.ppf(1 - multiplier * significance)) * s_err2
             )
-            negative_abs_length.append(len(filter(lambda x: x >= xmin2, tail_neg)))
+            negative_abs_length.append(len(list(filter(lambda x: x >= xmin2, tail_neg))))
             negative_rel_length.append(
-                len(filter(lambda x: x >= xmin2, tail_neg)) / float(len(tail_neg))
+                len(list(filter(lambda x: x >= xmin2, tail_neg)) / float(len(tail_neg)))
             )
 
         if tail_selected == "Both":
@@ -689,8 +691,8 @@ if approach == "Static":
                 xmin2,
                 s_err1,
                 s_err2,
-                len(filter(lambda x: x >= xmin1, tail_plus)),
-                len(filter(lambda x: x >= xmin2, tail_neg)),
+                len(list(filter(lambda x: x >= xmin1, tail_plus))),
+                len(list(filter(lambda x: x >= xmin2, tail_neg))),
                 p1[0],
                 p2[0],
             ]
@@ -702,7 +704,7 @@ if approach == "Static":
                 0,
                 s_err1,
                 0,
-                len(filter(lambda x: x >= xmin1, tail_plus)),
+                len(list(filter(lambda x: x >= xmin1, tail_plus))),
                 0,
                 p1[0],
                 0,
@@ -716,7 +718,7 @@ if approach == "Static":
                 0,
                 s_err2,
                 0,
-                len(filter(lambda x: x >= xmin2, tail_neg)),
+                len(list(filter(lambda x: x >= xmin2, tail_neg))),
                 0,
                 p2[0],
             ]
@@ -1179,24 +1181,24 @@ else:
 
                 if tail_selected == "Right" or tail_selected == "Both":
                     xmin_today_right = (
-                        pl.Fit(filter(lambda x: x != 0, tail_plus))
+                        pl.Fit(list(filter(lambda x: x != 0, tail_plus)))
                     ).power_law.xmin
                     x_min_right_vector.append(xmin_today_right)
                 if tail_selected == "Left" or tail_selected == "Both":
                     xmin_today_left = (
-                        pl.Fit(filter(lambda x: x != 0, tail_neg))
+                        pl.Fit(list(filter(lambda x: x != 0, tail_neg)))
                     ).power_law.xmin
                     x_min_left_vector.append(xmin_today_left)
 
                 if xmin_rule == "Clauset":
                     if tail_selected == "Right" or tail_selected == "Both":
-                        fit_1 = pl.Fit(filter(lambda x: x != 0, tail_plus))
+                        fit_1 = pl.Fit(list(filter(lambda x: x != 0, tail_plus)))
                     if tail_selected == "Left" or tail_selected == "Both":
-                        fit_2 = pl.Fit(filter(lambda x: x != 0, tail_neg))
+                        fit_2 = pl.Fit(list(filter(lambda x: x != 0, tail_neg)))
                 elif xmin_rule == "Rolling":
                     if tail_selected == "Right" or tail_selected == "Both":
                         if len(x_min_right_vector) < rolling_days + rolling_lags:
-                            fit_1 = pl.Fit(filter(lambda x: x != 0, tail_plus))
+                            fit_1 = pl.Fit(list(filter(lambda x: x != 0, tail_plus)))
                         else:
                             avg_xmin = np.average(
                                 x_min_right_vector[
@@ -1204,11 +1206,11 @@ else:
                                 ]
                             )
                             fit_1 = pl.Fit(
-                                filter(lambda x: x != 0, tail_plus), xmin=avg_xmin
+                                list(filter(lambda x: x != 0, tail_plus)), xmin=avg_xmin
                             )
                     if tail_selected == "Left" or tail_selected == "Both":
                         if len(x_min_left_vector) < rolling_days + rolling_lags:
-                            fit_2 = pl.Fit(filter(lambda x: x != 0, tail_neg))
+                            fit_2 = pl.Fit(list(filter(lambda x: x != 0, tail_neg)))
                         else:
                             avg_xmin = np.average(
                                 x_min_left_vector[
@@ -1216,55 +1218,55 @@ else:
                                 ]
                             )
                             fit_2 = pl.Fit(
-                                filter(lambda x: x != 0, tail_neg), xmin=avg_xmin
+                                list(filter(lambda x: x != 0, tail_neg)), xmin=avg_xmin
                             )
 
                 elif xmin_rule == "Manual":
                     if tail_selected == "Right" or tail_selected == "Both":
                         fit_1 = pl.Fit(
-                            filter(lambda x: x != 0, tail_plus), xmin=xmin_value
+                            list(filter(lambda x: x != 0, tail_plus), xmin=xmin_value)
                         )
                     if tail_selected == "Left" or tail_selected == "Both":
                         fit_2 = pl.Fit(
-                            filter(lambda x: x != 0, tail_neg), xmin=xmin_value
+                            list(filter(lambda x: x != 0, tail_neg), xmin=xmin_value)
                         )
                 else:
                     if tail_selected == "Right" or tail_selected == "Both":
                         fit_1 = pl.Fit(
-                            filter(lambda x: x != 0, tail_plus),
+                            list(filter(lambda x: x != 0, tail_plus)),
                             xmin=np.percentile(tail_plus, xmin_sign),
                         )
                     if tail_selected == "Left" or tail_selected == "Both":
                         fit_2 = pl.Fit(
-                            filter(lambda x: x != 0, tail_neg),
+                            list(filter(lambda x: x != 0, tail_neg)),
                             xmin=np.percentile(tail_neg, xmin_sign),
                         )
             else:
                 if tail_selected == "Right" or tail_selected == "Both":
                     xmin_today_right = (
-                        pl.Fit(filter(lambda x: x != 0, tail_plus), discrete=True)
+                        pl.Fit(list(filter(lambda x: x != 0, tail_plus), discrete=True))
                     ).power_law.xmin
                     x_min_right_vector.append(xmin_today_right)
                 if tail_selected == "Left" or tail_selected == "Both":
                     xmin_today_left = (
-                        pl.Fit(filter(lambda x: x != 0, tail_neg), discrete=True)
+                        pl.Fit(list(filter(lambda x: x != 0, tail_neg), discrete=True))
                     ).power_law.xmin
                     x_min_left_vector.append(xmin_today_left)
 
                 if xmin_rule == "Clauset":
                     if tail_selected == "Right" or tail_selected == "Both":
                         fit_1 = pl.Fit(
-                            filter(lambda x: x != 0, tail_plus), discrete=True
+                            list(filter(lambda x: x != 0, tail_plus), discrete=True)
                         )
                     if tail_selected == "Left" or tail_selected == "Both":
                         fit_2 = pl.Fit(
-                            filter(lambda x: x != 0, tail_neg), discrete=True
+                            list(filter(lambda x: x != 0, tail_neg), discrete=True)
                         )
                 elif xmin_rule == "Rolling":
                     if tail_selected == "Right" or tail_selected == "Both":
                         if len(x_min_right_vector) < rolling_days + rolling_lags:
                             fit_1 = pl.Fit(
-                                filter(lambda x: x != 0, tail_plus), discrete=True
+                                list(filter(lambda x: x != 0, tail_plus), discrete=True)
                             )
                         else:
                             avg_xmin = np.average(
@@ -1273,14 +1275,14 @@ else:
                                 ]
                             )
                             fit_1 = pl.Fit(
-                                filter(lambda x: x != 0, tail_plus),
+                                list(filter(lambda x: x != 0, tail_plus)),
                                 discrete=True,
                                 xmin=avg_xmin,
                             )
                     if tail_selected == "Left" or tail_selected == "Both":
                         if len(x_min_left_vector) < rolling_days + rolling_lags:
                             fit_2 = pl.Fit(
-                                filter(lambda x: x != 0, tail_neg), discrete=True
+                                list(filter(lambda x: x != 0, tail_neg), discrete=True)
                             )
                         else:
                             avg_xmin = np.average(
@@ -1289,7 +1291,7 @@ else:
                                 ]
                             )
                             fit_2 = pl.Fit(
-                                filter(lambda x: x != 0, tail_neg),
+                                list(filter(lambda x: x != 0, tail_neg)),
                                 discrete=True,
                                 xmin=avg_xmin,
                             )
@@ -1297,26 +1299,26 @@ else:
                 elif xmin_rule == "Manual":
                     if tail_selected == "Right" or tail_selected == "Both":
                         fit_1 = pl.Fit(
-                            filter(lambda x: x != 0, tail_plus),
+                            list(filter(lambda x: x != 0, tail_plus)),
                             discrete=True,
                             xmin=xmin_value,
                         )
                     if tail_selected == "Left" or tail_selected == "Both":
                         fit_2 = pl.Fit(
-                            filter(lambda x: x != 0, tail_neg),
+                            list(filter(lambda x: x != 0, tail_neg)),
                             discrete=True,
                             xmin=xmin_value,
                         )
                 else:
                     if tail_selected == "Right" or tail_selected == "Both":
                         fit_1 = pl.Fit(
-                            filter(lambda x: x != 0, tail_plus),
+                            list(filter(lambda x: x != 0, tail_plus)),
                             discrete=True,
                             xmin=np.percentile(tail_plus, xmin_sign),
                         )
                     if tail_selected == "Left" or tail_selected == "Both":
                         fit_2 = pl.Fit(
-                            filter(lambda x: x != 0, tail_neg),
+                            list(filter(lambda x: x != 0, tail_neg)),
                             discrete=True,
                             xmin=np.percentile(tail_neg, xmin_sign),
                         )
@@ -1326,14 +1328,15 @@ else:
                 alpha1 = fit_1.power_law.alpha
                 xmin1 = fit_1.power_law.xmin
                 s_err1 = fit_1.power_law.sigma
-                p1 = eng.plpva(
-                    matlab.double(np.array(tail_plus).tolist()),
-                    float(xmin1),
-                    "reps",
-                    float(c_iter),
-                    "silent",
-                    nargout=2,
-                )
+                p1 = plpva.plpva(np.array(tail_plus).tolist(), float(xmin1), 'reps', c_iter, 'silent')
+                #  p1 = eng.plpva(
+                #      matlab.double(np.array(tail_plus).tolist()),
+                #      float(xmin1),
+                #      "reps",
+                #      float(c_iter),
+                #      "silent",
+                #      nargout=2,
+                #  )
                 if el in positive_alpha_vec:
                     positive_alpha_vec[el].append(alpha1)
                     positive_upper_bound[el].append(
@@ -1343,10 +1346,10 @@ else:
                         alpha1 - (st.norm.ppf(1 - multiplier * significance)) * s_err1
                     )
                     positive_abs_length[el].append(
-                        len(filter(lambda x: x >= xmin1, tail_plus))
+                        len(list(filter(lambda x: x >= xmin1, tail_plus)))
                     )
                     positive_rel_length[el].append(
-                        len(filter(lambda x: x >= xmin1, tail_plus))
+                        len(list(filter(lambda x: x >= xmin1, tail_plus)))
                         / float(len(tail_plus))
                     )
                     positive_alpha_KS[el].append(p1[0])
@@ -1359,10 +1362,10 @@ else:
                         alpha1 - (st.norm.ppf(1 - multiplier * significance)) * s_err1
                     ]
                     positive_abs_length[el] = [
-                        len(filter(lambda x: x >= xmin1, tail_plus))
+                        len(list(filter(lambda x: x >= xmin1, tail_plus)))
                     ]
                     positive_rel_length[el] = [
-                        len(filter(lambda x: x >= xmin1, tail_plus))
+                        len(list(filter(lambda x: x >= xmin1, tail_plus)))
                         / float(len(tail_plus))
                     ]
                     positive_alpha_KS[el] = [p1[0]]
@@ -1389,14 +1392,15 @@ else:
                 alpha2 = fit_2.power_law.alpha
                 xmin2 = fit_2.power_law.xmin
                 s_err2 = fit_2.power_law.sigma
-                p2 = eng.plpva(
-                    matlab.double(np.array(tail_neg).tolist()),
-                    float(xmin2),
-                    "reps",
-                    float(c_iter),
-                    "silent",
-                    nargout=2,
-                )
+                p2 = plpva.plpva(np.array(tail_neg).tolist(), float(xmin2), 'reps', c_iter, 'silent')
+                #  p2 = eng.plpva(
+                #      matlab.double(np.array(tail_neg).tolist()),
+                #      float(xmin2),
+                #      "reps",
+                #      float(c_iter),
+                #      "silent",
+                #      nargout=2,
+                #  )
                 if el in negative_alpha_vec:
                     negative_alpha_vec[el].append(alpha2)
                     negative_upper_bound[el].append(
@@ -1406,10 +1410,10 @@ else:
                         alpha2 - (st.norm.ppf(1 - multiplier * significance)) * s_err2
                     )
                     negative_abs_length[el].append(
-                        len(filter(lambda x: x >= xmin2, tail_neg))
+                        len(list(filter(lambda x: x >= xmin2, tail_neg)))
                     )
                     negative_rel_length[el].append(
-                        len(filter(lambda x: x >= xmin2, tail_neg))
+                        len(list(filter(lambda x: x >= xmin2, tail_neg)))
                         / float(len(tail_neg))
                     )
                     negative_alpha_KS[el].append(p2[0])
@@ -1422,10 +1426,10 @@ else:
                         alpha2 - (st.norm.ppf(1 - multiplier * significance)) * s_err2
                     ]
                     negative_abs_length[el] = [
-                        len(filter(lambda x: x >= xmin2, tail_neg))
+                        len(list(filter(lambda x: x >= xmin2, tail_neg)))
                     ]
                     negative_rel_length[el] = [
-                        len(filter(lambda x: x >= xmin2, tail_neg))
+                        len(list(filter(lambda x: x >= xmin2, tail_neg)))
                         / float(len(tail_neg))
                     ]
                     negative_alpha_KS[el] = [p2[0]]
@@ -1515,7 +1519,7 @@ else:
                             np.round(alpha1, 4),
                             np.round(s_err1, 4),
                             np.round(xmin1, 4),
-                            len(filter(lambda x: x > xmin1, tail_plus)),
+                            len(list(filter(lambda x: x > xmin1, tail_plus)),)
                         ]
                     )
                     the_table = plt.table(
@@ -1620,7 +1624,7 @@ else:
                             np.round(alpha2, 4),
                             np.round(s_err2, 4),
                             np.round(xmin2, 4),
-                            len(filter(lambda x: x > xmin2, tail_neg)),
+                            len(list(filter(lambda x: x > xmin2, tail_neg)),)
                         ]
                     )
                     the_table = plt.table(
@@ -1694,8 +1698,8 @@ else:
                     xmin_today_left,
                     s_err1,
                     s_err2,
-                    len(filter(lambda x: x >= xmin1, tail_plus)),
-                    len(filter(lambda x: x >= xmin2, tail_neg)),
+                    len(list(filter(lambda x: x >= xmin1, tail_plus))),
+                    len(list(filter(lambda x: x >= xmin2, tail_neg))),
                     p1[0],
                     p2[0],
                     daily_r_ratio[0],
@@ -1721,7 +1725,7 @@ else:
                     0,
                     s_err1,
                     0,
-                    len(filter(lambda x: x >= xmin1, tail_plus)),
+                    len(list(filter(lambda x: x >= xmin1, tail_plus))),
                     0,
                     p1[0],
                     0,
@@ -1749,7 +1753,7 @@ else:
                     0,
                     s_err2,
                     0,
-                    len(filter(lambda x: x >= xmin2, tail_neg)),
+                    len(list(filter(lambda x: x >= xmin2, tail_neg))),
                     0,
                     p2[0],
                     0,
