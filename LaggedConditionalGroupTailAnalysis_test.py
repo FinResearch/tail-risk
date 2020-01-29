@@ -23,11 +23,11 @@ eng.cd(directory, nargout=0)
 def Extractor(filename, tickers):
     object = pd.read_csv(filename)
     output = [(object["Date"].values).tolist()]
-    for i in xrange(0, len(tickers), 1):
+    for i in range(0, len(tickers), 1):
         try:
             output.append((object[tickers[i]].values).tolist())
         except KeyError:
-            print "Ticker " + tickers[i] + " not found in " + filename
+            print("Ticker " + tickers[i] + " not found in " + filename)
 
     return output
 
@@ -44,7 +44,7 @@ database_name = "dbMSTR_test.csv"
 #  question       = "How many entries would you like to analyze?"
 #  no_entries       = int(eg.enterbox(question, title="No. entries", default="5"))
 no_entries = 4
-fieldNames = ["# " + str(i) for i in xrange(1, no_entries + 1, 1)]
+fieldNames = ["# " + str(i) for i in range(1, no_entries + 1, 1)]
 fieldValues = [
     "DE 01Y",
     "DE 03Y",
@@ -124,13 +124,13 @@ if partition == "Country":
     for lab in labels:
         country = lab[0:2]
         identifiers.append(country)
-    print "You have decided to group your data according to the following criteria: " + partition
+    print("You have decided to group your data according to the following criteria: " + partition)
 elif partition == "Maturity":
     identifiers = []
     for lab in labels:
         maturity = lab[3:6]
         identifiers.append(maturity)
-    print "You have decided to group your data according to the following criteria: " + partition
+    print("You have decided to group your data according to the following criteria: " + partition)
 elif partition == "Core vs Peripheral":
     clusters = [["DE", "FR", "BE"], ["IT", "ES", "PT", "IR", "GR"]]
     identifiers = []
@@ -141,15 +141,15 @@ elif partition == "Core vs Peripheral":
         elif country in clusters[1]:
             identifiers.append("Peripheral Countries")
         else:
-            print "The current country (" + country + ") is not listed among core or peripheral groups"
+            print("The current country (" + country + ") is not listed among core or peripheral groups")
             exit
-    print "You have decided to group your data according to the following criteria: " + partition
+    print("You have decided to group your data according to the following criteria: " + partition)
 elif partition == "All":
     identifiers = []
     for lab in labels:
         identifiers.append("All Countries")
 
-    print "You have decided to group your data according to the following criteria: " + partition
+    print("You have decided to group your data according to the following criteria: " + partition)
 
 else:
     "Nada"
@@ -246,19 +246,17 @@ if approach == "Static":
     if abs_value == "Yes":
         lab = "|" + lab + "|"
 
-    for i in xrange(1, N, 1):
+    for i in range(1, N, 1):
 
         loglikelihood_ratio_right = []
         loglikelihood_pvalue_right = []
         loglikelihood_ratio_left = []
         loglikelihood_pvalue_left = []
 
-        print "I am analyzing the time series for " + labels[
-            i - 1
-        ] + " between " + dates[0] + " and " + dates[-1]
+        print("I am analyzing the time series for " + labels[i - 1] + " between " + dates[0] + " and " + dates[-1])
         series = database[i][initial_index : (final_index + 1)]
 
-        print "You opted for the analysis of the " + input_type
+        print("You opted for the analysis of the " + input_type)
         if input_type == "Returns":
             X = np.array(series[tau:]) - np.array(series[0 : (len(series) - tau)])
         elif input_type == "Relative returns":
@@ -270,7 +268,7 @@ if approach == "Static":
 
         if standardize == "Yes":
             if norm_timing == "Before" or norm_timing == "Both":
-                print "I am standardizing your time series"
+                print("I am standardizing your time series")
                 S = X
                 m = np.mean(S)
                 v = np.std(S)
@@ -278,31 +276,25 @@ if approach == "Static":
 
         if abs_value == "Yes":
             if abs_timing == "Before" or abs_timing == "Both":
-                print "I am taking the absolute value of your time series"
+                print("I am taking the absolute value of your time series")
                 X = np.abs(X)
 
         if identifiers[i - 1] in BlockDict:
-            print "I found an existing group under the identifier : " + identifiers[
-                i - 1
-            ] + ". Your time series is added in that pool"
+            print("I found an existing group under the identifier : " + identifiers[i - 1] + ". Your time series is added in that pool")
             BlockDict[identifiers[i - 1]].extend(X.tolist())
         else:
-            print "I have not found an existing group under the identifier : " + identifiers[
-                i - 1
-            ] + ". I create the group and i add your time series is added in that pool"
+            print("I have not found an existing group under the identifier : " + identifiers[i - 1] + ". I create the group and i add your time series is added in that pool")
             BlockDict[identifiers[i - 1]] = X.tolist()
 
     key = BlockDict.keys()
     for el in key:
 
-        print "I am analyzing the group identified by " + el + " between " + dates[
-            0
-        ] + " and " + dates[-1]
+        print("I am analyzing the group identified by " + el + " between " + dates[0] + " and " + dates[-1])
         X = BlockDict[el]
 
         if standardize == "Yes":
             if norm_timing == "After" or norm_timing == "Both":
-                print "I am standardizing your time series"
+                print("I am standardizing your time series")
                 S = X
                 m = np.mean(S)
                 v = np.std(S)
@@ -310,7 +302,7 @@ if approach == "Static":
 
         if abs_value == "Yes":
             if abs_timing == "After" or abs_timing == "Both":
-                print "I am taking the absolute value of your time series"
+                print("I am taking the absolute value of your time series")
                 X = np.abs(X)
 
         if tail_selected == "Right" or tail_selected == "Both":
@@ -405,7 +397,7 @@ if approach == "Static":
             x_min_left_vector.append(xmin2)
 
         # R, p = fit_1.distribution_compare('power_law', 'exponential',normalized_ratio = True)
-        # print R
+        # print(R)
         if tail_selected == "Right" or tail_selected == "Both":
 
             plt.figure("Right tail scaling for group " + el)
@@ -737,7 +729,7 @@ if approach == "Static":
     z.gca().set_position((0.1, 0.20, 0.83, 0.70))
     if tail_selected == "Right" or tail_selected == "Both":
         z.plot(
-            xrange(1, len(key) + 1, 1),
+            range(1, len(key) + 1, 1),
             positive_alpha_vec,
             marker="^",
             markersize=10.0,
@@ -747,7 +739,7 @@ if approach == "Static":
         )
     if tail_selected == "Left" or tail_selected == "Both":
         z.plot(
-            xrange(1, len(key) + 1, 1),
+            range(1, len(key) + 1, 1),
             negative_alpha_vec,
             marker="^",
             markersize=10.0,
@@ -755,7 +747,7 @@ if approach == "Static":
             color="red",
             label="Left tail",
         )
-    z.xticks(xrange(1, len(key) + 1, 1), key)
+    z.xticks(range(1, len(key) + 1, 1), key)
     z.xlim(xmin=0.5, xmax=len(key) + 0.5)
     z.ylabel(r"$\alpha$")
     z.title(
@@ -782,7 +774,7 @@ if approach == "Static":
         z.figure("Confidence interval for the right tail")
         z.gca().set_position((0.1, 0.20, 0.83, 0.70))
         z.plot(
-            xrange(1, len(key) + 1, 1),
+            range(1, len(key) + 1, 1),
             positive_alpha_vec,
             marker="o",
             markersize=7.0,
@@ -791,7 +783,7 @@ if approach == "Static":
             label="Right tail",
         )
         z.plot(
-            xrange(1, len(key) + 1, 1),
+            range(1, len(key) + 1, 1),
             positive_upper_bound,
             marker="o",
             markersize=7.0,
@@ -800,7 +792,7 @@ if approach == "Static":
             label="Upper bound",
         )
         z.plot(
-            xrange(1, len(key) + 1, 1),
+            range(1, len(key) + 1, 1),
             positive_lower_bound,
             marker="o",
             markersize=7.0,
@@ -808,9 +800,9 @@ if approach == "Static":
             color="blue",
             label="Lower bound",
         )
-        z.plot(xrange(0, len(key) + 2, 1), np.repeat(3, len(key) + 2), color="red")
-        z.plot(xrange(0, len(key) + 2, 1), np.repeat(2, len(key) + 2), color="red")
-        z.xticks(xrange(1, len(key) + 1, 1), key)
+        z.plot(range(0, len(key) + 2, 1), np.repeat(3, len(key) + 2), color="red")
+        z.plot(range(0, len(key) + 2, 1), np.repeat(2, len(key) + 2), color="red")
+        z.xticks(range(1, len(key) + 1, 1), key)
         z.xlim(xmin=0.5, xmax=len(key) + 0.5)
         z.ylabel(r"$\alpha$")
         z.title(
@@ -843,7 +835,7 @@ if approach == "Static":
         z.figure("Confidence interval for the left tail")
         z.gca().set_position((0.1, 0.20, 0.83, 0.70))
         z.plot(
-            xrange(1, len(key) + 1, 1),
+            range(1, len(key) + 1, 1),
             negative_alpha_vec,
             marker="o",
             markersize=7.0,
@@ -852,7 +844,7 @@ if approach == "Static":
             label="Left tail",
         )
         z.plot(
-            xrange(1, len(key) + 1, 1),
+            range(1, len(key) + 1, 1),
             negative_upper_bound,
             marker="o",
             markersize=7.0,
@@ -861,7 +853,7 @@ if approach == "Static":
             label="Upper bound",
         )
         z.plot(
-            xrange(1, len(key) + 1, 1),
+            range(1, len(key) + 1, 1),
             negative_lower_bound,
             marker="o",
             markersize=7.0,
@@ -869,9 +861,9 @@ if approach == "Static":
             color="blue",
             label="Lower bound",
         )
-        z.plot(xrange(0, len(key) + 2, 1), np.repeat(3, len(key) + 2), color="red")
-        z.plot(xrange(0, len(key) + 2, 1), np.repeat(2, len(key) + 2), color="red")
-        z.xticks(xrange(1, len(key) + 1, 1), key)
+        z.plot(range(0, len(key) + 2, 1), np.repeat(3, len(key) + 2), color="red")
+        z.plot(range(0, len(key) + 2, 1), np.repeat(2, len(key) + 2), color="red")
+        z.xticks(range(1, len(key) + 1, 1), key)
         z.xlim(xmin=0.5, xmax=len(key) + 0.5)
         z.ylabel(r"$\alpha$")
         z.title(
@@ -1102,7 +1094,7 @@ else:
     x_min_right_vector = []
     x_min_left_vector = []
 
-    for l in xrange(initial_index, final_index + 1, sliding_window):
+    for l in range(initial_index, final_index + 1, sliding_window):
 
         BlockDict = {}
 
@@ -1115,24 +1107,18 @@ else:
 
         filtered_dates.append(end_date)
 
-        print "I am analyzing the time series between " + begin_date + " and " + end_date
+        print("I am analyzing the time series between " + begin_date + " and " + end_date)
 
-        for i in xrange(1, N, 1):
+        for i in range(1, N, 1):
 
             if approach == "Rolling":
                 series = database[i][(l + 1 - lookback) : (l + 1)]
             else:
                 series = database[i][(initial_index + 1 - lookback) : (l + 1)]
 
-            print "You opted for the analysis of the " + input_type + " under a " + approach + " time window."
-            print "Your lookback is " + str(
-                lookback
-            ) + " days and you are advancing in time with a step of " + str(
-                sliding_window
-            ) + " days."
-            print "Currently two consecutive time series have an overlap of " + str(
-                np.maximum(0, lookback - sliding_window)
-            ) + " observations."
+            print("You opted for the analysis of the " + input_type + " under a " + approach + " time window.")
+            print("Your lookback is " + str(lookback) + " days and you are advancing in time with a step of " + str(sliding_window) + " days.")
+            print("Currently two consecutive time series have an overlap of " + str(np.maximum(0, lookback - sliding_window)) + " observations.")
 
             if input_type == "Returns":
                 X = np.array(series[tau:]) - np.array(series[0 : (len(series) - tau)])
@@ -1148,7 +1134,7 @@ else:
 
             if standardize == "Yes":
                 if norm_timing == "Before" or norm_timing == "Both":
-                    print "I am standardizing your time series"
+                    print("I am standardizing your time series")
                     S = X
                     m = np.mean(S)
                     v = np.std(S)
@@ -1156,27 +1142,23 @@ else:
 
             if abs_value == "Yes":
                 if abs_timing == "Before" or abs_timing == "Both":
-                    print "I am taking the absolute value of your time series"
+                    print("I am taking the absolute value of your time series")
                     X = np.abs(X)
 
             if identifiers[i - 1] in BlockDict:
-                print "I found an existing group under the identifier : " + identifiers[
-                    i - 1
-                ] + ". Your time series is added in that pool"
+                print("I found an existing group under the identifier : " + identifiers[i - 1] + ". Your time series is added in that pool")
                 BlockDict[identifiers[i - 1]].extend(X.tolist())
             else:
-                print "I have not found an existing group under the identifier : " + identifiers[
-                    i - 1
-                ] + ". I create the group and i add your time series is added in that pool"
+                print("I have not found an existing group under the identifier : " + identifiers[i - 1] + ". I create the group and i add your time series is added in that pool")
                 BlockDict[identifiers[i - 1]] = X.tolist()
 
         key = BlockDict.keys()
         for el in key:
-            print "I am analyzing the group identified by " + el + " between " + begin_date + " and " + end_date
+            print("I am analyzing the group identified by " + el + " between " + begin_date + " and " + end_date)
             X = BlockDict[el]
             if standardize == "Yes":
                 if norm_timing == "After" or norm_timing == "Both":
-                    print "I am standardizing your time series"
+                    print("I am standardizing your time series")
                     S = X
                     m = np.mean(S)
                     v = np.std(S)
@@ -1184,7 +1166,7 @@ else:
 
             if abs_value == "Yes":
                 if abs_timing == "After" or abs_timing == "Both":
-                    print "I am taking the absolute value of your time series"
+                    print("I am taking the absolute value of your time series")
                     X = np.abs(X)
 
             if tail_selected == "Right" or tail_selected == "Both":
@@ -1811,7 +1793,7 @@ else:
         z.ylabel(r"$\alpha$")
         z.xlim(xmin=0.0, xmax=len(positive_alpha_vec[max_key]))
         z.xticks(
-            xrange(
+            range(
                 0,
                 len(positive_alpha_vec[max_key]),
                 int(np.maximum(int(labelstep / float(sliding_window)), 1)),
@@ -1859,7 +1841,7 @@ else:
             out1, bins = z.histogram(positive_alpha_vec[el], nbins)
             z.plot(
                 np.repeat(np.mean(positive_alpha_vec[el]), np.max(out1) + 1),
-                xrange(0, np.max(out1) + 1, 1),
+                range(0, np.max(out1) + 1, 1),
                 color="blue",
                 linewidth=1.5,
                 label=r"$E[\hat{\alpha}]$",
@@ -1932,7 +1914,7 @@ else:
         z.ylabel(r"$\alpha$")
         z.xlim(xmin=0.0, xmax=len(negative_alpha_vec[max_key]))
         z.xticks(
-            xrange(
+            range(
                 0,
                 len(negative_alpha_vec[max_key]),
                 int(labelstep / float(sliding_window)),
@@ -1980,7 +1962,7 @@ else:
             out1, bins = z.histogram(negative_alpha_vec[el], nbins)
             z.plot(
                 np.repeat(np.mean(negative_alpha_vec[el]), np.max(out1) + 1),
-                xrange(0, np.max(out1) + 1, 1),
+                range(0, np.max(out1) + 1, 1),
                 color="blue",
                 linewidth=1.5,
                 label=r"$E[\hat{\alpha}]$",
