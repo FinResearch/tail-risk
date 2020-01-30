@@ -71,9 +71,9 @@ class TailRiskPlotter(ABC):
                               f"- {self.settings.date_f}")
         #  NOTE: the fits_dict attr below now initialized in subclasses
         #  self.fits_dict = fits_dict["time_rolling"]
-        #  NOTE: flag below moduates the "double" multiplicity, so that the
-        #  double-tailed figure is only plotted once (b/c using cartesian prod)
-        self._double_plotted = False  # internal flag for bookkeeping
+
+
+
 
     # Methods for determining state-independent info; called in __init__()
 
@@ -94,19 +94,16 @@ class TailRiskPlotter(ABC):
         """Return tuple of 2-tups representing all concrete figures requested
         """
 
-        # if only single tail selected, then multiplicity is necessarily single
-        mults = (self.multiplicities
-                 if len(self.tails_used) == 2 else ("singles",))
+        if len(self.tails_used) == 2:
+            mults = self.multiplicities
+            # TODO: set fig_name to state "both tails" instead of "right" or "left"
+            tails = ("right",)  # NOTE: can also use "left", does not matter
+        else:
+            # NOTE: if single tail selected, then multiplicity is necessarily single
+            mults = ("singles",) 
+            tails = self.tails_used
 
-        # TODO: nice to do's/haves in/from this method
-        # 1. do a filtering out of the repeated L+R double-multiplicity
-        # 2. set fig_name to state "both tails" instead of "right" or "left"
-        # * this way plot() method need not explicitly check _double_plotted
-        # * in fact self._double_plotted flag would become obsolete
-
-        # TODO: no need to return as tuple, iff iterating through it
-        #  return tuple(product(mults, self.tails_used))
-        return product(mults, self.tails_used)
+        return product(mults, tails)
 
     def __get_return_type_label(self):
         """This info is independent of the state (ticker, tail, etc.).
@@ -175,9 +172,8 @@ class TailRiskPlotter(ABC):
         """
 
         # TODO: refactor below to be more concise and DRY
-        if self.curr_mult == "double" and not self._double_plotted:
+        if self.curr_mult == "double":
             #  self.curr_tdir = "both"  # FIXME: where best to set this?
-            self._double_plotted = True
             tails_to_use = ("pos", "neg",)
         else:
             tails_to_use = (self.curr_tsgs,)
@@ -267,11 +263,10 @@ class TailRiskPlotter(ABC):
 
         for mult, tdir in self.plot_combos:
             self._set_plotter_state(mult, tdir)
-            if not self._double_plotted:  # FIXME: clumsy/ugly to check here
-                ax = self._init_figure()
-                self._plot_vectors()
-                self._config_axes()
-                self._present_figure()
+            ax = self._init_figure()
+            self._plot_vectors()
+            self._config_axes()
+            self._present_figure()
 
 
 class TabledFigurePlotter(TailRiskPlotter):
