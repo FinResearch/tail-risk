@@ -1449,7 +1449,7 @@ if approach == "Rolling" or approach == "Increasing":
 
         #  # Plot the alpha exponent in time (right/left/both tail)
         #  pfaf.alpha_fitting(tck, results, settings, show_plot=True)
-        trp.alpha_fitting_plotter(tck, settings, results)
+        trp.tabled_figure_plotter(tck, settings, results)
 
         #  # Plot the alpha exponent confidence interval in time
         #  pftr.time_rolling(tickers[i-1], results, settings, show_plot=True)

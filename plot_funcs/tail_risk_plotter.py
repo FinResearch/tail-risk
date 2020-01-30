@@ -386,11 +386,10 @@ class TimeRollingPlotter(TailRiskPlotter):
 # TODO: save a set of results data to do quick plot development!!!
 
 
-def alpha_fitting_plotter(ticker, settings, data):
-    ptyp = list(fits_dict["tabled_figure"].keys())[0]
-    plotter = TabledFigurePlotter(ticker, settings, data, ptyp)
-    plotter.plot()
-
+def tabled_figure_plotter(ticker, settings, data):
+    for ptyp in fits_dict["tabled_figure"].keys():
+        plotter = TabledFigurePlotter(ticker, settings, data, ptyp)
+        plotter.plot()
 
 def time_rolling_plotter(ticker, settings, data):
     for ptyp in fits_dict["time_rolling"].keys():
