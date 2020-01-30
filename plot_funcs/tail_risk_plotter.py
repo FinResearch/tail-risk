@@ -139,6 +139,7 @@ class TailRiskPlotter(ABC):
         # TODO: consider adding if-check, to only update self.curr_ptinfo
         #       when stateful values inside of template_map changes
         self.curr_ptinfo = self.__set_ptyp_info()
+        self.curr_vnames2plot = self.__get_vnames2plot()
 
     # State-aware and -dependent methods below
 
@@ -203,7 +204,10 @@ class TailRiskPlotter(ABC):
         """
 
         # TODO: consider setting this attribute in __get_vnames2plot func
-        self.vnames2plot = self.__get_vnames2plot()
+        #       then would need to explicitly call it in plot() method
+        # ALTERNATIVELY: set it inside of _set_plotter_state ??
+
+        #  self.vnames2plot = self.__get_vnames2plot()
 
         # TODO: factor this into own function to keep DRY for histogram
         if extra_lines := self.curr_ptinfo.get("extra_lines", {}):
@@ -214,7 +218,7 @@ class TailRiskPlotter(ABC):
                 # TODO: ensure all vecs are 2-tuples to allow x vs. y plotting
                 self.ax.plot(vec, **extra_lines["line_style"])
 
-        for vn in self.vnames2plot:
+        for vn in self.curr_vnames2plot:
             # TODO: get line_style from self.curr_ptinfo first?
             self.ax.plot(self.data[vn], **_set_line_style(vn))
 
@@ -292,7 +296,7 @@ class TabledFigurePlotter(TailRiskPlotter):
         extra_cell = self.table_info.pop("_extra_cell", ())
 
         cellText = []
-        for i, vn in enumerate(self.vnames2plot):
+        for i, vn in enumerate(self.curr_vnames2plot):
             row_cells = [np.round(fn(self.data[vn]), 4) for fn in tgfuncs]
             if extra_cell:
                 cell_val, pos = extra_cell[i]
