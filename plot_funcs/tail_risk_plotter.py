@@ -281,12 +281,35 @@ class TabledFigurePlotter(TailRiskPlotter):
         super(TabledFigurePlotter, self).__init__(ticker, settings,
                                                   data, plot_type)
 
+        self.use_hist = True if self.ptyp == "hg" else False
         # FIXME: currently fits_dict below is a module global
         self.fits_dict = fits_dict["tabled_figure"]
         # NOTE: problem :: fits_dict init'd in subclass, but curr_ptinfo is in
         #       parent; and it is only instantiated on __set_ptyp_info()
         #  self.table_info = self.curr_ptinfo["ax_table"]
         self.table_info = self.fits_dict[self.ptyp]["ax_table"]
+
+    def __histogram(self):
+
+        #  if extra_lines := self.curr_ptinfo.get("extra_lines", {}):
+        #      vectors = extra_lines["vectors"]
+        #      if isinstance(vectors, str):
+        #          vectors = eval(vectors)
+        #      for vec in vectors:
+        #          # TODO: ensure all vecs are 2-tuples to allow x vs. y plotting
+        #          self.ax.plot(vec, **extra_lines["line_style"])
+
+        # TODO: for-loop necessary if each histogram only contains a single vector?
+        for vn in self.curr_vnames2plot:
+            IQR = np.percentile(self.data[vn], 75) - np.percentile(self.data[vn], 25)
+            # TODO: ASK why use: h = 2*IQR/cuberoot(n_vec)
+            h = 2 * IQR * np.power(self.settings.n_vec, -1/3)
+            # TODO: xlim also uses max & min --> keep DRY
+            n_bins = int((np.max(self.data[vn]) - np.min(self.data[vn])) / h)
+            hist_vals, bins, patches = self.ax.hist(self.data[vn], n_bins, color="red")
+            # FIXME: if multiple vecs in histogram, then below attrs will be overwritten
+            self.hist_vals = hist_vals
+            self.data_vec = self.data[vn]
 
     def __gen_table_text(self):
 
@@ -314,26 +337,29 @@ class TabledFigurePlotter(TailRiskPlotter):
         table.set_fontsize(10)
         table.scale(0.5, 0.5)
 
-
-class AlphaHistogrammer(TabledFigurePlotter):
-
     def _plot_vectors(self):
         """Given the data to plot, plot them onto the passed axes
         """
 
-        vec_names = self.__get_vnames2plot()
+        if self.use_hist:
+            self.__histogram()
+        else:
+            super(TabledFigurePlotter, self)._plot_vectors()
 
-        if extra_lines := self.curr_ptinfo.get("extra_lines", {}):
-            vectors = extra_lines["vectors"]
-            if isinstance(vectors, str):
-                vectors = eval(vectors)
-            for vec in vectors:
-                # TODO: ensure all vecs are 2-tuples to allow x vs. y plotting
-                self.ax.plot(vec, **extra_lines["line_style"])
+    def _config_axes(self):
 
-        for vn in vec_names:
-            # TODO: get line_style from self.curr_ptinfo first?
-            self.ax.hist(self.data[vn], **_set_line_style(vn))
+        if self.use_hist:
+            self.ax.set_xlim(xmin=np.min(self.data_vec), xmax=np.max(self.data_vec))
+            #  self.ax.set_xticks(range(0, sett.n_spdt, sett.spec_labelstep))
+            #  self.ax.set_xticklabels([dt[3:] for dt in
+            #                           sett.spec_dates[0::sett.spec_labelstep]],
+            #                          rotation="vertical")
+            self.ax.set_ylabel(self.curr_ptinfo["ax_ylabel"])
+            self.ax.set_ylim(ymin=0, ymax=np.max(self.hist_vals))
+        else:
+            super(TabledFigurePlotter, self)._config_axes()
+
+        self._add_table()
 
 
 class TimeRollingPlotter(TailRiskPlotter):
