@@ -305,12 +305,11 @@ class TabledFigurePlotter(TailRiskPlotter):
 
         return cellText
 
-    def _config_axes(self):
+    def _add_table(self):
 
-        super(TabledFigurePlotter, self)._config_axes()
         cellText = self.__gen_table_text()
-        table = self.ax.table(cellText=cellText, **self.table_info)
         # TODO: attach Table object to self?
+        table = self.ax.table(cellText=cellText, **self.table_info)
         table.auto_set_font_size(False)
         table.set_fontsize(10)
         table.scale(0.5, 0.5)
