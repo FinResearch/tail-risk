@@ -46,6 +46,9 @@ class TailRiskPlotter(ABC):
     self-defined methods prepended by a double underscore are meant to be
     called only by other private methods, which are themselves prepended by
     a single underscore.
+
+    all __METHOD's also have a return value
+    while _METHOD's do not neccessarily
     """
 
     def __init__(self, ticker, settings, data, plot_type):  # fits_dict, data):
@@ -72,8 +75,11 @@ class TailRiskPlotter(ABC):
         #  NOTE: the fits_dict attr below now initialized in subclasses
         #  self.fits_dict = fits_dict["time_rolling"]
 
+    # TODO: also add __repr__ method
 
-
+    def __str__(self):
+        # TODO: flesh this method out with better output
+        return f"{self.__class__}, {self.__dict__}"
 
     # Methods for determining state-independent info; called in __init__()
 
@@ -202,12 +208,6 @@ class TailRiskPlotter(ABC):
     def _plot_vectors(self):
         """Given the data to plot, plot them onto the passed axes
         """
-
-        # TODO: consider setting this attribute in __get_vnames2plot func
-        #       then would need to explicitly call it in plot() method
-        # ALTERNATIVELY: set it inside of _set_plotter_state ??
-
-        #  self.vnames2plot = self.__get_vnames2plot()
 
         # TODO: factor this into own function to keep DRY for histogram
         if extra_lines := self.curr_ptinfo.get("extra_lines", {}):
@@ -356,6 +356,9 @@ class TimeRollingPlotter(TailRiskPlotter):
         #      plotter = TimeRollingPlotter(ticker, settings, data, ptyp)
         #      plotter.plot()
         pass
+
+
+# TODO: save a set of results data to do quick plot development!!!
 
 
 def alpha_fitting_plotter(ticker, settings, data):
