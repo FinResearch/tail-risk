@@ -310,6 +310,20 @@ class TabledFigurePlotter(TailRiskPlotter):
             # FIXME: if multiple vecs in histogram, then below attrs will be overwritten
             self.hist_max = np.max(hist_vals)
 
+    def __plot_extra_hist_line(self):
+        # TODO: factor this into own function to keep DRY for histogram
+
+        extra_lines = self.curr_ptinfo["extra_lines"]
+        vecs_encoded = extra_lines["vectors"]
+
+        vecs_template = Template(json.dumps(vecs_encoded))
+        vecs_str_tups = eval(vecs_template.substitute(vec_mean=self.vec_mean,
+                                                      hist_max=self.hist_max))
+
+        # NOTE: elements of vecs_str_tups are 2-tuples to allow x vs. y plotting
+        for x_str, y_str in vecs_str_tups:
+            x, y = eval(x_str), eval(y_str)
+            self.ax.plot(x, y, **extra_lines["line_style"])
 
     def __gen_table_text(self):
 
@@ -343,6 +357,7 @@ class TabledFigurePlotter(TailRiskPlotter):
 
         if self.use_hist:
             self.__histogram()
+            self.__plot_extra_hist_line()
         else:
             super(TabledFigurePlotter, self)._plot_vectors()
 

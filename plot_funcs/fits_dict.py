@@ -34,18 +34,18 @@ tabled_figure_fit = {
     {
         "fig_name": "Histogram of ${tsgn} tail α's for ${ticker}",
         "vec_types": ("α_vec",),
-        #  "extra_lines":
-        #  {
-        #      # NOTE: vectors expr encoded as str; use eval() to get value
-        #      #  "vectors": (("np.repeat(np.mean(data[f'{sign}_α_vec']), np.max(out1) + 1)",
-        #      #               "range(0, np.max(out1) + 1, 1)"),),
-        #      "line_style":
-        #      {
-        #          "label": r"$E[\hat{\alpha}]$",
-        #          "color": "blue",
-        #          "linewidth": 1.5,
-        #      },
-        #  },
+        "extra_lines":
+        {
+            # NOTE: vectors expr encoded as str; use eval() to get value
+            "vectors": (("np.repeat(${vec_mean}, ${hist_max} + 1)",
+                         "range(0, int(${hist_max} + 1))"),),
+            "line_style":
+            {
+                "label": r"$E[\hat{\alpha}]$",
+                "color": "blue",
+                "linewidth": 1.5,
+            },
+        },
         "ax_title": ("Empirical distribution (${tdir} tail) "
                      r"of the rolling $\hat{\alpha}$ "
                      "for ${ticker}\n"),
