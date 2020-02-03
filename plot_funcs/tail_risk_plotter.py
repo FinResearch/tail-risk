@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC  # TODO: label @abstracmethod
 from itertools import product
 from string import Template
 
@@ -215,7 +215,7 @@ class TailRiskPlotter(ABC):
             if isinstance(vectors, str):
                 vectors = eval(vectors)
             for vec in vectors:
-                # TODO: ensure all vecs are 2-tuples to allow x vs. y plotting
+                # TODO: ensure all vecs are 2-tuples for x vs. y plot??? (ex. histogram)
                 self.ax.plot(vec, **extra_lines["line_style"])
 
         for vn in self.curr_vnames2plot:
@@ -267,7 +267,7 @@ class TailRiskPlotter(ABC):
 
         for mult, tdir in self.plot_combos:
             self._set_plotter_state(mult, tdir)
-            ax = self._init_figure()
+            self._init_figure()
             self._plot_vectors()
             self._config_axes()
             self._present_figure()
@@ -307,7 +307,7 @@ class TabledFigurePlotter(TailRiskPlotter):
             # TODO: xlim also uses max & min --> keep DRY
             n_bins = int((self.vec_max - self.vec_min)/h)
             hist_vals, bins, patches = self.ax.hist(self.data[vn], n_bins, color="red")
-            # FIXME: if multiple vecs in histogram, then below attrs will be overwritten
+            # FIXME: if multiple vecs in histogram, then hist_max below gets overwritten
             self.hist_max = np.max(hist_vals)
 
     def __plot_extra_hist_line(self):
@@ -367,6 +367,8 @@ class TabledFigurePlotter(TailRiskPlotter):
             self.ax.set_xlim(xmin=self.vec_min, xmax=self.vec_max)
             self.ax.set_ylabel(self.curr_ptinfo["ax_ylabel"])
             self.ax.set_ylim(ymin=0, ymax=self.hist_max)
+            self.ax.legend()  # TODO: make legend & grid DRY
+            self.ax.grid()
         else:
             super(TabledFigurePlotter, self)._config_axes()
 
