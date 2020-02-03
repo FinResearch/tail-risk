@@ -289,27 +289,27 @@ class TabledFigurePlotter(TailRiskPlotter):
         #  self.table_info = self.curr_ptinfo["ax_table"]
         self.table_info = self.fits_dict[self.ptyp]["ax_table"]
 
-    def __histogram(self):
+    def __calc_vec_stats(self, vec):
+        self.vec_min = np.min(vec)
+        self.vec_max = np.max(vec)
+        self.vec_mean = np.mean(vec)
 
-        #  if extra_lines := self.curr_ptinfo.get("extra_lines", {}):
-        #      vectors = extra_lines["vectors"]
-        #      if isinstance(vectors, str):
-        #          vectors = eval(vectors)
-        #      for vec in vectors:
-        #          # TODO: ensure all vecs are 2-tuples to allow x vs. y plotting
-        #          self.ax.plot(vec, **extra_lines["line_style"])
+    def __histogram(self):
 
         # TODO: for-loop necessary if each histogram only contains a single vector?
         for vn in self.curr_vnames2plot:
+            # FIXME: if multiple vecs in histogram, then self attrs calc'd below gets overwritten
+            self.__calc_vec_stats(self.data[vn])
+
             IQR = np.percentile(self.data[vn], 75) - np.percentile(self.data[vn], 25)
             # TODO: ASK why use: h = 2*IQR/cuberoot(n_vec)
             h = 2 * IQR * np.power(self.settings.n_vec, -1/3)
             # TODO: xlim also uses max & min --> keep DRY
-            n_bins = int((np.max(self.data[vn]) - np.min(self.data[vn])) / h)
+            n_bins = int((self.vec_max - self.vec_min)/h)
             hist_vals, bins, patches = self.ax.hist(self.data[vn], n_bins, color="red")
             # FIXME: if multiple vecs in histogram, then below attrs will be overwritten
-            self.hist_vals = hist_vals
-            self.data_vec = self.data[vn]
+            self.hist_max = np.max(hist_vals)
+
 
     def __gen_table_text(self):
 
@@ -349,13 +349,9 @@ class TabledFigurePlotter(TailRiskPlotter):
     def _config_axes(self):
 
         if self.use_hist:
-            self.ax.set_xlim(xmin=np.min(self.data_vec), xmax=np.max(self.data_vec))
-            #  self.ax.set_xticks(range(0, sett.n_spdt, sett.spec_labelstep))
-            #  self.ax.set_xticklabels([dt[3:] for dt in
-            #                           sett.spec_dates[0::sett.spec_labelstep]],
-            #                          rotation="vertical")
+            self.ax.set_xlim(xmin=self.vec_min, xmax=self.vec_max)
             self.ax.set_ylabel(self.curr_ptinfo["ax_ylabel"])
-            self.ax.set_ylim(ymin=0, ymax=np.max(self.hist_vals))
+            self.ax.set_ylim(ymin=0, ymax=self.hist_max)
         else:
             super(TabledFigurePlotter, self)._config_axes()
 
