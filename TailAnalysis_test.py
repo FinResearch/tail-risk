@@ -18,9 +18,7 @@ import powerlaw as pl
 
 import plpva as plpva
 
-import plot_funcs.alpha_fitting as pfaf
 import plot_funcs.tail_risk_plotter as trp
-#  import plot_funcs.hist_alpha as pfha
 #  import plot_funcs.boxplot as pfbx
 
 #####################################
@@ -1447,27 +1445,12 @@ if approach == "Rolling" or approach == "Increasing":
         if tail_selected == "Left" or tail_selected == "Both":
             boxplot_mat["neg_α_mat"].append(results["neg_α_vec"])
 
-        #  # Plot the alpha exponent in time (right/left/both tail)
-        #  pfaf.alpha_fitting(tck, results, settings, show_plot=True)
+        # Plot the alpha exponent in time (right/left/both tail)
+        # Plotting the histograms for the rolling alpha
         trp.tabled_figure_plotter(tck, settings, results)
 
-        #  # Plot the alpha exponent confidence interval in time
-        #  pftr.time_rolling(tickers[i-1], results, settings, show_plot=True)
-        #  #  NOTE: confirm that these if-block pairs are for 3 of the Time
-        #  #        rolling plots meant to create duplicate plots when "Both"
-        #  #  if tail_selected == "Both":
-        #  #      z.plot(results["neg_abs_len"],
-        #  #             color="purple", label="Left tail")
-        #  #  if tail_selected == "Both":
-        #  #      z.plot(results["pos_abs_len"],
-        #  #             color="green", label="Right tail")
-
-        #  # Plotting the histograms for the rolling alpha
-        #  pfha.hist_alpha(tickers[i-1], results, settings, show_plot=True)
-
-        #  plotter = trp.TimeRollingPlotter(tck, settings, results)
-        #  plotter.plot()
-
+        # Plot the alpha exponent confidence interval in time
+        # and the other 3 time rolling plots
         trp.time_rolling_plotter(tck, settings, results)
 
         # Write Tail Statistics to CSV file

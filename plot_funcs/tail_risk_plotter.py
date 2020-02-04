@@ -388,7 +388,7 @@ class TimeRollingPlotter(TailRiskPlotter):
         self.ax_title_base = (f"{self.ax_title_base}. "
                               f"Input: {self.return_type_label}")
 
-    # NOTE: below is WIP
+    # NOTE: below is WIP --> maybe make into standalone module function
     def plot_ensemble(self):
         #  for ptyp in fits_dict["time_rolling"].keys():
         #      plotter = TimeRollingPlotter(ticker, settings, data, ptyp)
