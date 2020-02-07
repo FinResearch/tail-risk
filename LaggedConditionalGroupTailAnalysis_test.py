@@ -1,20 +1,26 @@
 #####################################
 # Libraries                         #
 #####################################
+#  import os
 import numpy as np
-#  import matlab.engine
-import os
-import matplotlib.pyplot as plt
-import powerlaw as pl
-import pylab as z
-#  import easygui as eg
 import pandas as pd
+
+#  import matplotlib.pyplot as plt
+#  import pylab as z
+
+
 import scipy.stats as st
+import powerlaw as pl
+
+#  import easygui as eg
+
+
+# import own modules
 
 import plpva as plpva
 
 #  eng = matlab.engine.start_matlab()
-directory = os.getcwd()
+#  directory = os.getcwd()
 #  eng.cd(directory, nargout=0)
 
 #####################################
@@ -51,8 +57,8 @@ fieldNames = ["# " + str(i) for i in range(1, no_entries + 1, 1)]
 fieldValues = [
     "DE 01Y",
     "DE 03Y",
-    "DE 05Y",
-    "DE 10Y",  #'DE 30Y',
+    #  "DE 05Y",
+    #  "DE 10Y",  #'DE 30Y',
     #  'FR 01Y', 'FR 03Y', 'FR 05Y', 'FR 10Y', 'FR 30Y',
     #  'ES 01Y', 'ES 03Y', 'ES 05Y', 'ES 10Y', 'ES 30Y',
     #  'PT 01Y', 'PT 03Y', 'PT 05Y', 'PT 10Y', 'PT 30Y',
@@ -113,22 +119,22 @@ tau = 1
 #  standardize   = eg.buttonbox(question, 'Normalization', choices)
 standardize = "No"
 
-if standardize == "Yes":
-    question = "When do you want to standardize your series with respect to the grouping procedure?"
-    choices = ["Before", "After", "Both"]
-    title = "Normalization timing"
-    norm_timing = eg.choicebox(question, title, choices)
+#  if standardize == "Yes":
+#      question = "When do you want to standardize your series with respect to the grouping procedure?"
+#      choices = ["Before", "After", "Both"]
+#      title = "Normalization timing"
+#      norm_timing = eg.choicebox(question, title, choices)
 
 #  question      = "Do you want to take the absolute value of your series (after any eventual normalization)?"
 #  choices       = ['Yes', 'No']
 #  abs_value     = eg.buttonbox(question, 'Absolute value', choices)
 abs_value = "No"
 
-if abs_value == "Yes":
-    question = "When do you want to take the absolute value of your series with respect to the grouping procedure?"
-    choices = ["Before", "After", "Both"]
-    title = "Absolute value timing"
-    abs_timing = eg.choicebox(question, title, choices)
+#  if abs_value == "Yes":
+#      question = "When do you want to take the absolute value of your series with respect to the grouping procedure?"
+#      choices = ["Before", "After", "Both"]
+#      title = "Absolute value timing"
+#      abs_timing = eg.choicebox(question, title, choices)
 
 #  question      = "Please specify which approach you would like to use"
 #  choices       = ['Static', 'Rolling', 'Increasing']
@@ -147,35 +153,50 @@ if partition == "Country":
     for lab in labels:
         country = lab[0:2]
         identifiers.append(country)
-    print("You have decided to group your data according to the following criteria: " + partition)
-elif partition == "Maturity":
-    identifiers = []
-    for lab in labels:
-        maturity = lab[3:6]
-        identifiers.append(maturity)
-    print("You have decided to group your data according to the following criteria: " + partition)
-elif partition == "Core vs Peripheral":
-    clusters = [["DE", "FR", "BE"], ["IT", "ES", "PT", "IR", "GR"]]
-    identifiers = []
-    for lab in labels:
-        country = lab[0:2]
-        if country in clusters[0]:
-            identifiers.append("Core Countries")
-        elif country in clusters[1]:
-            identifiers.append("Peripheral Countries")
-        else:
-            print("The current country (" + country + ") is not listed among core or peripheral groups")
-            exit
-    print("You have decided to group your data according to the following criteria: " + partition)
-elif partition == "All":
-    identifiers = []
-    for lab in labels:
-        identifiers.append("All Countries")
+    print(
+        "You have decided to group your data according to the following criteria: "
+        + partition
+    )
 
-    print("You have decided to group your data according to the following criteria: " + partition)
-
-else:
-    "Nada"
+#  elif partition == "Maturity":
+#      identifiers = []
+#      for lab in labels:
+#          maturity = lab[3:6]
+#          identifiers.append(maturity)
+#      print(
+#          "You have decided to group your data according to the following criteria: "
+#          + partition
+#      )
+#  elif partition == "Core vs Peripheral":
+#      clusters = [["DE", "FR", "BE"], ["IT", "ES", "PT", "IR", "GR"]]
+#      identifiers = []
+#      for lab in labels:
+#          country = lab[0:2]
+#          if country in clusters[0]:
+#              identifiers.append("Core Countries")
+#          elif country in clusters[1]:
+#              identifiers.append("Peripheral Countries")
+#          else:
+#              print(
+#                  "The current country ("
+#                  + country
+#                  + ") is not listed among core or peripheral groups"
+#              )
+#              exit
+#      print(
+#          "You have decided to group your data according to the following criteria: "
+#          + partition
+#      )
+#  elif partition == "All":
+#      identifiers = []
+#      for lab in labels:
+#          identifiers.append("All Countries")
+#      print(
+#          "You have decided to group your data according to the following criteria: "
+#          + partition
+#      )
+#  else:
+#      "Nada"
 
 #  if approach != 'Static':
 #  question        = "Please specify the amplitude of the sliding window (days) in the non static analysis"
@@ -227,22 +248,25 @@ significance = 0.05
 c_iter = 2
 
 
+
+# Execution logic for the actual calculations
+
 if approach == "Static":
 
-    positive_alpha_vec = []
-    negative_alpha_vec = []
-    positive_alpha_KS = []
-    negative_alpha_KS = []
-    positive_upper_bound = []
-    positive_lower_bound = []
-    negative_upper_bound = []
-    negative_lower_bound = []
-    positive_abs_length = []
-    positive_rel_length = []
-    negative_abs_length = []
-    negative_rel_length = []
-    x_min_right_vector = []
-    x_min_left_vector = []
+    #  positive_alpha_vec = []
+    #  negative_alpha_vec = []
+    #  positive_alpha_KS = []
+    #  negative_alpha_KS = []
+    #  positive_upper_bound = []
+    #  positive_lower_bound = []
+    #  negative_upper_bound = []
+    #  negative_lower_bound = []
+    #  positive_abs_length = []
+    #  positive_rel_length = []
+    #  negative_abs_length = []
+    #  negative_rel_length = []
+    #  x_min_right_vector = []
+    #  x_min_left_vector = []
 
     initial_index = database[0].index(initial_date)
     final_index = database[0].index(final_date)
@@ -279,795 +303,888 @@ if approach == "Static":
         print("I am analyzing the time series for " + labels[i - 1] + " between " + dates[0] + " and " + dates[-1])
         series = database[i][initial_index : (final_index + 1)]
 
-        print("You opted for the analysis of the " + input_type)
-        if input_type == "Returns":
-            X = np.array(series[tau:]) - np.array(series[0 : (len(series) - tau)])
-        elif input_type == "Relative returns":
-            X = np.array(series[tau:]) / np.array(series[0 : (len(series) - tau)]) - 1.0
-        else:
-            X = np.log(
-                np.array(series[tau:]) / np.array(series[0 : (len(series) - tau)])
-            )
+# Execution logic for the actual calculations
 
-        if standardize == "Yes":
-            if norm_timing == "Before" or norm_timing == "Both":
-                print("I am standardizing your time series")
-                S = X
-                m = np.mean(S)
-                v = np.std(S)
-                X = (S - m) / v
+#  if approach == "Static":
+#
+#      #  positive_alpha_vec = []
+#      #  negative_alpha_vec = []
+#      #  positive_alpha_KS = []
+#      #  negative_alpha_KS = []
+#      #  positive_upper_bound = []
+#      #  positive_lower_bound = []
+#      #  negative_upper_bound = []
+#      #  negative_lower_bound = []
+#      #  positive_abs_length = []
+#      #  positive_rel_length = []
+#      #  negative_abs_length = []
+#      #  negative_rel_length = []
+#      #  x_min_right_vector = []
+#      #  x_min_left_vector = []
+#
+#      initial_index = database[0].index(initial_date)
+#      final_index = database[0].index(final_date)
+#      dates = database[0][initial_index : (final_index + 1)]
+#      labelstep = (
+#          22
+#          if len(dates) <= 252
+#          else 66
+#          if (len(dates) > 252 and len(dates) <= 756)
+#          else 121
+#      )
+#      N = len(database)
+#
+#      tail_statistics = []
+#      BlockDict = {}
+#
+#      if input_type == "Returns":
+#          lab = "P(t+" + str(tau) + ") - P(t)"
+#      elif input_type == "Relative returns":
+#          lab = "P(t+" + str(tau) + ")/P(t) - 1.0"
+#      else:
+#          lab = r"$\log$" + "(P(t+" + str(tau) + ")/P(t))"
+#
+#      if abs_value == "Yes":
+#          lab = "|" + lab + "|"
+#
+#      for i in range(1, N, 1):
+#
+#          loglikelihood_ratio_right = []
+#          loglikelihood_pvalue_right = []
+#          loglikelihood_ratio_left = []
+#          loglikelihood_pvalue_left = []
+#
+#          print(
+#              "I am analyzing the time series for "
+#              + labels[i - 1]
+#              + " between "
+#              + dates[0]
+#              + " and "
+#              + dates[-1]
+#          )
+#          series = database[i][initial_index : (final_index + 1)]
+#
+#          print("You opted for the analysis of the " + input_type)
+#          if input_type == "Returns":
+#              X = np.array(series[tau:]) - np.array(series[0 : (len(series) - tau)])
+#          elif input_type == "Relative returns":
+#              X = np.array(series[tau:]) / np.array(series[0 : (len(series) - tau)]) - 1.0
+#          else:
+#              X = np.log(
+#                  np.array(series[tau:]) / np.array(series[0 : (len(series) - tau)])
+#              )
+#
+#          if standardize == "Yes":
+#              if norm_timing == "Before" or norm_timing == "Both":
+#                  print("I am standardizing your time series")
+#                  S = X
+#                  m = np.mean(S)
+#                  v = np.std(S)
+#                  X = (S - m) / v
+#
+#          if abs_value == "Yes":
+#              if abs_timing == "Before" or abs_timing == "Both":
+#                  print("I am taking the absolute value of your time series")
+#                  X = np.abs(X)
+#
+#          if identifiers[i - 1] in BlockDict:
+#              print(
+#                  "I found an existing group under the identifier : "
+#                  + identifiers[i - 1]
+#                  + ". Your time series is added in that pool"
+#              )
+#              BlockDict[identifiers[i - 1]].extend(X.tolist())
+#          else:
+#              print(
+#                  "I have not found an existing group under the identifier : "
+#                  + identifiers[i - 1]
+#                  + ". I create the group and i add your time series is added in that pool"
+#              )
+#              BlockDict[identifiers[i - 1]] = X.tolist()
+#
+#      key = BlockDict.keys()
+#      for el in key:
+#
+#          print(
+#              "I am analyzing the group identified by "
+#              + el
+#              + " between "
+#              + dates[0]
+#              + " and "
+#              + dates[-1]
+#          )
+#          X = BlockDict[el]
+#
+#          if standardize == "Yes":
+#              if norm_timing == "After" or norm_timing == "Both":
+#                  print("I am standardizing your time series")
+#                  S = X
+#                  m = np.mean(S)
+#                  v = np.std(S)
+#                  X = (S - m) / v
+#
+#          if abs_value == "Yes":
+#              if abs_timing == "After" or abs_timing == "Both":
+#                  print("I am taking the absolute value of your time series")
+#                  X = np.abs(X)
+#
+#          if tail_selected == "Right" or tail_selected == "Both":
+#              tail_plus = X
+#
+#          if tail_selected == "Left" or tail_selected == "Both":
+#              tail_neg = (np.dot(-1.0, tail_plus)).tolist()
+#
+#          if data_nature == "Continuous":
+#              if xmin_rule == "Clauset":
+#                  if tail_selected == "Right" or tail_selected == "Both":
+#                      fit_1 = pl.Fit(list(filter(lambda x: x != 0, tail_plus)))
+#                  if tail_selected == "Left" or tail_selected == "Both":
+#                      fit_2 = pl.Fit(list(filter(lambda x: x != 0, tail_neg)))
+#              elif xmin_rule == "Manual":
+#                  if tail_selected == "Right" or tail_selected == "Both":
+#                      fit_1 = pl.Fit(
+#                          list(filter(lambda x: x != 0, tail_plus), xmin=xmin_value)
+#                      )
+#                  if tail_selected == "Left" or tail_selected == "Both":
+#                      fit_2 = pl.Fit(
+#                          list(filter(lambda x: x != 0, tail_neg), xmin=xmin_value)
+#                      )
+#              else:
+#                  if tail_selected == "Right" or tail_selected == "Both":
+#                      fit_1 = pl.Fit(
+#                          list(filter(lambda x: x != 0, tail_plus)),
+#                          xmin=np.percentile(tail_plus, xmin_sign),
+#                      )
+#                  if tail_selected == "Left" or tail_selected == "Both":
+#                      fit_2 = pl.Fit(
+#                          list(filter(lambda x: x != 0, tail_neg)),
+#                          xmin=np.percentile(tail_neg, xmin_sign),
+#                      )
+#          else:
+#              if xmin_rule == "Clauset":
+#                  if tail_selected == "Right" or tail_selected == "Both":
+#                      fit_1 = pl.Fit(
+#                          list(filter(lambda x: x != 0, tail_plus), discrete=True)
+#                      )
+#                  if tail_selected == "Left" or tail_selected == "Both":
+#                      fit_2 = pl.Fit(
+#                          list(filter(lambda x: x != 0, tail_neg), discrete=True)
+#                      )
+#              elif xmin_rule == "Manual":
+#                  if tail_selected == "Right" or tail_selected == "Both":
+#                      fit_1 = pl.Fit(
+#                          list(filter(lambda x: x != 0, tail_plus)),
+#                          discrete=True,
+#                          xmin=xmin_value,
+#                      )
+#                  if tail_selected == "Left" or tail_selected == "Both":
+#                      fit_2 = pl.Fit(
+#                          list(filter(lambda x: x != 0, tail_neg)),
+#                          discrete=True,
+#                          xmin=xmin_value,
+#                      )
+#              else:
+#                  if tail_selected == "Right" or tail_selected == "Both":
+#                      fit_1 = pl.Fit(
+#                          list(filter(lambda x: x != 0, tail_plus)),
+#                          discrete=True,
+#                          xmin=np.percentile(tail_plus, xmin_sign),
+#                      )
+#                  if tail_selected == "Left" or tail_selected == "Both":
+#                      fit_2 = pl.Fit(
+#                          list(filter(lambda x: x != 0, tail_neg)),
+#                          discrete=True,
+#                          xmin=np.percentile(tail_neg, xmin_sign),
+#                      )
+#
+#          if tail_selected == "Right" or tail_selected == "Both":
+#              alpha1 = fit_1.power_law.alpha
+#              xmin1 = fit_1.power_law.xmin
+#              s_err1 = fit_1.power_law.sigma
+#              p1 = eng.plpva(
+#                  matlab.double(np.array(tail_plus).tolist()),
+#                  float(xmin1),
+#                  "reps",
+#                  float(c_iter),
+#                  "silent",
+#                  nargout=2,
+#              )
+#              positive_alpha_KS.append(p1[0])
+#              x_min_right_vector.append(xmin1)
+#
+#          if tail_selected == "Left" or tail_selected == "Both":
+#              alpha2 = fit_2.power_law.alpha
+#              xmin2 = fit_2.power_law.xmin
+#              s_err2 = fit_2.power_law.sigma
+#              p2 = eng.plpva(
+#                  matlab.double(np.array(tail_neg).tolist()),
+#                  float(xmin2),
+#                  "reps",
+#                  float(c_iter),
+#                  "silent",
+#                  nargout=2,
+#              )
+#              negative_alpha_KS.append(p2[0])
+#              x_min_left_vector.append(xmin2)
+#
+#          # R, p = fit_1.distribution_compare('power_law', 'exponential',normalized_ratio = True)
+#          # print(R)
+#          if tail_selected == "Right" or tail_selected == "Both":
+#
+#              plt.figure("Right tail scaling for group " + el)
+#              z.gca().set_position((0.1, 0.20, 0.83, 0.70))
+#              fig4 = fit_1.plot_ccdf(color="b", linewidth=2, label="Empirical CCDF")
+#              fit_1.power_law.plot_ccdf(
+#                  color="b", linestyle="-", label="Fitted CCDF", ax=fig4
+#              )
+#              fit_1.plot_pdf(color="r", linewidth=2, label="Empirical PDF", ax=fig4)
+#              fit_1.power_law.plot_pdf(
+#                  color="r", linestyle="-", label="Fitted PDF", ax=fig4
+#              )
+#              fig4.set_title(
+#                  "Log-log plot of the scaling properties of the right-tail for the group "
+#                  + el
+#                  + "\n"
+#                  + "Time Period: "
+#                  + dates[0]
+#                  + " - "
+#                  + dates[-1]
+#                  + ". Input series: "
+#                  + lab
+#              )
+#              fig4.grid()
+#              fig4.legend()
+#              col_labels = [r"$\hat{\alpha}$", "Standard err.", r"$x_{min}$", "size"]
+#              table_vals = []
+#              table_vals.append(
+#                  [
+#                      np.round(alpha1, 4),
+#                      np.round(s_err1, 4),
+#                      np.round(xmin1, 4),
+#                      len(list(filter(lambda x: x > xmin1, tail_plus)),),
+#                  ]
+#              )
+#              the_table = plt.table(
+#                  cellText=table_vals,
+#                  cellLoc="center",
+#                  colLabels=col_labels,
+#                  loc="bottom",
+#                  bbox=[0.0, -0.26, 1.0, 0.10],
+#              )
+#              the_table.auto_set_font_size(False)
+#              the_table.set_fontsize(10)
+#              the_table.scale(0.5, 0.5)
+#              plt.show()
+#
+#              plt.figure("Right tail comparison for group " + el)
+#              fig4 = fit_1.plot_ccdf(color="b", linewidth=2, label="Empirical CCDF")
+#              fit_1.power_law.plot_ccdf(
+#                  color="r", linestyle="-", label="Fitted PL", ax=fig4
+#              )
+#              fit_1.truncated_power_law.plot_ccdf(
+#                  color="g", linestyle="-", label="Fitted TPL", ax=fig4
+#              )
+#              fit_1.exponential.plot_ccdf(
+#                  color="c", linestyle="-", label="Fitted Exp.", ax=fig4
+#              )
+#              fit_1.lognormal.plot_ccdf(
+#                  color="m", linestyle="-", label="Fitted LogN.", ax=fig4
+#              )
+#              fig4.set_title(
+#                  "Comparison of the distributions fitted on the right-tail for the group "
+#                  + el
+#                  + "\n"
+#                  + "Time Period: "
+#                  + dates[0]
+#                  + " - "
+#                  + dates[-1]
+#                  + ". Input series: "
+#                  + lab
+#              )
+#              fig4.grid()
+#              fig4.legend()
+#              plt.show()
+#
+#              distribution_list = ["truncated_power_law", "exponential", "lognormal"]
+#              for pdf in distribution_list:
+#                  R, p = fit_1.distribution_compare(
+#                      "power_law", pdf, normalized_ratio=True
+#                  )
+#                  loglikelihood_ratio_right.append(R)
+#                  loglikelihood_pvalue_right.append(p)
+#
+#              z.figure("Log Likelihood ratio for the right tail for group " + el)
+#              z.bar(
+#                  np.arange(0, len(loglikelihood_ratio_right), 1),
+#                  loglikelihood_ratio_right,
+#                  1,
+#              )
+#              z.xticks(np.arange(0.5, len(distribution_list) + 0.5, 1), distribution_list)
+#              z.ylabel("R")
+#              z.title(
+#                  "Log-likelihood ratio for group "
+#                  + el
+#                  + "\n"
+#                  + "Time Period: "
+#                  + dates[0]
+#                  + " - "
+#                  + dates[-1]
+#                  + ". Input series: "
+#                  + lab
+#              )
+#              z.grid()
+#              z.show()
+#
+#              z.figure("Log Likelihood ratio p-values for the right tail for group " + el)
+#              z.bar(
+#                  np.arange(0, len(loglikelihood_pvalue_right), 1),
+#                  loglikelihood_pvalue_right,
+#                  1,
+#              )
+#              z.xticks(np.arange(0.5, len(distribution_list) + 0.5, 1), distribution_list)
+#              z.ylabel("R")
+#              z.title(
+#                  "Log-likelihood ratio p values for group "
+#                  + el
+#                  + "\n"
+#                  + "Time Period: "
+#                  + dates[0]
+#                  + " - "
+#                  + dates[-1]
+#                  + ". Input series: "
+#                  + lab
+#              )
+#              z.grid()
+#              z.show()
+#
+#          if tail_selected == "Left" or tail_selected == "Both":
+#
+#              plt.figure("Left tail scaling for group " + el)
+#              z.gca().set_position((0.1, 0.20, 0.83, 0.70))
+#              fig4 = fit_2.plot_ccdf(color="b", linewidth=2, label="Empirical CCDF")
+#              fit_2.power_law.plot_ccdf(
+#                  color="b", linestyle="-", label="Fitted CCDF", ax=fig4
+#              )
+#              fit_2.plot_pdf(color="r", linewidth=2, label="Empirical PDF", ax=fig4)
+#              fit_2.power_law.plot_pdf(
+#                  color="r", linestyle="-", label="Fitted PDF", ax=fig4
+#              )
+#              fig4.set_title(
+#                  "Log-log plot of the scaling properties of the left-tail for group "
+#                  + el
+#                  + "\n"
+#                  + "Time Period: "
+#                  + dates[0]
+#                  + " - "
+#                  + dates[-1]
+#                  + ". Input series: "
+#                  + lab
+#              )
+#              fig4.grid()
+#              fig4.legend()
+#              col_labels = [r"$\hat{\alpha}$", "Standard err.", r"$x_{min}$", "size"]
+#              table_vals = []
+#              table_vals.append(
+#                  [
+#                      np.round(alpha2, 4),
+#                      np.round(s_err2, 4),
+#                      np.round(xmin2, 4),
+#                      len(list(filter(lambda x: x > xmin2, tail_neg)),),
+#                  ]
+#              )
+#              the_table = plt.table(
+#                  cellText=table_vals,
+#                  cellLoc="center",
+#                  colLabels=col_labels,
+#                  loc="bottom",
+#                  bbox=[0.0, -0.26, 1.0, 0.10],
+#              )
+#              the_table.auto_set_font_size(False)
+#              the_table.set_fontsize(10)
+#              the_table.scale(0.5, 0.5)
+#              plt.show()
+#
+#              plt.figure("Left tail comparison for group " + el)
+#              fig4 = fit_2.plot_ccdf(color="b", linewidth=2, label="Empirical CCDF")
+#              fit_2.power_law.plot_ccdf(
+#                  color="r", linestyle="-", label="Fitted PL", ax=fig4
+#              )
+#              fit_2.truncated_power_law.plot_ccdf(
+#                  color="g", linestyle="-", label="Fitted TPL", ax=fig4
+#              )
+#              fit_2.exponential.plot_ccdf(
+#                  color="c", linestyle="-", label="Fitted Exp.", ax=fig4
+#              )
+#              fit_2.lognormal.plot_ccdf(
+#                  color="m", linestyle="-", label="Fitted LogN.", ax=fig4
+#              )
+#              fig4.set_title(
+#                  "Comparison of the distributions fitted on the left-tail for the group "
+#                  + el
+#                  + "\n"
+#                  + "Time Period: "
+#                  + dates[0]
+#                  + " - "
+#                  + dates[-1]
+#                  + ". Input series: "
+#                  + lab
+#              )
+#              fig4.grid()
+#              fig4.legend()
+#              plt.show()
+#
+#              distribution_list = ["truncated_power_law", "exponential", "lognormal"]
+#              for pdf in distribution_list:
+#                  R, p = fit_2.distribution_compare(
+#                      "power_law", pdf, normalized_ratio=True
+#                  )
+#                  loglikelihood_ratio_left.append(R)
+#                  loglikelihood_pvalue_left.append(p)
+#
+#              z.figure("Log Likelihood ratio for the left tail for group " + el)
+#              z.bar(
+#                  np.arange(0, len(loglikelihood_ratio_left), 1),
+#                  loglikelihood_ratio_left,
+#                  1,
+#              )
+#              z.xticks(np.arange(0.5, len(distribution_list) + 0.5, 1), distribution_list)
+#              z.ylabel("R")
+#              z.title(
+#                  "Log-likelihood ratio for group "
+#                  + el
+#                  + "\n"
+#                  + "Time Period: "
+#                  + dates[0]
+#                  + " - "
+#                  + dates[-1]
+#                  + ". Input series: "
+#                  + lab
+#              )
+#              z.grid()
+#              z.show()
+#
+#              z.figure("Log Likelihood ratio p-values for the left tail for group " + el)
+#              z.bar(
+#                  np.arange(0, len(loglikelihood_pvalue_left), 1),
+#                  loglikelihood_pvalue_left,
+#                  1,
+#              )
+#              z.xticks(np.arange(0.5, len(distribution_list) + 0.5, 1), distribution_list)
+#              z.ylabel("R")
+#              z.title(
+#                  "Log-likelihood ratio p values for group "
+#                  + el
+#                  + "\n"
+#                  + "Time Period: "
+#                  + dates[0]
+#                  + " - "
+#                  + dates[-1]
+#                  + ". Input series: "
+#                  + lab
+#              )
+#              z.grid()
+#              z.show()
+#
+#          if tail_selected == "Right" or tail_selected == "Both":
+#
+#              positive_alpha_vec.append(alpha1)
+#              positive_upper_bound.append(
+#                  alpha1 + (st.norm.ppf(1 - multiplier * significance)) * s_err1
+#              )
+#              positive_lower_bound.append(
+#                  alpha1 - (st.norm.ppf(1 - multiplier * significance)) * s_err1
+#              )
+#              positive_abs_length.append(
+#                  len(list(filter(lambda x: x >= xmin1, tail_plus)))
+#              )
+#              positive_rel_length.append(
+#                  len(
+#                      list(filter(lambda x: x >= xmin1, tail_plus))
+#                      / float(len(tail_plus))
+#                  )
+#              )
+#
+#          if tail_selected == "Left" or tail_selected == "Both":
+#              negative_alpha_vec.append(alpha2)
+#              negative_upper_bound.append(
+#                  alpha2 + (st.norm.ppf(1 - multiplier * significance)) * s_err2
+#              )
+#              negative_lower_bound.append(
+#                  alpha2 - (st.norm.ppf(1 - multiplier * significance)) * s_err2
+#              )
+#              negative_abs_length.append(
+#                  len(list(filter(lambda x: x >= xmin2, tail_neg)))
+#              )
+#              negative_rel_length.append(
+#                  len(list(filter(lambda x: x >= xmin2, tail_neg)) / float(len(tail_neg)))
+#              )
+#
+#          if tail_selected == "Both":
+#              row = [
+#                  alpha1,
+#                  alpha2,
+#                  xmin1,
+#                  xmin2,
+#                  s_err1,
+#                  s_err2,
+#                  len(list(filter(lambda x: x >= xmin1, tail_plus))),
+#                  len(list(filter(lambda x: x >= xmin2, tail_neg))),
+#                  p1[0],
+#                  p2[0],
+#              ]
+#          if tail_selected == "Right":
+#              row = [
+#                  alpha1,
+#                  0,
+#                  xmin1,
+#                  0,
+#                  s_err1,
+#                  0,
+#                  len(list(filter(lambda x: x >= xmin1, tail_plus))),
+#                  0,
+#                  p1[0],
+#                  0,
+#              ]
+#          if tail_selected == "Left":
+#              row = [
+#                  0,
+#                  alpha2,
+#                  0,
+#                  xmin2,
+#                  0,
+#                  s_err2,
+#                  0,
+#                  len(list(filter(lambda x: x >= xmin2, tail_neg))),
+#                  0,
+#                  p2[0],
+#              ]
+#
+#          tail_statistics.append(row)
+#
+#      # Preparing the figure
+#
+#      z.figure("Static alpha")
+#      z.gca().set_position((0.1, 0.20, 0.83, 0.70))
+#      if tail_selected == "Right" or tail_selected == "Both":
+#          z.plot(
+#              range(1, len(key) + 1, 1),
+#              positive_alpha_vec,
+#              marker="^",
+#              markersize=10.0,
+#              linewidth=0.0,
+#              color="green",
+#              label="Right tail",
+#          )
+#      if tail_selected == "Left" or tail_selected == "Both":
+#          z.plot(
+#              range(1, len(key) + 1, 1),
+#              negative_alpha_vec,
+#              marker="^",
+#              markersize=10.0,
+#              linewidth=0.0,
+#              color="red",
+#              label="Left tail",
+#          )
+#      z.xticks(range(1, len(key) + 1, 1), key)
+#      z.xlim(xmin=0.5, xmax=len(key) + 0.5)
+#      z.ylabel(r"$\alpha$")
+#      z.title(
+#          "Estimation of the "
+#          + r"$\alpha$"
+#          + "-right tail exponents using KS-Method"
+#          + "\n"
+#          + "Time Period: "
+#          + dates[0]
+#          + " - "
+#          + dates[-1]
+#          + ". Input series: "
+#          + lab
+#      )
+#      z.legend(
+#          bbox_to_anchor=(0.0, -0.175, 1.0, 0.02), ncol=2, mode="expand", borderaxespad=0
+#      )
+#      z.grid()
+#      z.show()
+#
+#      if tail_selected == "Right" or tail_selected == "Both":
+#
+#          # Confidence interval for the right tail
+#          z.figure("Confidence interval for the right tail")
+#          z.gca().set_position((0.1, 0.20, 0.83, 0.70))
+#          z.plot(
+#              range(1, len(key) + 1, 1),
+#              positive_alpha_vec,
+#              marker="o",
+#              markersize=7.0,
+#              linewidth=0.0,
+#              color="green",
+#              label="Right tail",
+#          )
+#          z.plot(
+#              range(1, len(key) + 1, 1),
+#              positive_upper_bound,
+#              marker="o",
+#              markersize=7.0,
+#              linewidth=0.0,
+#              color="purple",
+#              label="Upper bound",
+#          )
+#          z.plot(
+#              range(1, len(key) + 1, 1),
+#              positive_lower_bound,
+#              marker="o",
+#              markersize=7.0,
+#              linewidth=0.0,
+#              color="blue",
+#              label="Lower bound",
+#          )
+#          z.plot(range(0, len(key) + 2, 1), np.repeat(3, len(key) + 2), color="red")
+#          z.plot(range(0, len(key) + 2, 1), np.repeat(2, len(key) + 2), color="red")
+#          z.xticks(range(1, len(key) + 1, 1), key)
+#          z.xlim(xmin=0.5, xmax=len(key) + 0.5)
+#          z.ylabel(r"$\alpha$")
+#          z.title(
+#              "Confidence intervals for the "
+#              + r"$\alpha$"
+#              + "-right tail exponents "
+#              + "(c = "
+#              + str(1 - significance)
+#              + ")"
+#              + "\n"
+#              + "Time Period: "
+#              + dates[0]
+#              + " - "
+#              + dates[-1]
+#              + ". Input series: "
+#              + lab
+#          )
+#          z.legend(
+#              bbox_to_anchor=(0.0, -0.175, 1.0, 0.02),
+#              ncol=3,
+#              mode="expand",
+#              borderaxespad=0,
+#          )
+#          z.grid()
+#          z.show()
+#
+#      if tail_selected == "Left" or tail_selected == "Both":
+#
+#          # Confidence interval for the left tail
+#          z.figure("Confidence interval for the left tail")
+#          z.gca().set_position((0.1, 0.20, 0.83, 0.70))
+#          z.plot(
+#              range(1, len(key) + 1, 1),
+#              negative_alpha_vec,
+#              marker="o",
+#              markersize=7.0,
+#              linewidth=0.0,
+#              color="green",
+#              label="Left tail",
+#          )
+#          z.plot(
+#              range(1, len(key) + 1, 1),
+#              negative_upper_bound,
+#              marker="o",
+#              markersize=7.0,
+#              linewidth=0.0,
+#              color="purple",
+#              label="Upper bound",
+#          )
+#          z.plot(
+#              range(1, len(key) + 1, 1),
+#              negative_lower_bound,
+#              marker="o",
+#              markersize=7.0,
+#              linewidth=0.0,
+#              color="blue",
+#              label="Lower bound",
+#          )
+#          z.plot(range(0, len(key) + 2, 1), np.repeat(3, len(key) + 2), color="red")
+#          z.plot(range(0, len(key) + 2, 1), np.repeat(2, len(key) + 2), color="red")
+#          z.xticks(range(1, len(key) + 1, 1), key)
+#          z.xlim(xmin=0.5, xmax=len(key) + 0.5)
+#          z.ylabel(r"$\alpha$")
+#          z.title(
+#              "Confidence intervals for the "
+#              + r"$\alpha$"
+#              + "-left tail exponents "
+#              + "(c = "
+#              + str(1 - significance)
+#              + ")"
+#              + "\n"
+#              + "Time Period: "
+#              + dates[0]
+#              + " - "
+#              + dates[-1]
+#              + ". Input series: "
+#              + lab
+#          )
+#          z.legend(
+#              bbox_to_anchor=(0.0, -0.175, 1.0, 0.02),
+#              ncol=3,
+#              mode="expand",
+#              borderaxespad=0,
+#          )
+#          z.grid()
+#          z.show()
+#
+#      # Absolute length of the tail bar chart
+#
+#      z.figure("Absolute tail lengths")
+#      z.gca().set_position((0.1, 0.20, 0.83, 0.70))
+#      amplitude = 0.5
+#      if tail_selected == "Right" or tail_selected == "Both":
+#          z.bar(
+#              np.arange(0, 2 * len(key), 2),
+#              positive_abs_length,
+#              amplitude,
+#              color="green",
+#              label="Right tail",
+#          )
+#      if tail_selected == "Left" or tail_selected == "Both":
+#          z.bar(
+#              np.arange(amplitude, 2 * len(key) + amplitude, 2),
+#              negative_abs_length,
+#              amplitude,
+#              color="red",
+#              label="Left tail",
+#          )
+#      z.xticks(np.arange(amplitude, 2 * len(key) + amplitude, 2), key)
+#      z.ylabel("Tail length")
+#      z.title(
+#          "Bar chart representation of the length of the tails"
+#          + "\n"
+#          + "Time Period: "
+#          + dates[0]
+#          + " - "
+#          + dates[-1]
+#          + ". Input series: "
+#          + lab
+#      )
+#      z.legend(
+#          bbox_to_anchor=(0.0, -0.175, 1.0, 0.02), ncol=3, mode="expand", borderaxespad=0
+#      )
+#      z.grid()
+#      z.show()
+#
+#      # Absolute length of the tail bar chart
+#
+#      z.figure("Relative tail lengths")
+#      z.gca().set_position((0.1, 0.20, 0.83, 0.70))
+#      amplitude = 0.5
+#      if tail_selected == "Right" or tail_selected == "Both":
+#          z.bar(
+#              np.arange(0, 2 * len(key), 2),
+#              positive_rel_length,
+#              amplitude,
+#              color="green",
+#              label="Right tail",
+#          )
+#      if tail_selected == "Left" or tail_selected == "Both":
+#          z.bar(
+#              np.arange(amplitude, 2 * len(key) + amplitude, 2),
+#              negative_rel_length,
+#              amplitude,
+#              color="red",
+#              label="Left tail",
+#          )
+#      z.xticks(np.arange(amplitude, 2 * len(key) + amplitude, 2), key)
+#      z.ylabel("Tail relative length")
+#      z.title(
+#          "Bar chart representation of the relative length of the tails"
+#          + "\n"
+#          + "Time Period: "
+#          + dates[0]
+#          + " - "
+#          + dates[-1]
+#          + ". Input series: "
+#          + lab
+#      )
+#      z.legend(
+#          bbox_to_anchor=(0.0, -0.175, 1.0, 0.02), ncol=3, mode="expand", borderaxespad=0
+#      )
+#      z.grid()
+#      z.show()
+#
+#      # KS test outcome
+#
+#      z.figure("KS test p value for the tails")
+#      z.gca().set_position((0.1, 0.20, 0.83, 0.70))
+#      amplitude = 0.5
+#      if tail_selected == "Right" or tail_selected == "Both":
+#          z.bar(
+#              np.arange(0, 2 * len(key), 2),
+#              positive_alpha_KS,
+#              amplitude,
+#              color="green",
+#              label="Right tail",
+#          )
+#      if tail_selected == "Left" or tail_selected == "Both":
+#          z.bar(
+#              np.arange(amplitude, 2 * len(key) + amplitude, 2),
+#              negative_alpha_KS,
+#              amplitude,
+#              color="red",
+#              label="Left tail",
+#          )
+#      z.xticks(np.arange(amplitude, 2 * len(key) + amplitude, 2), key)
+#      z.ylabel("p-value")
+#      z.title(
+#          "KS-statistics: p-value obtained from Clauset algorithm"
+#          + "\n"
+#          + "Time Period: "
+#          + dates[0]
+#          + " - "
+#          + dates[-1]
+#          + ". Input series: "
+#          + lab
+#      )
+#      z.legend(
+#          bbox_to_anchor=(0.0, -0.175, 1.0, 0.02), ncol=3, mode="expand", borderaxespad=0
+#      )
+#      z.grid()
+#      z.show()
+#
+#      # Print the figures
+#      matrix_form = np.array(tail_statistics)
+#      matrix_form_transpose = np.transpose(matrix_form)
+#      filename = "TailStatistics_Overall.csv"
+#      df = pd.DataFrame(
+#          {
+#              "Input": key,
+#              "Positive Tail Exponent": matrix_form_transpose[0],
+#              "Negative Tail Exponent": matrix_form_transpose[1],
+#              "Positive Tail xmin": matrix_form_transpose[2],
+#              "Negative Tail xmin": matrix_form_transpose[3],
+#              "Positive Tail S.Err": matrix_form_transpose[4],
+#              "Negative Tail S.Err": matrix_form_transpose[5],
+#              "Positive Tail Size": matrix_form_transpose[6],
+#              "Negative Tail Size": matrix_form_transpose[7],
+#              "Positive Tail KS p-value": matrix_form_transpose[8],
+#              "Negative Tail KS p-value": matrix_form_transpose[9],
+#          }
+#      )
+#
+#      df = df[
+#          [
+#              "Input",
+#              "Positive Tail Exponent",
+#              "Negative Tail Exponent",
+#              "Positive Tail xmin",
+#              "Negative Tail xmin",
+#              "Positive Tail S.Err",
+#              "Negative Tail S.Err",
+#              "Positive Tail Size",
+#              "Negative Tail Size",
+#              "Positive Tail KS p-value",
+#              "Negative Tail KS p-value",
+#          ]
+#      ]
+#      df.to_csv(filename, index=False)
 
-        if abs_value == "Yes":
-            if abs_timing == "Before" or abs_timing == "Both":
-                print("I am taking the absolute value of your time series")
-                X = np.abs(X)
 
-        if identifiers[i - 1] in BlockDict:
-            print("I found an existing group under the identifier : " + identifiers[i - 1] + ". Your time series is added in that pool")
-            BlockDict[identifiers[i - 1]].extend(X.tolist())
-        else:
-            print("I have not found an existing group under the identifier : " + identifiers[i - 1] + ". I create the group and i add your time series is added in that pool")
-            BlockDict[identifiers[i - 1]] = X.tolist()
-
-    key = BlockDict.keys()
-    for el in key:
-
-        print("I am analyzing the group identified by " + el + " between " + dates[0] + " and " + dates[-1])
-        X = BlockDict[el]
-
-        if standardize == "Yes":
-            if norm_timing == "After" or norm_timing == "Both":
-                print("I am standardizing your time series")
-                S = X
-                m = np.mean(S)
-                v = np.std(S)
-                X = (S - m) / v
-
-        if abs_value == "Yes":
-            if abs_timing == "After" or abs_timing == "Both":
-                print("I am taking the absolute value of your time series")
-                X = np.abs(X)
-
-        if tail_selected == "Right" or tail_selected == "Both":
-            tail_plus = X
-
-        if tail_selected == "Left" or tail_selected == "Both":
-            tail_neg = (np.dot(-1.0, tail_plus)).tolist()
-
-        if data_nature == "Continuous":
-            if xmin_rule == "Clauset":
-                if tail_selected == "Right" or tail_selected == "Both":
-                    fit_1 = pl.Fit(list(filter(lambda x: x != 0, tail_plus)))
-                if tail_selected == "Left" or tail_selected == "Both":
-                    fit_2 = pl.Fit(list(filter(lambda x: x != 0, tail_neg)))
-            elif xmin_rule == "Manual":
-                if tail_selected == "Right" or tail_selected == "Both":
-                    fit_1 = pl.Fit(list(filter(lambda x: x != 0, tail_plus), xmin=xmin_value))
-                if tail_selected == "Left" or tail_selected == "Both":
-                    fit_2 = pl.Fit(list(filter(lambda x: x != 0, tail_neg), xmin=xmin_value))
-            else:
-                if tail_selected == "Right" or tail_selected == "Both":
-                    fit_1 = pl.Fit(
-                        list(filter(lambda x: x != 0, tail_plus)),
-                        xmin=np.percentile(tail_plus, xmin_sign),
-                    )
-                if tail_selected == "Left" or tail_selected == "Both":
-                    fit_2 = pl.Fit(
-                        list(filter(lambda x: x != 0, tail_neg)),
-                        xmin=np.percentile(tail_neg, xmin_sign),
-                    )
-        else:
-            if xmin_rule == "Clauset":
-                if tail_selected == "Right" or tail_selected == "Both":
-                    fit_1 = pl.Fit(list(filter(lambda x: x != 0, tail_plus), discrete=True))
-                if tail_selected == "Left" or tail_selected == "Both":
-                    fit_2 = pl.Fit(list(filter(lambda x: x != 0, tail_neg), discrete=True))
-            elif xmin_rule == "Manual":
-                if tail_selected == "Right" or tail_selected == "Both":
-                    fit_1 = pl.Fit(
-                        list(filter(lambda x: x != 0, tail_plus)),
-                        discrete=True,
-                        xmin=xmin_value,
-                    )
-                if tail_selected == "Left" or tail_selected == "Both":
-                    fit_2 = pl.Fit(
-                        list(filter(lambda x: x != 0, tail_neg)),
-                        discrete=True,
-                        xmin=xmin_value,
-                    )
-            else:
-                if tail_selected == "Right" or tail_selected == "Both":
-                    fit_1 = pl.Fit(
-                        list(filter(lambda x: x != 0, tail_plus)),
-                        discrete=True,
-                        xmin=np.percentile(tail_plus, xmin_sign),
-                    )
-                if tail_selected == "Left" or tail_selected == "Both":
-                    fit_2 = pl.Fit(
-                        list(filter(lambda x: x != 0, tail_neg)),
-                        discrete=True,
-                        xmin=np.percentile(tail_neg, xmin_sign),
-                    )
-
-        if tail_selected == "Right" or tail_selected == "Both":
-            alpha1 = fit_1.power_law.alpha
-            xmin1 = fit_1.power_law.xmin
-            s_err1 = fit_1.power_law.sigma
-            p1 = eng.plpva(
-                matlab.double(np.array(tail_plus).tolist()),
-                float(xmin1),
-                "reps",
-                float(c_iter),
-                "silent",
-                nargout=2,
-            )
-            positive_alpha_KS.append(p1[0])
-            x_min_right_vector.append(xmin1)
-
-        if tail_selected == "Left" or tail_selected == "Both":
-            alpha2 = fit_2.power_law.alpha
-            xmin2 = fit_2.power_law.xmin
-            s_err2 = fit_2.power_law.sigma
-            p2 = eng.plpva(
-                matlab.double(np.array(tail_neg).tolist()),
-                float(xmin2),
-                "reps",
-                float(c_iter),
-                "silent",
-                nargout=2,
-            )
-            negative_alpha_KS.append(p2[0])
-            x_min_left_vector.append(xmin2)
-
-        # R, p = fit_1.distribution_compare('power_law', 'exponential',normalized_ratio = True)
-        # print(R)
-        if tail_selected == "Right" or tail_selected == "Both":
-
-            plt.figure("Right tail scaling for group " + el)
-            z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            fig4 = fit_1.plot_ccdf(color="b", linewidth=2, label="Empirical CCDF")
-            fit_1.power_law.plot_ccdf(
-                color="b", linestyle="-", label="Fitted CCDF", ax=fig4
-            )
-            fit_1.plot_pdf(color="r", linewidth=2, label="Empirical PDF", ax=fig4)
-            fit_1.power_law.plot_pdf(
-                color="r", linestyle="-", label="Fitted PDF", ax=fig4
-            )
-            fig4.set_title(
-                "Log-log plot of the scaling properties of the right-tail for the group "
-                + el
-                + "\n"
-                + "Time Period: "
-                + dates[0]
-                + " - "
-                + dates[-1]
-                + ". Input series: "
-                + lab
-            )
-            fig4.grid()
-            fig4.legend()
-            col_labels = [r"$\hat{\alpha}$", "Standard err.", r"$x_{min}$", "size"]
-            table_vals = []
-            table_vals.append(
-                [
-                    np.round(alpha1, 4),
-                    np.round(s_err1, 4),
-                    np.round(xmin1, 4),
-                    len(list(filter(lambda x: x > xmin1, tail_plus)),)
-                ]
-            )
-            the_table = plt.table(
-                cellText=table_vals,
-                cellLoc="center",
-                colLabels=col_labels,
-                loc="bottom",
-                bbox=[0.0, -0.26, 1.0, 0.10],
-            )
-            the_table.auto_set_font_size(False)
-            the_table.set_fontsize(10)
-            the_table.scale(0.5, 0.5)
-            plt.show()
-
-            plt.figure("Right tail comparison for group " + el)
-            fig4 = fit_1.plot_ccdf(color="b", linewidth=2, label="Empirical CCDF")
-            fit_1.power_law.plot_ccdf(
-                color="r", linestyle="-", label="Fitted PL", ax=fig4
-            )
-            fit_1.truncated_power_law.plot_ccdf(
-                color="g", linestyle="-", label="Fitted TPL", ax=fig4
-            )
-            fit_1.exponential.plot_ccdf(
-                color="c", linestyle="-", label="Fitted Exp.", ax=fig4
-            )
-            fit_1.lognormal.plot_ccdf(
-                color="m", linestyle="-", label="Fitted LogN.", ax=fig4
-            )
-            fig4.set_title(
-                "Comparison of the distributions fitted on the right-tail for the group "
-                + el
-                + "\n"
-                + "Time Period: "
-                + dates[0]
-                + " - "
-                + dates[-1]
-                + ". Input series: "
-                + lab
-            )
-            fig4.grid()
-            fig4.legend()
-            plt.show()
-
-            distribution_list = ["truncated_power_law", "exponential", "lognormal"]
-            for pdf in distribution_list:
-                R, p = fit_1.distribution_compare(
-                    "power_law", pdf, normalized_ratio=True
-                )
-                loglikelihood_ratio_right.append(R)
-                loglikelihood_pvalue_right.append(p)
-
-            z.figure("Log Likelihood ratio for the right tail for group " + el)
-            z.bar(
-                np.arange(0, len(loglikelihood_ratio_right), 1),
-                loglikelihood_ratio_right,
-                1,
-            )
-            z.xticks(np.arange(0.5, len(distribution_list) + 0.5, 1), distribution_list)
-            z.ylabel("R")
-            z.title(
-                "Log-likelihood ratio for group "
-                + el
-                + "\n"
-                + "Time Period: "
-                + dates[0]
-                + " - "
-                + dates[-1]
-                + ". Input series: "
-                + lab
-            )
-            z.grid()
-            z.show()
-
-            z.figure("Log Likelihood ratio p-values for the right tail for group " + el)
-            z.bar(
-                np.arange(0, len(loglikelihood_pvalue_right), 1),
-                loglikelihood_pvalue_right,
-                1,
-            )
-            z.xticks(np.arange(0.5, len(distribution_list) + 0.5, 1), distribution_list)
-            z.ylabel("R")
-            z.title(
-                "Log-likelihood ratio p values for group "
-                + el
-                + "\n"
-                + "Time Period: "
-                + dates[0]
-                + " - "
-                + dates[-1]
-                + ". Input series: "
-                + lab
-            )
-            z.grid()
-            z.show()
-
-        if tail_selected == "Left" or tail_selected == "Both":
-
-            plt.figure("Left tail scaling for group " + el)
-            z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            fig4 = fit_2.plot_ccdf(color="b", linewidth=2, label="Empirical CCDF")
-            fit_2.power_law.plot_ccdf(
-                color="b", linestyle="-", label="Fitted CCDF", ax=fig4
-            )
-            fit_2.plot_pdf(color="r", linewidth=2, label="Empirical PDF", ax=fig4)
-            fit_2.power_law.plot_pdf(
-                color="r", linestyle="-", label="Fitted PDF", ax=fig4
-            )
-            fig4.set_title(
-                "Log-log plot of the scaling properties of the left-tail for group "
-                + el
-                + "\n"
-                + "Time Period: "
-                + dates[0]
-                + " - "
-                + dates[-1]
-                + ". Input series: "
-                + lab
-            )
-            fig4.grid()
-            fig4.legend()
-            col_labels = [r"$\hat{\alpha}$", "Standard err.", r"$x_{min}$", "size"]
-            table_vals = []
-            table_vals.append(
-                [
-                    np.round(alpha2, 4),
-                    np.round(s_err2, 4),
-                    np.round(xmin2, 4),
-                    len(list(filter(lambda x: x > xmin2, tail_neg)),)
-                ]
-            )
-            the_table = plt.table(
-                cellText=table_vals,
-                cellLoc="center",
-                colLabels=col_labels,
-                loc="bottom",
-                bbox=[0.0, -0.26, 1.0, 0.10],
-            )
-            the_table.auto_set_font_size(False)
-            the_table.set_fontsize(10)
-            the_table.scale(0.5, 0.5)
-            plt.show()
-
-            plt.figure("Left tail comparison for group " + el)
-            fig4 = fit_2.plot_ccdf(color="b", linewidth=2, label="Empirical CCDF")
-            fit_2.power_law.plot_ccdf(
-                color="r", linestyle="-", label="Fitted PL", ax=fig4
-            )
-            fit_2.truncated_power_law.plot_ccdf(
-                color="g", linestyle="-", label="Fitted TPL", ax=fig4
-            )
-            fit_2.exponential.plot_ccdf(
-                color="c", linestyle="-", label="Fitted Exp.", ax=fig4
-            )
-            fit_2.lognormal.plot_ccdf(
-                color="m", linestyle="-", label="Fitted LogN.", ax=fig4
-            )
-            fig4.set_title(
-                "Comparison of the distributions fitted on the left-tail for the group "
-                + el
-                + "\n"
-                + "Time Period: "
-                + dates[0]
-                + " - "
-                + dates[-1]
-                + ". Input series: "
-                + lab
-            )
-            fig4.grid()
-            fig4.legend()
-            plt.show()
-
-            distribution_list = ["truncated_power_law", "exponential", "lognormal"]
-            for pdf in distribution_list:
-                R, p = fit_2.distribution_compare(
-                    "power_law", pdf, normalized_ratio=True
-                )
-                loglikelihood_ratio_left.append(R)
-                loglikelihood_pvalue_left.append(p)
-
-            z.figure("Log Likelihood ratio for the left tail for group " + el)
-            z.bar(
-                np.arange(0, len(loglikelihood_ratio_left), 1),
-                loglikelihood_ratio_left,
-                1,
-            )
-            z.xticks(np.arange(0.5, len(distribution_list) + 0.5, 1), distribution_list)
-            z.ylabel("R")
-            z.title(
-                "Log-likelihood ratio for group "
-                + el
-                + "\n"
-                + "Time Period: "
-                + dates[0]
-                + " - "
-                + dates[-1]
-                + ". Input series: "
-                + lab
-            )
-            z.grid()
-            z.show()
-
-            z.figure("Log Likelihood ratio p-values for the left tail for group " + el)
-            z.bar(
-                np.arange(0, len(loglikelihood_pvalue_left), 1),
-                loglikelihood_pvalue_left,
-                1,
-            )
-            z.xticks(np.arange(0.5, len(distribution_list) + 0.5, 1), distribution_list)
-            z.ylabel("R")
-            z.title(
-                "Log-likelihood ratio p values for group "
-                + el
-                + "\n"
-                + "Time Period: "
-                + dates[0]
-                + " - "
-                + dates[-1]
-                + ". Input series: "
-                + lab
-            )
-            z.grid()
-            z.show()
-
-        if tail_selected == "Right" or tail_selected == "Both":
-
-            positive_alpha_vec.append(alpha1)
-            positive_upper_bound.append(
-                alpha1 + (st.norm.ppf(1 - multiplier * significance)) * s_err1
-            )
-            positive_lower_bound.append(
-                alpha1 - (st.norm.ppf(1 - multiplier * significance)) * s_err1
-            )
-            positive_abs_length.append(len(list(filter(lambda x: x >= xmin1, tail_plus))))
-            positive_rel_length.append(
-                len(list(filter(lambda x: x >= xmin1, tail_plus)) / float(len(tail_plus)))
-            )
-
-        if tail_selected == "Left" or tail_selected == "Both":
-            negative_alpha_vec.append(alpha2)
-            negative_upper_bound.append(
-                alpha2 + (st.norm.ppf(1 - multiplier * significance)) * s_err2
-            )
-            negative_lower_bound.append(
-                alpha2 - (st.norm.ppf(1 - multiplier * significance)) * s_err2
-            )
-            negative_abs_length.append(len(list(filter(lambda x: x >= xmin2, tail_neg))))
-            negative_rel_length.append(
-                len(list(filter(lambda x: x >= xmin2, tail_neg)) / float(len(tail_neg)))
-            )
-
-        if tail_selected == "Both":
-            row = [
-                alpha1,
-                alpha2,
-                xmin1,
-                xmin2,
-                s_err1,
-                s_err2,
-                len(list(filter(lambda x: x >= xmin1, tail_plus))),
-                len(list(filter(lambda x: x >= xmin2, tail_neg))),
-                p1[0],
-                p2[0],
-            ]
-        if tail_selected == "Right":
-            row = [
-                alpha1,
-                0,
-                xmin1,
-                0,
-                s_err1,
-                0,
-                len(list(filter(lambda x: x >= xmin1, tail_plus))),
-                0,
-                p1[0],
-                0,
-            ]
-        if tail_selected == "Left":
-            row = [
-                0,
-                alpha2,
-                0,
-                xmin2,
-                0,
-                s_err2,
-                0,
-                len(list(filter(lambda x: x >= xmin2, tail_neg))),
-                0,
-                p2[0],
-            ]
-
-        tail_statistics.append(row)
-
-    # Preparing the figure
-
-    z.figure("Static alpha")
-    z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-    if tail_selected == "Right" or tail_selected == "Both":
-        z.plot(
-            range(1, len(key) + 1, 1),
-            positive_alpha_vec,
-            marker="^",
-            markersize=10.0,
-            linewidth=0.0,
-            color="green",
-            label="Right tail",
-        )
-    if tail_selected == "Left" or tail_selected == "Both":
-        z.plot(
-            range(1, len(key) + 1, 1),
-            negative_alpha_vec,
-            marker="^",
-            markersize=10.0,
-            linewidth=0.0,
-            color="red",
-            label="Left tail",
-        )
-    z.xticks(range(1, len(key) + 1, 1), key)
-    z.xlim(xmin=0.5, xmax=len(key) + 0.5)
-    z.ylabel(r"$\alpha$")
-    z.title(
-        "Estimation of the "
-        + r"$\alpha$"
-        + "-right tail exponents using KS-Method"
-        + "\n"
-        + "Time Period: "
-        + dates[0]
-        + " - "
-        + dates[-1]
-        + ". Input series: "
-        + lab
-    )
-    z.legend(
-        bbox_to_anchor=(0.0, -0.175, 1.0, 0.02), ncol=2, mode="expand", borderaxespad=0
-    )
-    z.grid()
-    z.show()
-
-    if tail_selected == "Right" or tail_selected == "Both":
-
-        # Confidence interval for the right tail
-        z.figure("Confidence interval for the right tail")
-        z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-        z.plot(
-            range(1, len(key) + 1, 1),
-            positive_alpha_vec,
-            marker="o",
-            markersize=7.0,
-            linewidth=0.0,
-            color="green",
-            label="Right tail",
-        )
-        z.plot(
-            range(1, len(key) + 1, 1),
-            positive_upper_bound,
-            marker="o",
-            markersize=7.0,
-            linewidth=0.0,
-            color="purple",
-            label="Upper bound",
-        )
-        z.plot(
-            range(1, len(key) + 1, 1),
-            positive_lower_bound,
-            marker="o",
-            markersize=7.0,
-            linewidth=0.0,
-            color="blue",
-            label="Lower bound",
-        )
-        z.plot(range(0, len(key) + 2, 1), np.repeat(3, len(key) + 2), color="red")
-        z.plot(range(0, len(key) + 2, 1), np.repeat(2, len(key) + 2), color="red")
-        z.xticks(range(1, len(key) + 1, 1), key)
-        z.xlim(xmin=0.5, xmax=len(key) + 0.5)
-        z.ylabel(r"$\alpha$")
-        z.title(
-            "Confidence intervals for the "
-            + r"$\alpha$"
-            + "-right tail exponents "
-            + "(c = "
-            + str(1 - significance)
-            + ")"
-            + "\n"
-            + "Time Period: "
-            + dates[0]
-            + " - "
-            + dates[-1]
-            + ". Input series: "
-            + lab
-        )
-        z.legend(
-            bbox_to_anchor=(0.0, -0.175, 1.0, 0.02),
-            ncol=3,
-            mode="expand",
-            borderaxespad=0,
-        )
-        z.grid()
-        z.show()
-
-    if tail_selected == "Left" or tail_selected == "Both":
-
-        # Confidence interval for the left tail
-        z.figure("Confidence interval for the left tail")
-        z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-        z.plot(
-            range(1, len(key) + 1, 1),
-            negative_alpha_vec,
-            marker="o",
-            markersize=7.0,
-            linewidth=0.0,
-            color="green",
-            label="Left tail",
-        )
-        z.plot(
-            range(1, len(key) + 1, 1),
-            negative_upper_bound,
-            marker="o",
-            markersize=7.0,
-            linewidth=0.0,
-            color="purple",
-            label="Upper bound",
-        )
-        z.plot(
-            range(1, len(key) + 1, 1),
-            negative_lower_bound,
-            marker="o",
-            markersize=7.0,
-            linewidth=0.0,
-            color="blue",
-            label="Lower bound",
-        )
-        z.plot(range(0, len(key) + 2, 1), np.repeat(3, len(key) + 2), color="red")
-        z.plot(range(0, len(key) + 2, 1), np.repeat(2, len(key) + 2), color="red")
-        z.xticks(range(1, len(key) + 1, 1), key)
-        z.xlim(xmin=0.5, xmax=len(key) + 0.5)
-        z.ylabel(r"$\alpha$")
-        z.title(
-            "Confidence intervals for the "
-            + r"$\alpha$"
-            + "-left tail exponents "
-            + "(c = "
-            + str(1 - significance)
-            + ")"
-            + "\n"
-            + "Time Period: "
-            + dates[0]
-            + " - "
-            + dates[-1]
-            + ". Input series: "
-            + lab
-        )
-        z.legend(
-            bbox_to_anchor=(0.0, -0.175, 1.0, 0.02),
-            ncol=3,
-            mode="expand",
-            borderaxespad=0,
-        )
-        z.grid()
-        z.show()
-
-    # Absolute length of the tail bar chart
-
-    z.figure("Absolute tail lengths")
-    z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-    amplitude = 0.5
-    if tail_selected == "Right" or tail_selected == "Both":
-        z.bar(
-            np.arange(0, 2 * len(key), 2),
-            positive_abs_length,
-            amplitude,
-            color="green",
-            label="Right tail",
-        )
-    if tail_selected == "Left" or tail_selected == "Both":
-        z.bar(
-            np.arange(amplitude, 2 * len(key) + amplitude, 2),
-            negative_abs_length,
-            amplitude,
-            color="red",
-            label="Left tail",
-        )
-    z.xticks(np.arange(amplitude, 2 * len(key) + amplitude, 2), key)
-    z.ylabel("Tail length")
-    z.title(
-        "Bar chart representation of the length of the tails"
-        + "\n"
-        + "Time Period: "
-        + dates[0]
-        + " - "
-        + dates[-1]
-        + ". Input series: "
-        + lab
-    )
-    z.legend(
-        bbox_to_anchor=(0.0, -0.175, 1.0, 0.02), ncol=3, mode="expand", borderaxespad=0
-    )
-    z.grid()
-    z.show()
-
-    # Absolute length of the tail bar chart
-
-    z.figure("Relative tail lengths")
-    z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-    amplitude = 0.5
-    if tail_selected == "Right" or tail_selected == "Both":
-        z.bar(
-            np.arange(0, 2 * len(key), 2),
-            positive_rel_length,
-            amplitude,
-            color="green",
-            label="Right tail",
-        )
-    if tail_selected == "Left" or tail_selected == "Both":
-        z.bar(
-            np.arange(amplitude, 2 * len(key) + amplitude, 2),
-            negative_rel_length,
-            amplitude,
-            color="red",
-            label="Left tail",
-        )
-    z.xticks(np.arange(amplitude, 2 * len(key) + amplitude, 2), key)
-    z.ylabel("Tail relative length")
-    z.title(
-        "Bar chart representation of the relative length of the tails"
-        + "\n"
-        + "Time Period: "
-        + dates[0]
-        + " - "
-        + dates[-1]
-        + ". Input series: "
-        + lab
-    )
-    z.legend(
-        bbox_to_anchor=(0.0, -0.175, 1.0, 0.02), ncol=3, mode="expand", borderaxespad=0
-    )
-    z.grid()
-    z.show()
-
-    # KS test outcome
-
-    z.figure("KS test p value for the tails")
-    z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-    amplitude = 0.5
-    if tail_selected == "Right" or tail_selected == "Both":
-        z.bar(
-            np.arange(0, 2 * len(key), 2),
-            positive_alpha_KS,
-            amplitude,
-            color="green",
-            label="Right tail",
-        )
-    if tail_selected == "Left" or tail_selected == "Both":
-        z.bar(
-            np.arange(amplitude, 2 * len(key) + amplitude, 2),
-            negative_alpha_KS,
-            amplitude,
-            color="red",
-            label="Left tail",
-        )
-    z.xticks(np.arange(amplitude, 2 * len(key) + amplitude, 2), key)
-    z.ylabel("p-value")
-    z.title(
-        "KS-statistics: p-value obtained from Clauset algorithm"
-        + "\n"
-        + "Time Period: "
-        + dates[0]
-        + " - "
-        + dates[-1]
-        + ". Input series: "
-        + lab
-    )
-    z.legend(
-        bbox_to_anchor=(0.0, -0.175, 1.0, 0.02), ncol=3, mode="expand", borderaxespad=0
-    )
-    z.grid()
-    z.show()
-
-    # Print the figures
-    matrix_form = np.array(tail_statistics)
-    matrix_form_transpose = np.transpose(matrix_form)
-    filename = "TailStatistics_Overall.csv"
-    df = pd.DataFrame(
-        {
-            "Input": key,
-            "Positive Tail Exponent": matrix_form_transpose[0],
-            "Negative Tail Exponent": matrix_form_transpose[1],
-            "Positive Tail xmin": matrix_form_transpose[2],
-            "Negative Tail xmin": matrix_form_transpose[3],
-            "Positive Tail S.Err": matrix_form_transpose[4],
-            "Negative Tail S.Err": matrix_form_transpose[5],
-            "Positive Tail Size": matrix_form_transpose[6],
-            "Negative Tail Size": matrix_form_transpose[7],
-            "Positive Tail KS p-value": matrix_form_transpose[8],
-            "Negative Tail KS p-value": matrix_form_transpose[9],
-        }
-    )
-
-    df = df[
-        [
-            "Input",
-            "Positive Tail Exponent",
-            "Negative Tail Exponent",
-            "Positive Tail xmin",
-            "Negative Tail xmin",
-            "Positive Tail S.Err",
-            "Negative Tail S.Err",
-            "Positive Tail Size",
-            "Negative Tail Size",
-            "Positive Tail KS p-value",
-            "Negative Tail KS p-value",
-        ]
-    ]
-    df.to_csv(filename, index=False)
-
-else:
+#  elif approach == "Rolling" or approach == "Increasing":
+if approach == "Rolling" or approach == "Increasing":
 
     #  question      = "Do you want to save the sequential scaling plot?"
     #  choices      = ['Yes', 'No']
@@ -1472,242 +1589,242 @@ else:
                     loglikelihood_ratio_left[el] = [daily_l_ratio]
                     loglikelihood_pvalue_left[el] = [daily_l_p]
 
-            if plot_storing == "Yes":
-
-                directory = (
-                    motherpath
-                    + "PowerLawAnimation\\"
-                    + el
-                    + "\\"
-                    + begin_date[6:8]
-                    + "-"
-                    + begin_date[3:5]
-                    + "-"
-                    + begin_date[0:2]
-                    + "_"
-                    + end_date[6:8]
-                    + "-"
-                    + end_date[3:5]
-                    + "-"
-                    + end_date[0:2]
-                    + "\\"
-                )
-                try:
-                    os.makedirs(directory)
-                except OSError:
-                    if not os.path.isdir(directory):
-                        raise
-                os.chdir(directory)
-
-                if tail_selected == "Right" or tail_selected == "Both":
-
-                    plt.figure("Right tail scaling for group " + el)
-                    z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-                    fig4 = fit_1.plot_ccdf(
-                        color="b", linewidth=2, label="Empirical CCDF"
-                    )
-                    fit_1.power_law.plot_ccdf(
-                        color="b", linestyle="-", label="Fitted CCDF", ax=fig4
-                    )
-                    fit_1.plot_pdf(
-                        color="r", linewidth=2, label="Empirical PDF", ax=fig4
-                    )
-                    fit_1.power_law.plot_pdf(
-                        color="r", linestyle="-", label="Fitted PDF", ax=fig4
-                    )
-                    fig4.set_title(
-                        "Log-log plot of the scaling properties of the right-tail for the group "
-                        + el
-                        + "\n"
-                        + "Time Period: "
-                        + begin_date
-                        + " - "
-                        + end_date
-                        + ". Input series: "
-                        + lab
-                    )
-                    fig4.grid()
-                    fig4.legend()
-                    col_labels = [
-                        r"$\hat{\alpha}$",
-                        "Standard err.",
-                        r"$x_{min}$",
-                        "size",
-                    ]
-                    table_vals = []
-                    table_vals.append(
-                        [
-                            np.round(alpha1, 4),
-                            np.round(s_err1, 4),
-                            np.round(xmin1, 4),
-                            len(list(filter(lambda x: x > xmin1, tail_plus)),)
-                        ]
-                    )
-                    the_table = plt.table(
-                        cellText=table_vals,
-                        cellLoc="center",
-                        colLabels=col_labels,
-                        loc="bottom",
-                        bbox=[0.0, -0.26, 1.0, 0.10],
-                    )
-                    the_table.auto_set_font_size(False)
-                    the_table.set_fontsize(10)
-                    the_table.scale(0.5, 0.5)
-                    plt.savefig(
-                        "Right-tail scaling_"
-                        + begin_date
-                        + "_"
-                        + end_date
-                        + "_"
-                        + el
-                        + ".jpg"
-                    )
-                    plt.close()
-
-                    plt.figure("Right tail comparison for group " + el)
-                    fig4 = fit_1.plot_ccdf(
-                        color="b", linewidth=2, label="Empirical CCDF"
-                    )
-                    fit_1.power_law.plot_ccdf(
-                        color="r", linestyle="-", label="Fitted PL", ax=fig4
-                    )
-                    fit_1.truncated_power_law.plot_ccdf(
-                        color="g", linestyle="-", label="Fitted TPL", ax=fig4
-                    )
-                    fit_1.exponential.plot_ccdf(
-                        color="c", linestyle="-", label="Fitted Exp.", ax=fig4
-                    )
-                    fit_1.lognormal.plot_ccdf(
-                        color="m", linestyle="-", label="Fitted LogN.", ax=fig4
-                    )
-                    fig4.set_title(
-                        "Comparison of the distributions fitted on the right-tail for the group "
-                        + el
-                        + "\n"
-                        + "Time Period: "
-                        + dates[0]
-                        + " - "
-                        + dates[-1]
-                        + ". Input series: "
-                        + lab
-                    )
-                    fig4.grid()
-                    fig4.legend()
-                    plt.savefig(
-                        "Right-tail fitting comparison_"
-                        + begin_date
-                        + "_"
-                        + end_date
-                        + "_"
-                        + el
-                        + ".jpg"
-                    )
-                    plt.close()
-
-                if tail_selected == "Left" or tail_selected == "Both":
-
-                    plt.figure("Left tail scaling for group " + el)
-                    z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-                    fig4 = fit_2.plot_ccdf(
-                        color="b", linewidth=2, label="Empirical CCDF"
-                    )
-                    fit_2.power_law.plot_ccdf(
-                        color="b", linestyle="-", label="Fitted CCDF", ax=fig4
-                    )
-                    fit_2.plot_pdf(
-                        color="r", linewidth=2, label="Empirical PDF", ax=fig4
-                    )
-                    fit_2.power_law.plot_pdf(
-                        color="r", linestyle="-", label="Fitted PDF", ax=fig4
-                    )
-                    fig4.set_title(
-                        "Log-log plot of the scaling properties of the left-tail for group "
-                        + el
-                        + "\n"
-                        + "Time Period: "
-                        + begin_date
-                        + " - "
-                        + end_date
-                        + ". Input series: "
-                        + lab
-                    )
-                    fig4.grid()
-                    fig4.legend()
-                    col_labels = [
-                        r"$\hat{\alpha}$",
-                        "Standard err.",
-                        r"$x_{min}$",
-                        "size",
-                    ]
-                    table_vals = []
-                    table_vals.append(
-                        [
-                            np.round(alpha2, 4),
-                            np.round(s_err2, 4),
-                            np.round(xmin2, 4),
-                            len(list(filter(lambda x: x > xmin2, tail_neg)),)
-                        ]
-                    )
-                    the_table = plt.table(
-                        cellText=table_vals,
-                        cellLoc="center",
-                        colLabels=col_labels,
-                        loc="bottom",
-                        bbox=[0.0, -0.26, 1.0, 0.10],
-                    )
-                    the_table.auto_set_font_size(False)
-                    the_table.set_fontsize(10)
-                    the_table.scale(0.5, 0.5)
-                    plt.savefig(
-                        "Left-tail scaling_"
-                        + begin_date
-                        + "_"
-                        + end_date
-                        + "_"
-                        + el
-                        + ".jpg"
-                    )
-                    plt.close()
-
-                    plt.figure("Left tail comparison for group " + el)
-                    fig4 = fit_2.plot_ccdf(
-                        color="b", linewidth=2, label="Empirical CCDF"
-                    )
-                    fit_2.power_law.plot_ccdf(
-                        color="r", linestyle="-", label="Fitted PL", ax=fig4
-                    )
-                    fit_2.truncated_power_law.plot_ccdf(
-                        color="g", linestyle="-", label="Fitted TPL", ax=fig4
-                    )
-                    fit_2.exponential.plot_ccdf(
-                        color="c", linestyle="-", label="Fitted Exp.", ax=fig4
-                    )
-                    fit_2.lognormal.plot_ccdf(
-                        color="m", linestyle="-", label="Fitted LogN.", ax=fig4
-                    )
-                    fig4.set_title(
-                        "Comparison of the distributions fitted on the left-tail for the group "
-                        + el
-                        + "\n"
-                        + "Time Period: "
-                        + dates[0]
-                        + " - "
-                        + dates[-1]
-                        + ". Input series: "
-                        + lab
-                    )
-                    fig4.grid()
-                    fig4.legend()
-                    plt.savefig(
-                        "Left-tail fitting comparison_"
-                        + begin_date
-                        + "_"
-                        + end_date
-                        + "_"
-                        + el
-                        + ".jpg"
-                    )
-                    plt.close()
+            #  if plot_storing == "Yes":
+            #
+            #      directory = (
+            #          motherpath
+            #          + "PowerLawAnimation\\"
+            #          + el
+            #          + "\\"
+            #          + begin_date[6:8]
+            #          + "-"
+            #          + begin_date[3:5]
+            #          + "-"
+            #          + begin_date[0:2]
+            #          + "_"
+            #          + end_date[6:8]
+            #          + "-"
+            #          + end_date[3:5]
+            #          + "-"
+            #          + end_date[0:2]
+            #          + "\\"
+            #      )
+            #      try:
+            #          os.makedirs(directory)
+            #      except OSError:
+            #          if not os.path.isdir(directory):
+            #              raise
+            #      os.chdir(directory)
+            #
+            #      if tail_selected == "Right" or tail_selected == "Both":
+            #
+            #          plt.figure("Right tail scaling for group " + el)
+            #          z.gca().set_position((0.1, 0.20, 0.83, 0.70))
+            #          fig4 = fit_1.plot_ccdf(
+            #              color="b", linewidth=2, label="Empirical CCDF"
+            #          )
+            #          fit_1.power_law.plot_ccdf(
+            #              color="b", linestyle="-", label="Fitted CCDF", ax=fig4
+            #          )
+            #          fit_1.plot_pdf(
+            #              color="r", linewidth=2, label="Empirical PDF", ax=fig4
+            #          )
+            #          fit_1.power_law.plot_pdf(
+            #              color="r", linestyle="-", label="Fitted PDF", ax=fig4
+            #          )
+            #          fig4.set_title(
+            #              "Log-log plot of the scaling properties of the right-tail for the group "
+            #              + el
+            #              + "\n"
+            #              + "Time Period: "
+            #              + begin_date
+            #              + " - "
+            #              + end_date
+            #              + ". Input series: "
+            #              + lab
+            #          )
+            #          fig4.grid()
+            #          fig4.legend()
+            #          col_labels = [
+            #              r"$\hat{\alpha}$",
+            #              "Standard err.",
+            #              r"$x_{min}$",
+            #              "size",
+            #          ]
+            #          table_vals = []
+            #          table_vals.append(
+            #              [
+            #                  np.round(alpha1, 4),
+            #                  np.round(s_err1, 4),
+            #                  np.round(xmin1, 4),
+            #                  len(list(filter(lambda x: x > xmin1, tail_plus)),),
+            #              ]
+            #          )
+            #          the_table = plt.table(
+            #              cellText=table_vals,
+            #              cellLoc="center",
+            #              colLabels=col_labels,
+            #              loc="bottom",
+            #              bbox=[0.0, -0.26, 1.0, 0.10],
+            #          )
+            #          the_table.auto_set_font_size(False)
+            #          the_table.set_fontsize(10)
+            #          the_table.scale(0.5, 0.5)
+            #          plt.savefig(
+            #              "Right-tail scaling_"
+            #              + begin_date
+            #              + "_"
+            #              + end_date
+            #              + "_"
+            #              + el
+            #              + ".jpg"
+            #          )
+            #          plt.close()
+            #
+            #          plt.figure("Right tail comparison for group " + el)
+            #          fig4 = fit_1.plot_ccdf(
+            #              color="b", linewidth=2, label="Empirical CCDF"
+            #          )
+            #          fit_1.power_law.plot_ccdf(
+            #              color="r", linestyle="-", label="Fitted PL", ax=fig4
+            #          )
+            #          fit_1.truncated_power_law.plot_ccdf(
+            #              color="g", linestyle="-", label="Fitted TPL", ax=fig4
+            #          )
+            #          fit_1.exponential.plot_ccdf(
+            #              color="c", linestyle="-", label="Fitted Exp.", ax=fig4
+            #          )
+            #          fit_1.lognormal.plot_ccdf(
+            #              color="m", linestyle="-", label="Fitted LogN.", ax=fig4
+            #          )
+            #          fig4.set_title(
+            #              "Comparison of the distributions fitted on the right-tail for the group "
+            #              + el
+            #              + "\n"
+            #              + "Time Period: "
+            #              + dates[0]
+            #              + " - "
+            #              + dates[-1]
+            #              + ". Input series: "
+            #              + lab
+            #          )
+            #          fig4.grid()
+            #          fig4.legend()
+            #          plt.savefig(
+            #              "Right-tail fitting comparison_"
+            #              + begin_date
+            #              + "_"
+            #              + end_date
+            #              + "_"
+            #              + el
+            #              + ".jpg"
+            #          )
+            #          plt.close()
+            #
+            #      if tail_selected == "Left" or tail_selected == "Both":
+            #
+            #          plt.figure("Left tail scaling for group " + el)
+            #          z.gca().set_position((0.1, 0.20, 0.83, 0.70))
+            #          fig4 = fit_2.plot_ccdf(
+            #              color="b", linewidth=2, label="Empirical CCDF"
+            #          )
+            #          fit_2.power_law.plot_ccdf(
+            #              color="b", linestyle="-", label="Fitted CCDF", ax=fig4
+            #          )
+            #          fit_2.plot_pdf(
+            #              color="r", linewidth=2, label="Empirical PDF", ax=fig4
+            #          )
+            #          fit_2.power_law.plot_pdf(
+            #              color="r", linestyle="-", label="Fitted PDF", ax=fig4
+            #          )
+            #          fig4.set_title(
+            #              "Log-log plot of the scaling properties of the left-tail for group "
+            #              + el
+            #              + "\n"
+            #              + "Time Period: "
+            #              + begin_date
+            #              + " - "
+            #              + end_date
+            #              + ". Input series: "
+            #              + lab
+            #          )
+            #          fig4.grid()
+            #          fig4.legend()
+            #          col_labels = [
+            #              r"$\hat{\alpha}$",
+            #              "Standard err.",
+            #              r"$x_{min}$",
+            #              "size",
+            #          ]
+            #          table_vals = []
+            #          table_vals.append(
+            #              [
+            #                  np.round(alpha2, 4),
+            #                  np.round(s_err2, 4),
+            #                  np.round(xmin2, 4),
+            #                  len(list(filter(lambda x: x > xmin2, tail_neg)),),
+            #              ]
+            #          )
+            #          the_table = plt.table(
+            #              cellText=table_vals,
+            #              cellLoc="center",
+            #              colLabels=col_labels,
+            #              loc="bottom",
+            #              bbox=[0.0, -0.26, 1.0, 0.10],
+            #          )
+            #          the_table.auto_set_font_size(False)
+            #          the_table.set_fontsize(10)
+            #          the_table.scale(0.5, 0.5)
+            #          plt.savefig(
+            #              "Left-tail scaling_"
+            #              + begin_date
+            #              + "_"
+            #              + end_date
+            #              + "_"
+            #              + el
+            #              + ".jpg"
+            #          )
+            #          plt.close()
+            #
+            #          plt.figure("Left tail comparison for group " + el)
+            #          fig4 = fit_2.plot_ccdf(
+            #              color="b", linewidth=2, label="Empirical CCDF"
+            #          )
+            #          fit_2.power_law.plot_ccdf(
+            #              color="r", linestyle="-", label="Fitted PL", ax=fig4
+            #          )
+            #          fit_2.truncated_power_law.plot_ccdf(
+            #              color="g", linestyle="-", label="Fitted TPL", ax=fig4
+            #          )
+            #          fit_2.exponential.plot_ccdf(
+            #              color="c", linestyle="-", label="Fitted Exp.", ax=fig4
+            #          )
+            #          fit_2.lognormal.plot_ccdf(
+            #              color="m", linestyle="-", label="Fitted LogN.", ax=fig4
+            #          )
+            #          fig4.set_title(
+            #              "Comparison of the distributions fitted on the left-tail for the group "
+            #              + el
+            #              + "\n"
+            #              + "Time Period: "
+            #              + dates[0]
+            #              + " - "
+            #              + dates[-1]
+            #              + ". Input series: "
+            #              + lab
+            #          )
+            #          fig4.grid()
+            #          fig4.legend()
+            #          plt.savefig(
+            #              "Left-tail fitting comparison_"
+            #              + begin_date
+            #              + "_"
+            #              + end_date
+            #              + "_"
+            #              + el
+            #              + ".jpg"
+            #          )
+            #          plt.close()
 
             if tail_selected == "Both":
                 row = [
