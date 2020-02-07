@@ -248,60 +248,25 @@ significance = 0.05
 c_iter = 2
 
 
+# NOTE: these lists appear to only be used for plotting
+def xmin_lists_init():
+    labels = ("xmin_vec_right", "xmin_vec_left",)
+    # NOTE: length of each list is the number of days -> so use np.ndarray
+    return {l: [] for l in labels}
 
-# Execution logic for the actual calculations
 
-if approach == "Static":
+def results_dicts_init():
+    labels = ("pos_α_vec", "neg_α_vec", "pos_α_ks", "neg_α_ks",
+              "pos_up_bound", "neg_up_bound", "pos_low_bound", "neg_low_bound",
+              "pos_abs_len", "neg_abs_len", "pos_rel_len", "neg_rel_len",
+              "loglr_right", "loglr_left", "loglpv_right", "loglpv_left")
+    # NOTE: length of each list is the number of days -> so use np.ndarray
+    return {d: {} for d in labels}
 
-    #  positive_alpha_vec = []
-    #  negative_alpha_vec = []
-    #  positive_alpha_KS = []
-    #  negative_alpha_KS = []
-    #  positive_upper_bound = []
-    #  positive_lower_bound = []
-    #  negative_upper_bound = []
-    #  negative_lower_bound = []
-    #  positive_abs_length = []
-    #  positive_rel_length = []
-    #  negative_abs_length = []
-    #  negative_rel_length = []
-    #  x_min_right_vector = []
-    #  x_min_left_vector = []
+# lists to store the results for plotting (16 total)
+#  results = results_lists_init()
+# TODO: zero "results" container on each ticker iteration OR store them all
 
-    initial_index = database[0].index(initial_date)
-    final_index = database[0].index(final_date)
-    dates = database[0][initial_index : (final_index + 1)]
-    labelstep = (
-        22
-        if len(dates) <= 252
-        else 66
-        if (len(dates) > 252 and len(dates) <= 756)
-        else 121
-    )
-    N = len(database)
-
-    tail_statistics = []
-    BlockDict = {}
-
-    if input_type == "Returns":
-        lab = "P(t+" + str(tau) + ") - P(t)"
-    elif input_type == "Relative returns":
-        lab = "P(t+" + str(tau) + ")/P(t) - 1.0"
-    else:
-        lab = r"$\log$" + "(P(t+" + str(tau) + ")/P(t))"
-
-    if abs_value == "Yes":
-        lab = "|" + lab + "|"
-
-    for i in range(1, N, 1):
-
-        loglikelihood_ratio_right = []
-        loglikelihood_pvalue_right = []
-        loglikelihood_ratio_left = []
-        loglikelihood_pvalue_left = []
-
-        print("I am analyzing the time series for " + labels[i - 1] + " between " + dates[0] + " and " + dates[-1])
-        series = database[i][initial_index : (final_index + 1)]
 
 # Execution logic for the actual calculations
 
@@ -1213,26 +1178,10 @@ if approach == "Rolling" or approach == "Increasing":
 
     filtered_dates = []
 
-    positive_alpha_vec = {}
-    negative_alpha_vec = {}
-    positive_alpha_KS = {}
-    negative_alpha_KS = {}
-    positive_upper_bound = {}
-    positive_lower_bound = {}
-    negative_upper_bound = {}
-    negative_lower_bound = {}
-    positive_abs_length = {}
-    positive_rel_length = {}
-    negative_abs_length = {}
-    negative_rel_length = {}
-    loglikelihood_ratio_right = {}
-    loglikelihood_pvalue_right = {}
-    loglikelihood_ratio_left = {}
-    loglikelihood_pvalue_left = {}
     tail_statistics = {}
 
-    x_min_right_vector = []
-    x_min_left_vector = []
+    results = results_dicts_init()
+    xmin_vecs = xmin_lists_init()
 
     for l in range(initial_index, final_index + 1, sliding_window):
 
@@ -1321,12 +1270,12 @@ if approach == "Rolling" or approach == "Increasing":
                     xmin_today_right = (
                         pl.Fit(list(filter(lambda x: x != 0, tail_plus)))
                     ).power_law.xmin
-                    x_min_right_vector.append(xmin_today_right)
+                    xmin_vecs["xmin_vec_right"].append(xmin_today_right)
                 if tail_selected == "Left" or tail_selected == "Both":
                     xmin_today_left = (
                         pl.Fit(list(filter(lambda x: x != 0, tail_neg)))
                     ).power_law.xmin
-                    x_min_left_vector.append(xmin_today_left)
+                    xmin_vecs["xmin_vec_left"].append(xmin_today_left)
 
                 if xmin_rule == "Clauset":
                     if tail_selected == "Right" or tail_selected == "Both":
@@ -1335,11 +1284,11 @@ if approach == "Rolling" or approach == "Increasing":
                         fit_2 = pl.Fit(list(filter(lambda x: x != 0, tail_neg)))
                 elif xmin_rule == "Rolling":
                     if tail_selected == "Right" or tail_selected == "Both":
-                        if len(x_min_right_vector) < rolling_days + rolling_lags:
+                        if len(xmin_vecs["xmin_vec_right"]) < rolling_days + rolling_lags:
                             fit_1 = pl.Fit(list(filter(lambda x: x != 0, tail_plus)))
                         else:
                             avg_xmin = np.average(
-                                x_min_right_vector[
+                                xmin_vecs["xmin_vec_right"][
                                     -(rolling_days + rolling_lags) : -(rolling_lags)
                                 ]
                             )
@@ -1347,11 +1296,11 @@ if approach == "Rolling" or approach == "Increasing":
                                 list(filter(lambda x: x != 0, tail_plus)), xmin=avg_xmin
                             )
                     if tail_selected == "Left" or tail_selected == "Both":
-                        if len(x_min_left_vector) < rolling_days + rolling_lags:
+                        if len(xmin_vecs["xmin_vec_left"]) < rolling_days + rolling_lags:
                             fit_2 = pl.Fit(list(filter(lambda x: x != 0, tail_neg)))
                         else:
                             avg_xmin = np.average(
-                                x_min_left_vector[
+                                xmin_vecs["xmin_vec_left"][
                                     -(rolling_days + rolling_lags) : -(rolling_lags)
                                 ]
                             )
@@ -1384,12 +1333,12 @@ if approach == "Rolling" or approach == "Increasing":
                     xmin_today_right = (
                         pl.Fit(list(filter(lambda x: x != 0, tail_plus), discrete=True))
                     ).power_law.xmin
-                    x_min_right_vector.append(xmin_today_right)
+                    xmin_vecs["xmin_vec_right"].append(xmin_today_right)
                 if tail_selected == "Left" or tail_selected == "Both":
                     xmin_today_left = (
                         pl.Fit(list(filter(lambda x: x != 0, tail_neg), discrete=True))
                     ).power_law.xmin
-                    x_min_left_vector.append(xmin_today_left)
+                    xmin_vecs["xmin_vec_left"].append(xmin_today_left)
 
                 if xmin_rule == "Clauset":
                     if tail_selected == "Right" or tail_selected == "Both":
@@ -1402,13 +1351,13 @@ if approach == "Rolling" or approach == "Increasing":
                         )
                 elif xmin_rule == "Rolling":
                     if tail_selected == "Right" or tail_selected == "Both":
-                        if len(x_min_right_vector) < rolling_days + rolling_lags:
+                        if len(xmin_vecs["xmin_vec_right"]) < rolling_days + rolling_lags:
                             fit_1 = pl.Fit(
                                 list(filter(lambda x: x != 0, tail_plus), discrete=True)
                             )
                         else:
                             avg_xmin = np.average(
-                                x_min_right_vector[
+                                xmin_vecs["xmin_vec_right"][
                                     -(rolling_days + rolling_lags) : -(rolling_lags)
                                 ]
                             )
@@ -1418,13 +1367,13 @@ if approach == "Rolling" or approach == "Increasing":
                                 xmin=avg_xmin,
                             )
                     if tail_selected == "Left" or tail_selected == "Both":
-                        if len(x_min_left_vector) < rolling_days + rolling_lags:
+                        if len(xmin_vecs["xmin_vec_left"]) < rolling_days + rolling_lags:
                             fit_2 = pl.Fit(
                                 list(filter(lambda x: x != 0, tail_neg), discrete=True)
                             )
                         else:
                             avg_xmin = np.average(
-                                x_min_left_vector[
+                                xmin_vecs["xmin_vec_left"][
                                     -(rolling_days + rolling_lags) : -(rolling_lags)
                                 ]
                             )
@@ -1466,47 +1415,41 @@ if approach == "Rolling" or approach == "Increasing":
                 alpha1 = fit_1.power_law.alpha
                 xmin1 = fit_1.power_law.xmin
                 s_err1 = fit_1.power_law.sigma
-                p1 = plpva.plpva(np.array(tail_plus).tolist(), float(xmin1), 'reps', c_iter, 'silent')
-                #  p1 = eng.plpva(
-                #      matlab.double(np.array(tail_plus).tolist()),
-                #      float(xmin1),
-                #      "reps",
-                #      float(c_iter),
-                #      "silent",
-                #      nargout=2,
-                #  )
-                if el in positive_alpha_vec:
-                    positive_alpha_vec[el].append(alpha1)
-                    positive_upper_bound[el].append(
+                p1 = plpva.plpva(
+                    np.array(tail_plus).tolist(), float(xmin1), "reps", c_iter, "silent"
+                )
+                if el in results["pos_α_vec"]:
+                    results["pos_α_vec"][el].append(alpha1)
+                    results["pos_up_bound"][el].append(
                         alpha1 + (st.norm.ppf(1 - multiplier * significance)) * s_err1
                     )
-                    positive_lower_bound[el].append(
+                    results["pos_low_bound"][el].append(
                         alpha1 - (st.norm.ppf(1 - multiplier * significance)) * s_err1
                     )
-                    positive_abs_length[el].append(
+                    results["pos_abs_len"][el].append(
                         len(list(filter(lambda x: x >= xmin1, tail_plus)))
                     )
-                    positive_rel_length[el].append(
+                    results["pos_rel_len"][el].append(
                         len(list(filter(lambda x: x >= xmin1, tail_plus)))
                         / float(len(tail_plus))
                     )
-                    positive_alpha_KS[el].append(p1[0])
+                    results["pos_α_ks"][el].append(p1[0])
                 else:
-                    positive_alpha_vec[el] = [alpha1]
-                    positive_upper_bound[el] = [
+                    results["pos_α_vec"][el] = [alpha1]
+                    results["pos_up_bound"][el] = [
                         alpha1 + (st.norm.ppf(1 - multiplier * significance)) * s_err1
                     ]
-                    positive_lower_bound[el] = [
+                    results["pos_low_bound"][el] = [
                         alpha1 - (st.norm.ppf(1 - multiplier * significance)) * s_err1
                     ]
-                    positive_abs_length[el] = [
+                    results["pos_abs_len"][el] = [
                         len(list(filter(lambda x: x >= xmin1, tail_plus)))
                     ]
-                    positive_rel_length[el] = [
+                    results["pos_rel_len"][el] = [
                         len(list(filter(lambda x: x >= xmin1, tail_plus)))
                         / float(len(tail_plus))
                     ]
-                    positive_alpha_KS[el] = [p1[0]]
+                    results["pos_α_ks"][el] = [p1[0]]
 
                 distribution_list = ["truncated_power_law", "exponential", "lognormal"]
                 daily_r_ratio = []
@@ -1518,59 +1461,53 @@ if approach == "Rolling" or approach == "Increasing":
                     daily_r_ratio.append(R)
                     daily_r_p.append(p)
 
-                if el in loglikelihood_ratio_right:
-                    loglikelihood_ratio_right[el].append(daily_r_ratio)
-                    loglikelihood_pvalue_right[el].append(daily_r_p)
+                if el in results["loglr_right"]:
+                    results["loglr_right"][el].append(daily_r_ratio)
+                    results["loglpv_right"][el].append(daily_r_p)
                 else:
-                    loglikelihood_ratio_right[el] = [daily_r_ratio]
-                    loglikelihood_pvalue_right[el] = [daily_r_p]
+                    results["loglr_right"][el] = [daily_r_ratio]
+                    results["loglpv_right"][el] = [daily_r_p]
 
             if tail_selected == "Left" or tail_selected == "Both":
 
                 alpha2 = fit_2.power_law.alpha
                 xmin2 = fit_2.power_law.xmin
                 s_err2 = fit_2.power_law.sigma
-                p2 = plpva.plpva(np.array(tail_neg).tolist(), float(xmin2), 'reps', c_iter, 'silent')
-                #  p2 = eng.plpva(
-                #      matlab.double(np.array(tail_neg).tolist()),
-                #      float(xmin2),
-                #      "reps",
-                #      float(c_iter),
-                #      "silent",
-                #      nargout=2,
-                #  )
-                if el in negative_alpha_vec:
-                    negative_alpha_vec[el].append(alpha2)
-                    negative_upper_bound[el].append(
+                p2 = plpva.plpva(
+                    np.array(tail_neg).tolist(), float(xmin2), "reps", c_iter, "silent"
+                )
+                if el in results["neg_α_vec"]:
+                    results["neg_α_vec"][el].append(alpha2)
+                    results["neg_up_bound"][el].append(
                         alpha2 + (st.norm.ppf(1 - multiplier * significance)) * s_err2
                     )
-                    negative_lower_bound[el].append(
+                    results["neg_low_bound"][el].append(
                         alpha2 - (st.norm.ppf(1 - multiplier * significance)) * s_err2
                     )
-                    negative_abs_length[el].append(
+                    results["neg_abs_len"][el].append(
                         len(list(filter(lambda x: x >= xmin2, tail_neg)))
                     )
-                    negative_rel_length[el].append(
+                    results["neg_rel_len"][el].append(
                         len(list(filter(lambda x: x >= xmin2, tail_neg)))
                         / float(len(tail_neg))
                     )
-                    negative_alpha_KS[el].append(p2[0])
+                    results["neg_α_ks"][el].append(p2[0])
                 else:
-                    negative_alpha_vec[el] = [alpha2]
-                    negative_upper_bound[el] = [
+                    results["neg_α_vec"][el] = [alpha2]
+                    results["neg_up_bound"][el] = [
                         alpha2 + (st.norm.ppf(1 - multiplier * significance)) * s_err2
                     ]
-                    negative_lower_bound[el] = [
+                    results["neg_low_bound"][el] = [
                         alpha2 - (st.norm.ppf(1 - multiplier * significance)) * s_err2
                     ]
-                    negative_abs_length[el] = [
+                    results["neg_abs_len"][el] = [
                         len(list(filter(lambda x: x >= xmin2, tail_neg)))
                     ]
-                    negative_rel_length[el] = [
+                    results["neg_rel_len"][el] = [
                         len(list(filter(lambda x: x >= xmin2, tail_neg)))
                         / float(len(tail_neg))
                     ]
-                    negative_alpha_KS[el] = [p2[0]]
+                    results["neg_α_ks"][el] = [p2[0]]
 
                 distribution_list = ["truncated_power_law", "exponential", "lognormal"]
                 daily_l_ratio = []
@@ -1582,12 +1519,12 @@ if approach == "Rolling" or approach == "Increasing":
                     daily_l_ratio.append(R)
                     daily_l_p.append(p)
 
-                if el in loglikelihood_ratio_left:
-                    loglikelihood_ratio_left[el].append(daily_l_ratio)
-                    loglikelihood_pvalue_left[el].append(daily_l_p)
+                if el in results["loglr_left"]:
+                    results["loglr_left"][el].append(daily_l_ratio)
+                    results["loglpv_left"][el].append(daily_l_p)
                 else:
-                    loglikelihood_ratio_left[el] = [daily_l_ratio]
-                    loglikelihood_pvalue_left[el] = [daily_l_p]
+                    results["loglr_left"][el] = [daily_l_ratio]
+                    results["loglpv_left"][el] = [daily_l_p]
 
             #  if plot_storing == "Yes":
             #
@@ -1917,7 +1854,7 @@ if approach == "Rolling" or approach == "Increasing":
 
     if tail_selected == "Right" or tail_selected == "Both":
         max_key, max_value = max(
-            positive_alpha_vec.items(), key=lambda x: len(set(x[1]))
+            results["pos_α_vec"].items(), key=lambda x: len(set(x[1]))
         )
 
         z.figure("Cross sectional analysis for the positive tail")
@@ -1925,19 +1862,19 @@ if approach == "Rolling" or approach == "Increasing":
         key = BlockDict.keys()
         for el in key:
             z.plot(
-                np.arange(0.5, len(positive_alpha_vec[el]) + 0.5, 1),
-                positive_alpha_vec[el],
+                np.arange(0.5, len(results["pos_α_vec"][el]) + 0.5, 1),
+                results["pos_α_vec"][el],
                 marker="o",
                 label=el,
             )
-        z.plot(np.repeat(3, len(positive_alpha_vec[max_key]) + 1), color="red")
-        z.plot(np.repeat(2, len(positive_alpha_vec[max_key]) + 1), color="red")
+        z.plot(np.repeat(3, len(results["pos_α_vec"][max_key]) + 1), color="red")
+        z.plot(np.repeat(2, len(results["pos_α_vec"][max_key]) + 1), color="red")
         z.ylabel(r"$\alpha$")
-        z.xlim(xmin=0.0, xmax=len(positive_alpha_vec[max_key]))
+        z.xlim(xmin=0.0, xmax=len(results["pos_α_vec"][max_key]))
         z.xticks(
             range(
                 0,
-                len(positive_alpha_vec[max_key]),
+                len(results["pos_α_vec"][max_key]),
                 int(np.maximum(int(labelstep / float(sliding_window)), 1)),
             ),
             [
@@ -1970,19 +1907,19 @@ if approach == "Rolling" or approach == "Increasing":
                 "Histogram of positive tail alphas for " + el, figsize=(8, 6), dpi=100
             )
             z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            IQR = np.percentile(positive_alpha_vec[el], 75) - np.percentile(
-                positive_alpha_vec[el], 25
+            IQR = np.percentile(results["pos_α_vec"][el], 75) - np.percentile(
+                results["pos_α_vec"][el], 25
             )
-            h = 2 * IQR * np.power(len(positive_alpha_vec[el]), -1.0 / 3.0)
+            h = 2 * IQR * np.power(len(results["pos_α_vec"][el]), -1.0 / 3.0)
             nbins = np.int(
-                (np.max(positive_alpha_vec[el]) - np.min(positive_alpha_vec[el]))
+                (np.max(results["pos_α_vec"][el]) - np.min(results["pos_α_vec"][el]))
                 / float(h)
             )
             # Building the histogram and plotting the relevant vertical lines
-            z.hist(positive_alpha_vec[el], nbins, color="red")
-            out1, bins = z.histogram(positive_alpha_vec[el], nbins)
+            z.hist(results["pos_α_vec"][el], nbins, color="red")
+            out1, bins = z.histogram(results["pos_α_vec"][el], nbins)
             z.plot(
-                np.repeat(np.mean(positive_alpha_vec[el]), np.max(out1) + 1),
+                np.repeat(np.mean(results["pos_α_vec"][el]), np.max(out1) + 1),
                 range(0, np.max(out1) + 1, 1),
                 color="blue",
                 linewidth=1.5,
@@ -2003,7 +1940,7 @@ if approach == "Rolling" or approach == "Increasing":
                 + dates[-1]
             )
             z.xlim(
-                xmin=np.min(positive_alpha_vec[el]), xmax=np.max(positive_alpha_vec[el])
+                xmin=np.min(results["pos_α_vec"][el]), xmax=np.max(results["pos_α_vec"][el])
             )
             z.ylim(ymin=0, ymax=np.max(out1))
             z.legend()
@@ -2018,10 +1955,10 @@ if approach == "Rolling" or approach == "Increasing":
             table_vals = []
             table_vals.append(
                 [
-                    np.round(np.mean(positive_alpha_vec[el]), 4),
-                    np.round(np.std(positive_alpha_vec[el]), 4),
-                    np.round(np.min(positive_alpha_vec[el]), 4),
-                    np.round(np.max(positive_alpha_vec[el]), 4),
+                    np.round(np.mean(results["pos_α_vec"][el]), 4),
+                    np.round(np.std(results["pos_α_vec"][el]), 4),
+                    np.round(np.min(results["pos_α_vec"][el]), 4),
+                    np.round(np.max(results["pos_α_vec"][el]), 4),
                 ]
             )
             the_table = plt.table(
@@ -2038,7 +1975,7 @@ if approach == "Rolling" or approach == "Increasing":
 
     if tail_selected == "Left" or tail_selected == "Both":
         max_key, max_value = max(
-            negative_alpha_vec.items(), key=lambda x: len(set(x[1]))
+            results["neg_α_vec"].items(), key=lambda x: len(set(x[1]))
         )
 
         z.figure("Cross sectional analysis for the negative tail")
@@ -2046,19 +1983,19 @@ if approach == "Rolling" or approach == "Increasing":
         key = BlockDict.keys()
         for el in key:
             z.plot(
-                np.arange(0.5, len(negative_alpha_vec[el]) + 0.5, 1),
-                negative_alpha_vec[el],
+                np.arange(0.5, len(results["neg_α_vec"][el]) + 0.5, 1),
+                results["neg_α_vec"][el],
                 marker="o",
                 label=el,
             )
-        z.plot(np.repeat(3, len(negative_alpha_vec[max_key]) + 1), color="red")
-        z.plot(np.repeat(2, len(negative_alpha_vec[max_key]) + 1), color="red")
+        z.plot(np.repeat(3, len(results["neg_α_vec"][max_key]) + 1), color="red")
+        z.plot(np.repeat(2, len(results["neg_α_vec"][max_key]) + 1), color="red")
         z.ylabel(r"$\alpha$")
-        z.xlim(xmin=0.0, xmax=len(negative_alpha_vec[max_key]))
+        z.xlim(xmin=0.0, xmax=len(results["neg_α_vec"][max_key]))
         z.xticks(
             range(
                 0,
-                len(negative_alpha_vec[max_key]),
+                len(results["neg_α_vec"][max_key]),
                 int(labelstep / float(sliding_window)),
             ),
             [
@@ -2091,19 +2028,19 @@ if approach == "Rolling" or approach == "Increasing":
                 "Histogram of negative tail alphas for " + el, figsize=(8, 6), dpi=100
             )
             z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-            IQR = np.percentile(negative_alpha_vec[el], 75) - np.percentile(
-                negative_alpha_vec[el], 25
+            IQR = np.percentile(results["neg_α_vec"][el], 75) - np.percentile(
+                results["neg_α_vec"][el], 25
             )
-            h = 2 * IQR * np.power(len(negative_alpha_vec[el]), -1.0 / 3.0)
+            h = 2 * IQR * np.power(len(results["neg_α_vec"][el]), -1.0 / 3.0)
             nbins = np.int(
-                (np.max(negative_alpha_vec[el]) - np.min(negative_alpha_vec[el]))
+                (np.max(results["neg_α_vec"][el]) - np.min(results["neg_α_vec"][el]))
                 / float(h)
             )
             # Building the histogram and plotting the relevant vertical lines
-            z.hist(negative_alpha_vec[el], nbins, color="red")
-            out1, bins = z.histogram(negative_alpha_vec[el], nbins)
+            z.hist(results["neg_α_vec"][el], nbins, color="red")
+            out1, bins = z.histogram(results["neg_α_vec"][el], nbins)
             z.plot(
-                np.repeat(np.mean(negative_alpha_vec[el]), np.max(out1) + 1),
+                np.repeat(np.mean(results["neg_α_vec"][el]), np.max(out1) + 1),
                 range(0, np.max(out1) + 1, 1),
                 color="blue",
                 linewidth=1.5,
@@ -2124,7 +2061,7 @@ if approach == "Rolling" or approach == "Increasing":
                 + dates[-1]
             )
             z.xlim(
-                xmin=np.min(negative_alpha_vec[el]), xmax=np.max(negative_alpha_vec[el])
+                xmin=np.min(results["neg_α_vec"][el]), xmax=np.max(results["neg_α_vec"][el])
             )
             z.ylim(ymin=0, ymax=np.max(out1))
             z.legend()
@@ -2139,10 +2076,10 @@ if approach == "Rolling" or approach == "Increasing":
             table_vals = []
             table_vals.append(
                 [
-                    np.round(np.mean(negative_alpha_vec[el]), 4),
-                    np.round(np.std(negative_alpha_vec[el]), 4),
-                    np.round(np.min(negative_alpha_vec[el]), 4),
-                    np.round(np.max(negative_alpha_vec[el]), 4),
+                    np.round(np.mean(results["neg_α_vec"][el]), 4),
+                    np.round(np.std(results["neg_α_vec"][el]), 4),
+                    np.round(np.min(results["neg_α_vec"][el]), 4),
+                    np.round(np.max(results["neg_α_vec"][el]), 4),
                 ]
             )
             the_table = plt.table(
