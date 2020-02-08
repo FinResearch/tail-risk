@@ -1248,6 +1248,19 @@ if approach == "Rolling" or approach == "Increasing":
                     print("I am taking the absolute value of your time series")
                     X = np.abs(X)
 
+            # NOTE: standardization & absolutization conditional
+            #       below slightly different
+            #  if standardize == "Yes":
+            #      if norm_timing == "Before" or norm_timing == "Both":
+            #          print("I am standardizing your time series")
+            #          S = X
+            #          m = np.mean(S)
+            #          v = np.std(S)
+            #          X = (S - m) / v
+            #  if abs_value == "Yes":
+            #      if abs_timing == "Before" or abs_timing == "Both":
+            #          print("I am taking the absolute value of your time series")
+            #          X = np.abs(X)
             if identifiers[i - 1] in BlockDict:
                 print("I found an existing group under the identifier : " + identifiers[i - 1] + ". Your time series is added in that pool")
                 print(
@@ -1274,21 +1287,18 @@ if approach == "Rolling" or approach == "Increasing":
             )
 
             X = BlockDict[el]
-            if standardize == "Yes":
-                if norm_timing == "After" or norm_timing == "Both":
-                    print("I am standardizing your time series")
-                    S = X
-                    m = np.mean(S)
-                    v = np.std(S)
-                    X = (S - m) / v
 
-            if abs_value == "Yes":
-                if abs_timing == "After" or abs_timing == "Both":
-                    print("I am taking the absolute value of your time series")
-                    X = np.abs(X)
-
-            if tail_selected == "Right" or tail_selected == "Both":
-                tail_plus = X
+            #  if standardize == "Yes":
+            #      if norm_timing == "After" or norm_timing == "Both":
+            #          print("I am standardizing your time series")
+            #          S = X
+            #          m = np.mean(S)
+            #          v = np.std(S)
+            #          X = (S - m) / v
+            #  if abs_value == "Yes":
+            #      if abs_timing == "After" or abs_timing == "Both":
+            #          print("I am taking the absolute value of your time series")
+            #          X = np.abs(X)
 
             if tail_selected == "Left" or tail_selected == "Both":
                 tail_neg = (np.dot(-1.0, tail_plus)).tolist()
@@ -1411,33 +1421,87 @@ if approach == "Rolling" or approach == "Increasing":
                                 discrete=True,
                                 xmin=avg_xmin,
                             )
-
-                elif xmin_rule == "Manual":
-                    if tail_selected == "Right" or tail_selected == "Both":
-                        fit_1 = pl.Fit(
-                            list(filter(lambda x: x != 0, tail_plus)),
-                            discrete=True,
-                            xmin=xmin_value,
-                        )
-                    if tail_selected == "Left" or tail_selected == "Both":
-                        fit_2 = pl.Fit(
-                            list(filter(lambda x: x != 0, tail_neg)),
-                            discrete=True,
-                            xmin=xmin_value,
-                        )
-                else:
-                    if tail_selected == "Right" or tail_selected == "Both":
-                        fit_1 = pl.Fit(
-                            list(filter(lambda x: x != 0, tail_plus)),
-                            discrete=True,
-                            xmin=np.percentile(tail_plus, xmin_sign),
-                        )
-                    if tail_selected == "Left" or tail_selected == "Both":
-                        fit_2 = pl.Fit(
-                            list(filter(lambda x: x != 0, tail_neg)),
-                            discrete=True,
-                            xmin=np.percentile(tail_neg, xmin_sign),
-                        )
+            #  elif data_nature == "Discrete":
+            #      if tail_selected == "Right" or tail_selected == "Both":
+            #          xmin_today_right = (
+            #              pl.Fit(list(filter(lambda x: x != 0, tail_plus), discrete=True))
+            #          ).power_law.xmin
+            #          xmin_vecs["xmin_vec_right"].append(xmin_today_right)
+            #      if tail_selected == "Left" or tail_selected == "Both":
+            #          xmin_today_left = (
+            #              pl.Fit(list(filter(lambda x: x != 0, tail_neg), discrete=True))
+            #          ).power_law.xmin
+            #          xmin_vecs["xmin_vec_left"].append(xmin_today_left)
+            #
+            #      if xmin_rule == "Clauset":
+            #          if tail_selected == "Right" or tail_selected == "Both":
+            #              fit_1 = pl.Fit(
+            #                  list(filter(lambda x: x != 0, tail_plus), discrete=True)
+            #              )
+            #          if tail_selected == "Left" or tail_selected == "Both":
+            #              fit_2 = pl.Fit(
+            #                  list(filter(lambda x: x != 0, tail_neg), discrete=True)
+            #              )
+            #      elif xmin_rule == "Rolling":
+            #          if tail_selected == "Right" or tail_selected == "Both":
+            #              if len(xmin_vecs["xmin_vec_right"]) < rolling_days + rolling_lags:
+            #                  fit_1 = pl.Fit(
+            #                      list(filter(lambda x: x != 0, tail_plus), discrete=True)
+            #                  )
+            #              else:
+            #                  avg_xmin = np.average(
+            #                      xmin_vecs["xmin_vec_right"][
+            #                          -(rolling_days + rolling_lags) : -(rolling_lags)
+            #                      ]
+            #                  )
+            #                  fit_1 = pl.Fit(
+            #                      list(filter(lambda x: x != 0, tail_plus)),
+            #                      discrete=True,
+            #                      xmin=avg_xmin,
+            #                  )
+            #          if tail_selected == "Left" or tail_selected == "Both":
+            #              if len(xmin_vecs["xmin_vec_left"]) < rolling_days + rolling_lags:
+            #                  fit_2 = pl.Fit(
+            #                      list(filter(lambda x: x != 0, tail_neg), discrete=True)
+            #                  )
+            #              else:
+            #                  avg_xmin = np.average(
+            #                      xmin_vecs["xmin_vec_left"][
+            #                          -(rolling_days + rolling_lags) : -(rolling_lags)
+            #                      ]
+            #                  )
+            #                  fit_2 = pl.Fit(
+            #                      list(filter(lambda x: x != 0, tail_neg)),
+            #                      discrete=True,
+            #                      xmin=avg_xmin,
+            #                  )
+            #
+            #      elif xmin_rule == "Manual":
+            #          if tail_selected == "Right" or tail_selected == "Both":
+            #              fit_1 = pl.Fit(
+            #                  list(filter(lambda x: x != 0, tail_plus)),
+            #                  discrete=True,
+            #                  xmin=xmin_value,
+            #              )
+            #          if tail_selected == "Left" or tail_selected == "Both":
+            #              fit_2 = pl.Fit(
+            #                  list(filter(lambda x: x != 0, tail_neg)),
+            #                  discrete=True,
+            #                  xmin=xmin_value,
+            #              )
+            #      else:
+            #          if tail_selected == "Right" or tail_selected == "Both":
+            #              fit_1 = pl.Fit(
+            #                  list(filter(lambda x: x != 0, tail_plus)),
+            #                  discrete=True,
+            #                  xmin=np.percentile(tail_plus, xmin_sign),
+            #              )
+            #          if tail_selected == "Left" or tail_selected == "Both":
+            #              fit_2 = pl.Fit(
+            #                  list(filter(lambda x: x != 0, tail_neg)),
+            #                  discrete=True,
+            #                  xmin=np.percentile(tail_neg, xmin_sign),
+            #              )
 
             if tail_selected == "Right" or tail_selected == "Both":
 
@@ -1821,60 +1885,61 @@ if approach == "Rolling" or approach == "Increasing":
                     daily_l_p[1],
                     daily_l_p[2],
                 ]
-            if tail_selected == "Right":
-                row = [
-                    alpha1,
-                    0,
-                    xmin1,
-                    0,
-                    xmin_today_right,
-                    0,
-                    s_err1,
-                    0,
-                    len(list(filter(lambda x: x >= xmin1, tail_plus))),
-                    0,
-                    p1[0],
-                    0,
-                    daily_r_ratio[0],
-                    daily_r_ratio[1],
-                    daily_r_ratio[2],
-                    daily_r_p[0],
-                    daily_r_p[1],
-                    daily_r_p[2],
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                ]
-            if tail_selected == "Left":
-                row = [
-                    0,
-                    alpha2,
-                    0,
-                    xmin2,
-                    0,
-                    xmin_today_left,
-                    0,
-                    s_err2,
-                    0,
-                    len(list(filter(lambda x: x >= xmin2, tail_neg))),
-                    0,
-                    p2[0],
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    daily_l_ratio[0],
-                    daily_l_ratio[1],
-                    daily_l_ratio[2],
-                    daily_l_p[0],
-                    daily_l_p[1],
-                    daily_l_p[2],
-                ]
+
+            #  if tail_selected == "Right":
+            #      row = [
+            #          alpha1,
+            #          0,
+            #          xmin1,
+            #          0,
+            #          xmin_today_right,
+            #          0,
+            #          s_err1,
+            #          0,
+            #          len(list(filter(lambda x: x >= xmin1, tail_plus))),
+            #          0,
+            #          p1[0],
+            #          0,
+            #          daily_r_ratio[0],
+            #          daily_r_ratio[1],
+            #          daily_r_ratio[2],
+            #          daily_r_p[0],
+            #          daily_r_p[1],
+            #          daily_r_p[2],
+            #          0,
+            #          0,
+            #          0,
+            #          0,
+            #          0,
+            #          0,
+            #      ]
+            #  if tail_selected == "Left":
+            #      row = [
+            #          0,
+            #          alpha2,
+            #          0,
+            #          xmin2,
+            #          0,
+            #          xmin_today_left,
+            #          0,
+            #          s_err2,
+            #          0,
+            #          len(list(filter(lambda x: x >= xmin2, tail_neg))),
+            #          0,
+            #          p2[0],
+            #          0,
+            #          0,
+            #          0,
+            #          0,
+            #          0,
+            #          0,
+            #          daily_l_ratio[0],
+            #          daily_l_ratio[1],
+            #          daily_l_ratio[2],
+            #          daily_l_p[0],
+            #          daily_l_p[1],
+            #          daily_l_p[2],
+            #      ]
 
             if el in tail_statistics:
                 tail_statistics[el].append(row)
