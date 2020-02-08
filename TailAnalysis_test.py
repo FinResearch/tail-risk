@@ -10,12 +10,14 @@ import pandas as pd
 from types import SimpleNamespace
 
 import scipy.stats as st
-import powerlaw as pl
+#  import powerlaw as pl
 #  import easygui as eg
 
 
 # import own modules
 
+from settings import settings as s
+import utils
 import plpva as plpva
 
 import plot_funcs.tail_risk_plotter as trp
@@ -219,6 +221,7 @@ save_plots = False
 
 
 # NOTE: these lists appear to only be used for plotting
+# TODO: use a defaultdict to initialize the data storage container?
 def results_lists_init():
     labels = ("pos_α_vec", "neg_α_vec", "pos_α_ks", "neg_α_ks",
               "pos_up_bound", "neg_up_bound", "pos_low_bound", "neg_low_bound",
@@ -1105,7 +1108,6 @@ if approach == "Rolling" or approach == "Increasing":
             tail_plus, tail_neg, fit_1, fit_2 = fit_tail(tail_selected, X)
             #  print("after fitting")
 
-            #  print(tail_plus)
             # TODO: when only Right or Left tail selected,
             #       the other fit object will be None
             alpha1 = fit_1.power_law.alpha
@@ -1452,6 +1454,7 @@ if approach == "Rolling" or approach == "Increasing":
         # Plot the alpha exponent confidence interval in time
         # and the other 3 time rolling plots
         trp.time_rolling_plotter(tck, settings, results)
+        # FIXME: the above does not plot left tails even with Both selected
 
         # Write Tail Statistics to CSV file
         filename = ("TailStatistics_504_d=1_pn_normalized_" +

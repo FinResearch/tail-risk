@@ -5,8 +5,8 @@
 import numpy as np
 import pandas as pd
 
-#  import matplotlib.pyplot as plt
-#  import pylab as z
+import matplotlib.pyplot as plt
+import pylab as z
 
 
 import scipy.stats as st
@@ -17,6 +17,8 @@ import powerlaw as pl
 
 # import own modules
 
+from settings import settings as s
+import utils
 import plpva as plpva
 
 #  eng = matlab.engine.start_matlab()
@@ -57,8 +59,8 @@ fieldNames = ["# " + str(i) for i in range(1, no_entries + 1, 1)]
 fieldValues = [
     "DE 01Y",
     "DE 03Y",
-    #  "DE 05Y",
-    #  "DE 10Y",  #'DE 30Y',
+    "DE 05Y",
+    "DE 10Y",  #'DE 30Y',
     #  'FR 01Y', 'FR 03Y', 'FR 05Y', 'FR 10Y', 'FR 30Y',
     #  'ES 01Y', 'ES 03Y', 'ES 05Y', 'ES 10Y', 'ES 30Y',
     #  'PT 01Y', 'PT 03Y', 'PT 05Y', 'PT 10Y', 'PT 30Y',
@@ -100,7 +102,8 @@ database = Extractor(database_name, labels)
 #  initial_date  = input[0]
 #  final_date    = input[1]
 #  lookback      = int(input[2])
-initial_date = "1/1/2016"
+#  initial_date = "1/1/2016"
+initial_date = "31-03-16"
 final_date = "5/5/2016"
 lookback = 252
 
@@ -225,6 +228,7 @@ xmin_rule = "Rolling"
 #          question     = "How many lags do you want in your average?"
 #          rolling_lags = int(eg.enterbox(question, title="rolling days", default="0"))
 rolling_days = 66
+#  rolling_days = 22
 rolling_lags = 0
 
 if xmin_rule == "Manual":
@@ -1166,14 +1170,10 @@ if approach == "Rolling" or approach == "Increasing":
 
     initial_index = database[0].index(initial_date)
     final_index = database[0].index(final_date)
-    dates = database[0][initial_index : (final_index + 1)]
-    labelstep = (
-        22
-        if len(dates) <= 252
-        else 66
-        if (len(dates) > 252 and len(dates) <= 756)
-        else 121
-    )
+    dates = database[0][initial_index: (final_index + 1)]
+    labelstep = (22 if len(dates) <= 252 else
+                 66 if (len(dates) > 252 and len(dates) <= 756) else
+                 121)
     N = len(database)
 
     filtered_dates = []
@@ -1196,7 +1196,9 @@ if approach == "Rolling" or approach == "Increasing":
 
         filtered_dates.append(end_date)
 
-        print("I am analyzing the time series between " + begin_date + " and " + end_date)
+        print(
+            "I am analyzing the time series between " + begin_date + " and " + end_date
+        )
 
         for i in range(1, N, 1):
 
@@ -1221,13 +1223,25 @@ if approach == "Rolling" or approach == "Increasing":
                     np.array(series[tau:]) / np.array(series[0 : (len(series) - tau)])
                 )
 
-            if standardize == "Yes":
-                if norm_timing == "Before" or norm_timing == "Both":
-                    print("I am standardizing your time series")
-                    S = X
-                    m = np.mean(S)
-                    v = np.std(S)
-                    X = (S - m) / v
+            print(
+                "You opted for the analysis of the "
+                + input_type
+                + " under a "
+                + approach
+                + " time window."
+            )
+            print(
+                "Your lookback is "
+                + str(lookback)
+                + " days and you are advancing in time with a step of "
+                + str(sliding_window)
+                + " days."
+            )
+            print(
+                "Currently two consecutive time series have an overlap of "
+                + str(np.maximum(0, lookback - sliding_window))
+                + " observations."
+            )
 
             if abs_value == "Yes":
                 if abs_timing == "Before" or abs_timing == "Both":
@@ -1236,14 +1250,29 @@ if approach == "Rolling" or approach == "Increasing":
 
             if identifiers[i - 1] in BlockDict:
                 print("I found an existing group under the identifier : " + identifiers[i - 1] + ". Your time series is added in that pool")
-                BlockDict[identifiers[i - 1]].extend(X.tolist())
+                print(
+                    "I found an existing group under the identifier : "
+                    + identifiers[i - 1]
+                    + ". Your time series is added in that pool"
+                )
             else:
-                print("I have not found an existing group under the identifier : " + identifiers[i - 1] + ". I create the group and i add your time series is added in that pool")
-                BlockDict[identifiers[i - 1]] = X.tolist()
+                print(
+                    "I have not found an existing group under the identifier : "
+                    + identifiers[i - 1]
+                    + ". I create the group and i add your time series is added in that pool"
+                )
 
         key = BlockDict.keys()
         for el in key:
-            print("I am analyzing the group identified by " + el + " between " + begin_date + " and " + end_date)
+            print(
+                "I am analyzing the group identified by "
+                + el
+                + " between "
+                + begin_date
+                + " and "
+                + end_date
+            )
+
             X = BlockDict[el]
             if standardize == "Yes":
                 if norm_timing == "After" or norm_timing == "Both":
@@ -1451,7 +1480,8 @@ if approach == "Rolling" or approach == "Increasing":
                     ]
                     results["pos_α_ks"][el] = [p1[0]]
 
-                distribution_list = ["truncated_power_law", "exponential", "lognormal"]
+                distribution_list = ["truncated_power_law",
+                                     "exponential", "lognormal"]
                 daily_r_ratio = []
                 daily_r_p = []
                 for pdf in distribution_list:
@@ -1509,7 +1539,8 @@ if approach == "Rolling" or approach == "Increasing":
                     ]
                     results["neg_α_ks"][el] = [p2[0]]
 
-                distribution_list = ["truncated_power_law", "exponential", "lognormal"]
+                distribution_list = ["truncated_power_law",
+                                     "exponential", "lognormal"]
                 daily_l_ratio = []
                 daily_l_p = []
                 for pdf in distribution_list:

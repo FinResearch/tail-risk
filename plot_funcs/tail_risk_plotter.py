@@ -103,8 +103,9 @@ class TailRiskPlotter(ABC):
         if len(self.tails_used) == 2:
             mults = self.multiplicities
             # TODO: set fig_name to state "both tails" instead of either R/L
-            tails = ("right",)  # NOTE: can also use "left", does not matter
+            #  tails = ("right",)  # NOTE: can also use "left", does not matter
             # FIXME: above misses ("single", "left") when using both tails
+            tails = ("left",)  # TODO: this was to test "left" works
         else:
             # NOTE: if single tail used, then mult is necessarily "singles"
             mults = ("singles",)
