@@ -1207,21 +1207,7 @@ if approach == "Rolling" or approach == "Increasing":
             else:
                 series = database[i][(initial_index + 1 - lookback) : (l + 1)]
 
-            print("You opted for the analysis of the " + input_type + " under a " + approach + " time window.")
-            print("Your lookback is " + str(lookback) + " days and you are advancing in time with a step of " + str(sliding_window) + " days.")
-            print("Currently two consecutive time series have an overlap of " + str(np.maximum(0, lookback - sliding_window)) + " observations.")
-
-            if input_type == "Returns":
-                X = np.array(series[tau:]) - np.array(series[0 : (len(series) - tau)])
-            elif input_type == "Relative returns":
-                X = (
-                    np.array(series[tau:]) / np.array(series[0 : (len(series) - tau)])
-                    - 1.0
-                )
-            else:
-                X = np.log(
-                    np.array(series[tau:]) / np.array(series[0 : (len(series) - tau)])
-                )
+            series = np.array(series)
 
             print(
                 "You opted for the analysis of the "
@@ -1243,10 +1229,7 @@ if approach == "Rolling" or approach == "Increasing":
                 + " observations."
             )
 
-            if abs_value == "Yes":
-                if abs_timing == "Before" or abs_timing == "Both":
-                    print("I am taking the absolute value of your time series")
-                    X = np.abs(X)
+            X = utils.preprocess_series(series)
 
             # NOTE: standardization & absolutization conditional
             #       below slightly different
@@ -1261,19 +1244,23 @@ if approach == "Rolling" or approach == "Increasing":
             #      if abs_timing == "Before" or abs_timing == "Both":
             #          print("I am taking the absolute value of your time series")
             #          X = np.abs(X)
+
+            # TODO: use defaultdict, np.hstack(?), ...
             if identifiers[i - 1] in BlockDict:
-                print("I found an existing group under the identifier : " + identifiers[i - 1] + ". Your time series is added in that pool")
+                X0 = BlockDict[identifiers[i-1]]
                 print(
                     "I found an existing group under the identifier : "
                     + identifiers[i - 1]
                     + ". Your time series is added in that pool"
                 )
+                BlockDict[identifiers[i - 1]] = np.hstack((X0, X))
             else:
                 print(
                     "I have not found an existing group under the identifier : "
                     + identifiers[i - 1]
                     + ". I create the group and i add your time series is added in that pool"
                 )
+                BlockDict[identifiers[i - 1]] = X  # NOTE: keep X as NumPy array
 
         key = BlockDict.keys()
         for el in key:
@@ -1300,127 +1287,46 @@ if approach == "Rolling" or approach == "Increasing":
             #          print("I am taking the absolute value of your time series")
             #          X = np.abs(X)
 
-            if tail_selected == "Left" or tail_selected == "Both":
-                tail_neg = (np.dot(-1.0, tail_plus)).tolist()
+            #  X = X[X != 0]  # NOTE: only keep/use non-zero elements
+
+            if s.use_right_tail:
+                tail_plus, fit1 = utils.fit_tail(X)
+            if s.use_left_tail:
+                tail_neg, fit2 = utils.fit_tail(-X)
 
             if data_nature == "Continuous":
 
-                if tail_selected == "Right" or tail_selected == "Both":
-                    xmin_today_right = (
-                        pl.Fit(list(filter(lambda x: x != 0, tail_plus)))
-                    ).power_law.xmin
-                    xmin_vecs["xmin_vec_right"].append(xmin_today_right)
-                if tail_selected == "Left" or tail_selected == "Both":
-                    xmin_today_left = (
-                        pl.Fit(list(filter(lambda x: x != 0, tail_neg)))
-                    ).power_law.xmin
-                    xmin_vecs["xmin_vec_left"].append(xmin_today_left)
+                if s.use_right_tail:
+                    xmin_vecs["xmin_vec_right"].append(xmin_r0 := fit1.power_law.xmin)
+                if s.use_left_tail:
+                    xmin_vecs["xmin_vec_left"].append(xmin_l0 := fit2.power_law.xmin)
 
-                if xmin_rule == "Clauset":
-                    if tail_selected == "Right" or tail_selected == "Both":
-                        fit_1 = pl.Fit(list(filter(lambda x: x != 0, tail_plus)))
-                    if tail_selected == "Left" or tail_selected == "Both":
-                        fit_2 = pl.Fit(list(filter(lambda x: x != 0, tail_neg)))
-                elif xmin_rule == "Rolling":
-                    if tail_selected == "Right" or tail_selected == "Both":
-                        if len(xmin_vecs["xmin_vec_right"]) < rolling_days + rolling_lags:
-                            fit_1 = pl.Fit(list(filter(lambda x: x != 0, tail_plus)))
-                        else:
-                            avg_xmin = np.average(
-                                xmin_vecs["xmin_vec_right"][
-                                    -(rolling_days + rolling_lags) : -(rolling_lags)
-                                ]
-                            )
-                            fit_1 = pl.Fit(
-                                list(filter(lambda x: x != 0, tail_plus)), xmin=avg_xmin
-                            )
-                    if tail_selected == "Left" or tail_selected == "Both":
-                        if len(xmin_vecs["xmin_vec_left"]) < rolling_days + rolling_lags:
-                            fit_2 = pl.Fit(list(filter(lambda x: x != 0, tail_neg)))
-                        else:
-                            avg_xmin = np.average(
-                                xmin_vecs["xmin_vec_left"][
-                                    -(rolling_days + rolling_lags) : -(rolling_lags)
-                                ]
-                            )
-                            fit_2 = pl.Fit(
-                                list(filter(lambda x: x != 0, tail_neg)), xmin=avg_xmin
-                            )
+                # TODO: integrate Rolling xmin_rule into utils module
+                if xmin_rule == "Rolling":
+                    roll_tot = rolling_days + rolling_lags
 
-                elif xmin_rule == "Manual":
-                    if tail_selected == "Right" or tail_selected == "Both":
-                        fit_1 = pl.Fit(
-                            list(filter(lambda x: x != 0, tail_plus), xmin=xmin_value)
-                        )
-                    if tail_selected == "Left" or tail_selected == "Both":
-                        fit_2 = pl.Fit(
-                            list(filter(lambda x: x != 0, tail_neg), xmin=xmin_value)
-                        )
-                else:
-                    if tail_selected == "Right" or tail_selected == "Both":
-                        fit_1 = pl.Fit(
-                            list(filter(lambda x: x != 0, tail_plus)),
-                            xmin=np.percentile(tail_plus, xmin_sign),
-                        )
-                    if tail_selected == "Left" or tail_selected == "Both":
-                        fit_2 = pl.Fit(
-                            list(filter(lambda x: x != 0, tail_neg)),
-                            xmin=np.percentile(tail_neg, xmin_sign),
-                        )
-            else:
-                if tail_selected == "Right" or tail_selected == "Both":
-                    xmin_today_right = (
-                        pl.Fit(list(filter(lambda x: x != 0, tail_plus), discrete=True))
-                    ).power_law.xmin
-                    xmin_vecs["xmin_vec_right"].append(xmin_today_right)
-                if tail_selected == "Left" or tail_selected == "Both":
-                    xmin_today_left = (
-                        pl.Fit(list(filter(lambda x: x != 0, tail_neg), discrete=True))
-                    ).power_law.xmin
-                    xmin_vecs["xmin_vec_left"].append(xmin_today_left)
+                    if s.use_right_tail:
+                        if len(xmin_vecs["xmin_vec_right"]) < roll_tot:
+                            fit_1 = utils.powerlaw_fit(X)
+                        else:
+                            xmin_avg = np.average(xmin_vecs["xmin_vec_right"]
+                                                  [-roll_tot:-rolling_lags])
+                            fit_1 = utils.powerlaw_fit(X, xmin=xmin_avg)
 
-                if xmin_rule == "Clauset":
-                    if tail_selected == "Right" or tail_selected == "Both":
-                        fit_1 = pl.Fit(
-                            list(filter(lambda x: x != 0, tail_plus), discrete=True)
-                        )
-                    if tail_selected == "Left" or tail_selected == "Both":
-                        fit_2 = pl.Fit(
-                            list(filter(lambda x: x != 0, tail_neg), discrete=True)
-                        )
-                elif xmin_rule == "Rolling":
-                    if tail_selected == "Right" or tail_selected == "Both":
-                        if len(xmin_vecs["xmin_vec_right"]) < rolling_days + rolling_lags:
-                            fit_1 = pl.Fit(
-                                list(filter(lambda x: x != 0, tail_plus), discrete=True)
-                            )
+                    if s.use_left_tail:
+                        if len(xmin_vecs["xmin_vec_left"]) < roll_tot:
+                            fit_2 = utils.powerlaw_fit(-X)
                         else:
-                            avg_xmin = np.average(
-                                xmin_vecs["xmin_vec_right"][
-                                    -(rolling_days + rolling_lags) : -(rolling_lags)
-                                ]
-                            )
-                            fit_1 = pl.Fit(
-                                list(filter(lambda x: x != 0, tail_plus)),
-                                discrete=True,
-                                xmin=avg_xmin,
-                            )
-                    if tail_selected == "Left" or tail_selected == "Both":
-                        if len(xmin_vecs["xmin_vec_left"]) < rolling_days + rolling_lags:
-                            fit_2 = pl.Fit(
-                                list(filter(lambda x: x != 0, tail_neg), discrete=True)
-                            )
-                        else:
-                            avg_xmin = np.average(
-                                xmin_vecs["xmin_vec_left"][
-                                    -(rolling_days + rolling_lags) : -(rolling_lags)
-                                ]
-                            )
-                            fit_2 = pl.Fit(
-                                list(filter(lambda x: x != 0, tail_neg)),
-                                discrete=True,
-                                xmin=avg_xmin,
-                            )
+                            xmin_avg = np.average(xmin_vecs["xmin_vec_left"]
+                                                  [-roll_tot:-rolling_lags])
+                            fit_2 = utils.powerlaw_fit(-X, xmin=xmin_avg)
+                else:  # NOTE: Clauset, Manual & Percentile
+                    # TODO: when Clauset, just use already calculated fit objects above
+                    if s.use_right_tail:
+                        fit_1 = utils.powerlaw_fit(X)
+                    if s.use_left_tail:
+                        fit_2 = utils.powerlaw_fit(-X)
+
             #  elif data_nature == "Discrete":
             #      if tail_selected == "Right" or tail_selected == "Both":
             #          xmin_today_right = (
@@ -1864,8 +1770,8 @@ if approach == "Rolling" or approach == "Increasing":
                     alpha2,
                     xmin1,
                     xmin2,
-                    xmin_today_right,
-                    xmin_today_left,
+                    xmin_r0,
+                    xmin_l0,
                     s_err1,
                     s_err2,
                     len(list(filter(lambda x: x >= xmin1, tail_plus))),

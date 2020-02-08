@@ -42,68 +42,6 @@ def validate_tickers(database, tickers):
 
 # Common functions in both if-branches
 
-def PowerLawFit(data, data_nature, xmin_rule, xmin_value, xmin_sign):
-
-    data1 = np.array(data)[np.nonzero(data)]
-    # data_nature is one of ['Discrete', 'Continuous']
-    discrete = False if data_nature == 'Continuous' else True
-
-    if xmin_rule == "Clauset":
-        xmin = None
-    elif xmin_rule == "Manual":
-        xmin = xmin_value
-    elif xmin_rule == "Percentile":
-        xmin = np.percentile(data, xmin_sign)
-
-    return pl.Fit(data1, discrete=discrete, xmin=xmin)
-
-
-def fit_tail(tail_selected, tail_data):
-
-    if tail_selected == "Right" or tail_selected == "Both":
-        tail_plus = tail_data
-        fit_right = PowerLawFit(tail_plus, data_nature,
-                                xmin_rule, xmin_value, xmin_sign)
-        # TODO: test standardization branch
-        if standardize == "Yes" and standardize_target == "Tail":
-            xmin = fit_right.power_law.xmin
-            fit_right = standardize_tail(tail_plus, xmin)
-
-    if tail_selected == "Left" or tail_selected == "Both":
-        #  tail_neg = (np.dot(-1.0, tail_data)).tolist()
-        tail_neg = -1 * tail_data
-        fit_left = PowerLawFit(tail_neg, data_nature,
-                               xmin_rule, xmin_value, xmin_sign)
-        # TODO: test standardization branch
-        if standardize == "Yes" and standardize_target == "Tail":
-            xmin = fit_left.power_law.xmin
-            fit_right = standardize_tail(tail_neg, xmin)
-
-    return tail_plus, tail_neg, fit_right, fit_left
-
-
-# TODO: test standardization function
-def standardize_tail(tail_data, xmin):
-    print("I am standardizing your tail")
-    S = np.array(tail_data)
-    S = S[S >= xmin]
-    m = np.mean(S)
-    v = np.std(S)
-    X = (S - m) / v
-
-    if abs_value == "Yes" and abs_target == "Tail":
-        X = absolutize_tail(X)
-
-    return PowerLawFit(X, data_nature, xmin_rule, np.min(X))
-
-
-# TODO: test absolutize function
-def absolutize_tail(tail_data):
-    print("I am taking the absolute value of your tail")
-    #  lab = "|" + lab + "|"
-    return np.abs(tail_data)
-
-
 def get_tail_stats(fit_obj, tail_data, ks_pvgof_tup):
     alpha = fit_obj.power_law.alpha
     xmin = fit_obj.power_law.xmin
@@ -1083,30 +1021,12 @@ if approach == "Rolling" or approach == "Increasing":
             print(f"I am analyzing the time series for {tck} "
                   f"between {begin_date} and {end_date}")
 
-            # TODO: add fullname for return_types, ex. {"log": "Log Returns"}
-            print(f"You opted for the analysis of the {return_type}")
+            X = utils.preprocess_series(series)
 
-            pt_f = series[tau:]
-            pt_i = series[0: len(series) - tau]
-
-            if settings.return_type == "basic":
-                X = pt_f - pt_i
-            elif settings.return_type == "relative":
-                X = pt_f / pt_i - 1.0
-            elif settings.return_type == "log":
-                X = np.log(pt_f/pt_i)
-
-            if settings.standardize is True:
-                print("I am standardizing your time series")
-                X = (X - X.mean())/X.std()
-
-            if settings.absolutize is True:
-                print("I am taking the absolute value of your time series")
-                X = X.abs()
-
-            #  print("before fitting")
-            tail_plus, tail_neg, fit_1, fit_2 = fit_tail(tail_selected, X)
-            #  print("after fitting")
+            if settings.use_right_tail:
+                tail_plus, fit_1 = utils.fit_tail(X)
+            if settings.use_left_tail:
+                tail_neg, fit_2 = utils.fit_tail(-X)
 
             # TODO: when only Right or Left tail selected,
             #       the other fit object will be None
