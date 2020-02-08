@@ -102,11 +102,12 @@ class TailRiskPlotter(ABC):
 
         if len(self.tails_used) == 2:
             mults = self.multiplicities
-            # TODO: set fig_name to state "both tails" instead of "right" or "left"
+            # TODO: set fig_name to state "both tails" instead of either R/L
             tails = ("right",)  # NOTE: can also use "left", does not matter
+            # FIXME: above misses ("single", "left") when using both tails
         else:
-            # NOTE: if single tail selected, then multiplicity is necessarily single
-            mults = ("singles",) 
+            # NOTE: if single tail used, then mult is necessarily "singles"
+            mults = ("singles",)
             tails = self.tails_used
 
         return product(mults, tails)
@@ -215,7 +216,7 @@ class TailRiskPlotter(ABC):
             if isinstance(vectors, str):
                 vectors = eval(vectors)
             for vec in vectors:
-                # TODO: ensure all vecs are 2-tuples for x vs. y plot??? (ex. histogram)
+                # TODO: ensure all vecs are 2-tups for x-y plot??? (ex. hist)
                 self.ax.plot(vec, **extra_lines["line_style"])
 
         for vn in self.curr_vnames2plot:
@@ -296,18 +297,22 @@ class TabledFigurePlotter(TailRiskPlotter):
 
     def __histogram(self):
 
-        # TODO: for-loop necessary if each histogram only contains a single vector?
+        npp = np.percentile  # NOTE: shorthand for NumPy method
+
+        # TODO: is for-loop necessary if each hist only contains a single vec?
         for vn in self.curr_vnames2plot:
-            # FIXME: if multiple vecs in histogram, then self attrs calc'd below gets overwritten
+            # FIXME: if multiple vecs in histogram, then self attrs
+            #        calc'd below gets overwritten
             self.__calc_vec_stats(self.data[vn])
 
-            IQR = np.percentile(self.data[vn], 75) - np.percentile(self.data[vn], 25)
+            IQR = npp(self.data[vn], 75) - npp(self.data[vn], 25)
             # TODO: ASK why use: h = 2*IQR/cuberoot(n_vec)
             h = 2 * IQR * np.power(self.settings.n_vec, -1/3)
             # TODO: xlim also uses max & min --> keep DRY
             n_bins = int((self.vec_max - self.vec_min)/h)
-            hist_vals, bins, patches = self.ax.hist(self.data[vn], n_bins, color="red")
-            # FIXME: if multiple vecs in histogram, then hist_max below gets overwritten
+            hist_vals, bins, patches = self.ax.hist(self.data[vn],
+                                                    n_bins, color="red")
+            # FIXME: if multiple vecs in histogram, then hist_max below ovwrtn
             self.hist_max = np.max(hist_vals)
 
     def __plot_extra_hist_line(self):
@@ -320,7 +325,7 @@ class TabledFigurePlotter(TailRiskPlotter):
         vecs_str_tups = eval(vecs_template.substitute(vec_mean=self.vec_mean,
                                                       hist_max=self.hist_max))
 
-        # NOTE: elements of vecs_str_tups are 2-tuples to allow x vs. y plotting
+        # NOTE: elements of vecs_str_tups are 2-tups to allow x vs. y plotting
         for x_str, y_str in vecs_str_tups:
             x, y = eval(x_str), eval(y_str)
             self.ax.plot(x, y, **extra_lines["line_style"])
@@ -403,6 +408,7 @@ def tabled_figure_plotter(ticker, settings, data):
     for ptyp in fits_dict["tabled_figure"].keys():
         plotter = TabledFigurePlotter(ticker, settings, data, ptyp)
         plotter.plot()
+
 
 def time_rolling_plotter(ticker, settings, data):
     for ptyp in fits_dict["time_rolling"].keys():
