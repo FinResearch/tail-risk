@@ -190,3 +190,14 @@ ptyp_config = {
         "multiplicities": ("single",),
     },
 }
+
+
+from copy import deepcopy
+
+
+def get_fits_dict():
+    return deepcopy(fits_dict)
+
+
+def get_ptyp_config():
+    return deepcopy(ptyp_config)

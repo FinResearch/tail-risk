@@ -8,7 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # NOTE: currently module globals
-from plot_funcs.fits_dict import fits_dict, ptyp_config
+#  from plot_funcs.fits_dict import fits_dict, ptyp_config
+from plot_funcs.fits_dict import get_fits_dict, get_ptyp_config
 # TODO: consider making class for these, and pass them as dict objects
 
 
@@ -66,7 +67,8 @@ class TailRiskPlotter(ABC):
         self.ptyp = plot_type
         # NOTE: set the entire ptyp_config below if more config flags added
         #  self.ptyp_config = ptyp_config[self.ptyp]  # FIXME: module global
-        self.multiplicities = ptyp_config[self.ptyp]["multiplicities"]
+        #  self.multiplicities = ptyp_config[self.ptyp]["multiplicities"]
+        self.multiplicities = get_ptyp_config()[self.ptyp]["multiplicities"]
         self.tails_used = self.__get_tails_used()
         self.plot_combos = self.__get_plot_combos()
         self.return_type_label = self.__get_return_type_label()
@@ -285,7 +287,8 @@ class TabledFigurePlotter(TailRiskPlotter):
 
         self.use_hist = True if self.ptyp == "hg" else False
         # FIXME: currently fits_dict below is a module global
-        self.fits_dict = fits_dict["tabled_figure"]
+        #  self.fits_dict = fits_dict["tabled_figure"]
+        self.fits_dict = get_fits_dict()["tabled_figure"]
         # NOTE: problem :: fits_dict init'd in subclass, but curr_ptinfo is in
         #       parent; and it is only instantiated on __set_ptyp_info()
         #  self.table_info = self.curr_ptinfo["ax_table"]
@@ -389,7 +392,8 @@ class TimeRollingPlotter(TailRiskPlotter):
                                                  data, plot_type)
         # FIXME: currently fits_dict below is an imported module global
         # NOTE: self.fits_dict must 1st be instant'd as self.curr_ptinfo req it
-        self.fits_dict = fits_dict["time_rolling"]
+        #  self.fits_dict = fits_dict["time_rolling"]
+        self.fits_dict = get_fits_dict()["time_rolling"]
         # TODO: consider making fits_dict flat in plot_types level
         self.ax_title_base = (f"{self.ax_title_base}. "
                               f"Input: {self.return_type_label}")
@@ -404,14 +408,17 @@ class TimeRollingPlotter(TailRiskPlotter):
 
 # TODO: save a set of results data to do quick plot development!!!
 
-
+tabled_figs = get_fits_dict()["tabled_figure"].keys()
 def tabled_figure_plotter(ticker, settings, data):
-    for ptyp in fits_dict["tabled_figure"].keys():
+    #  for ptyp in fits_dict["tabled_figure"].keys():
+    for ptyp in tabled_figs:
         plotter = TabledFigurePlotter(ticker, settings, data, ptyp)
         plotter.plot()
 
 
+timeroll_figs = get_fits_dict()["time_rolling"].keys()
 def time_rolling_plotter(ticker, settings, data):
-    for ptyp in fits_dict["time_rolling"].keys():
+    #  for ptyp in fits_dict["time_rolling"].keys():
+    for ptyp in timeroll_figs:
         plotter = TimeRollingPlotter(ticker, settings, data, ptyp)
         plotter.plot()
