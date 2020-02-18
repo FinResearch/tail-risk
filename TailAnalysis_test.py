@@ -18,6 +18,7 @@ import scipy.stats as st
 
 from settings import settings as s
 import utils
+import data_io  # TODO: move into utils
 import plpva as plpva
 
 import plot_funcs.tail_risk_plotter as trp
@@ -1377,35 +1378,8 @@ if approach == "Rolling" or approach == "Increasing":
         # FIXME: the above does not plot left tails even with Both selected
 
         # Write Tail Statistics to CSV file
-        filename = ("TailStatistics_504_d=1_pn_normalized_" +
-                    tck + "_KS.csv")
-        date_colvec = np.array(settings.dates).reshape(len(settings.dates), 1)
-        df_data = np.hstack((date_colvec, tail_statistics))
-        column_headers = ["Date",
-                          "Positive Tail Exponent",
-                          "Negative Tail Exponent",
-                          "Positive Tail xmin",
-                          "Negative Tail xmin",
-                          "Positive Tail S.Err",
-                          "Negative Tail S.Err",
-                          "Positive Tail Size",
-                          "Negative Tail Size",
-                          "Positive Tail KS p-value",
-                          "Negative Tail KS p-value",
-                          "LL Ratio Right Tail TPL",
-                          "LL Ratio Right Tail Exp",
-                          "LL Ratio Right Tail LogN",
-                          "LL p-value Right Tail TPL",
-                          "LL p-value Right Tail Exp",
-                          "LL p-value Right Tail LogN",
-                          "LL Ratio Left Tail TPL",
-                          "LL Ratio Left Tail Exp",
-                          "LL Ratio Left Tail LogN",
-                          "LL p-value Left Tail TPL",
-                          "LL p-value Left Tail Exp",
-                          "LL p-value Left Tail LogN"]
-        df = pd.DataFrame(df_data, columns=column_headers)
-        df.to_csv(filename, index=False)
+        data_io.write_csv_stats(tail_statistics)
+
     #  print(list(map(len, results.values())))
 
     #  # Plot the boxplots for the alpha tail(s))
