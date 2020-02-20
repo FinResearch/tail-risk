@@ -27,16 +27,9 @@ def powerlaw_fit(data, xmin=None):
     data1 = np.array(data)[np.nonzero(data)]
 
     # data_nature is one of ['Discrete', 'Continuous']
-    discrete = False if s.data_nature == 'Continuous' else True
+    discrete = False if s.data_nature == 'continuous' else True
 
     xmin = _get_xmin(data, xmin)
-
-    #  if s.xmin_rule == "Clauset":
-    #      xmin = None
-    #  elif s.xmin_rule == "Manual":
-    #      xmin = s.xmin_value
-    #  elif s.xmin_rule == "Percentile":
-    #      xmin = np.percentile(data, s.xmin_sign)
 
     return pl.Fit(data1, discrete=discrete, xmin=xmin)
 
@@ -46,7 +39,7 @@ def fit_tail(data):
     fit = powerlaw_fit(data)
 
     # TODO: test standardization branch
-    if s.standardize and s.standardize_target == "Tail":
+    if s.standardize and s.standardize_target == "tail":
         xmin = fit.power_law.xmin
         fit = standardize_tail(data, xmin)
 
@@ -62,7 +55,7 @@ def standardize_tail(tail_data, xmin):
     v = np.std(S)
     X = (S - m) / v
 
-    if s.absolutize and s.absz_target == "Tail":
+    if s.absolutize and s.absz_target == "tail":
         X = absolutize_tail(X)
 
     return powerlaw_fit(X, s.xmin_rule, np.min(X))
