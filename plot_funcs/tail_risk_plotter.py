@@ -164,7 +164,7 @@ class TailRiskPlotter(ABC):
         # TODO: make template_map subclass specific attribute?
         template_map = {
             "n_vec": sett.n_vec,
-            "significance": sett.significance,
+            "significance": sett.alpha_sgnf,
             "ticker": self.curr_ticker,
             "tdir": self.curr_tdir,
             "tsgn": self.curr_tsgn,

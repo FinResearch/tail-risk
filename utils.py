@@ -8,15 +8,17 @@ import powerlaw as pl
 
 def _get_xmin(data, xmin=None):
 
+    xmin_rule, xmin_val = s.xmin_inputs
+
     if xmin is not None:  # NOTE: use this for Rolling
         return xmin
 
-    if s.xmin_rule == "Clauset":
+    if xmin_rule == "clauset":
         xmin = None
-    elif s.xmin_rule == "Manual":
-        xmin = s.xmin_value
-    elif s.xmin_rule == "Percentile":
-        xmin = np.percentile(data, s.xmin_sign)
+    elif xmin_rule == "manual":
+        xmin = xmin_val
+    elif xmin_rule == "percentile":
+        xmin = np.percentile(data, xmin_val)
 
     return xmin
 

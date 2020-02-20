@@ -2,14 +2,17 @@
 # Libraries                         #
 #####################################
 #  import os
+
 import numpy as np
-import pandas as pd
+
+#  import pandas as pd
 #  import matplotlib.pyplot as plt
 #  import pylab as z
 
-from types import SimpleNamespace
+#  from types import SimpleNamespace
 
 import scipy.stats as st
+
 #  import powerlaw as pl
 #  import easygui as eg
 
@@ -17,6 +20,8 @@ import scipy.stats as st
 # import own modules
 
 from settings import settings as s
+#  from ui import get_uis
+
 import utils
 import data_io  # TODO: move into utils
 import plpva as plpva
@@ -78,85 +83,85 @@ def get_logl_tstats(daily_log_ratio, daily_log_pv):
 # TODO: wrap all user-input into an object,
 #       and just pass that around as settings
 
-database_name = "dbMSTR_test.csv"
-
-#  no_entries = 1
-#  fieldNames = ["# " + str(i) for i in range(1, no_entries + 1, 1)]
-tickers = ["DE 01Y"]  # , "DE 03Y", "DE 05Y", "DE 10Y"]
-
-database = pd.read_csv(database_name, index_col="Date")[tickers]
-N_db_rec, N_db_tck = database.shape
-assert(N_db_rec == 3333)
-assert(N_db_tck == len(tickers))
-
-db_dates = database.index
-
-# FIXME?: using date below -> ValueError: cannot convert float NaN to integer
-#  initial_date = "2/5/2016"  # NOTE: len(dates) needs to be > labelstep???
-#  date_i = "1/4/2016"
-date_i = "31-03-16"
-#  initial_date = "1/1/2016"
-date_f = "5/5/2016"
-# TODO: standardize/validate date format
-# TODO: consider allow for free-forming date range, then pick closest dates
-lookback = 504
-
-ind_i = db_dates.get_loc(date_i)
-ind_f = db_dates.get_loc(date_f)
-n_vec = ind_f - ind_i + 1
-dates = db_dates[ind_i: ind_f + 1]
-assert(len(dates) == n_vec)
-
-labelstep = (22 if n_vec <= 252 else
-             66 if (n_vec > 252 and n_vec <= 756) else
-             121)
-
-# NOTE: data here does not contain values needed in lookback
-# TODO: better name might be dates_analyzed_df
-ticker_df = database.iloc[ind_i: ind_f + 1]
-assert((n_vec, len(tickers)) == ticker_df.shape)
-
-#  N = len(database)
-#  for l in range(initial_index, final_index + 1, anal_freq):
-
-return_type = "log"  # choices is one of ["basic", "relative", "log"]
-
-tau = 1
-
-standardize = "No"
-standardize_target = "Tail"  # choices is one of ['Full Series', 'Tail']
-
-abs_value = "No"
-abs_target = "Tail"  # choices is one of ['Full Series', 'Tail']
-
-approach = "Rolling"  # choices is one of ['Static', 'Rolling', 'Increasing']
-anal_freq = 1
-
-tail_selected = "Both"
-use_right_tail = True if tail_selected in ["Right", "Both"] else False
-use_left_tail = True if tail_selected in ["Left", "Both"] else False
-if tail_selected == "Both":
-    multiplier = 0.5
-else:
-    multiplier = 1.0
-
-data_nature = "Continuous"
-
-xmin_rule = "Clauset"
-xmin_value = None  # only used for xmin_rule == "Manual"
-xmin_sign = None  # only used for xmin_rule == "Percentile"
-
-significance = 0.05
-
-c_iter = 100
-
-# NOTE: if anal_freq == 1, then dates also == dates[::anal_freq]
-spec_dates = dates[::anal_freq] if anal_freq > 1 else dates
-#  n_spdt = len(spec_dates)
-spec_labelstep = 22 if anal_freq > 1 else labelstep
-
-show_plots = True
-save_plots = False
+#  #  database_name = "dbMSTR_test.csv"
+#
+#  #  no_entries = 1
+#  #  fieldNames = ["# " + str(i) for i in range(1, no_entries + 1, 1)]
+#  #  tickers = ["DE 01Y"]  # , "DE 03Y", "DE 05Y", "DE 10Y"]
+#
+#  #  database = pd.read_csv(database_name, index_col="Date")[tickers]
+#  #  N_db_rec, N_db_tck = database.shape
+#  #  assert(N_db_rec == 3333)
+#  #  assert(N_db_tck == len(tickers))
+#
+#  #  db_dates = database.index
+#
+#  #  # FIXME?: using date below -> ValueError: cannot convert float NaN to integer
+#  #  #  initial_date = "2/5/2016"  # NOTE: len(dates) needs to be > labelstep???
+#  #  #  date_i = "1/4/2016"
+#  #  date_i = "31-03-16"
+#  #  #  initial_date = "1/1/2016"
+#  #  date_f = "5/5/2016"
+#  #  # TODO: standardize/validate date format
+#  #  # TODO: consider allow for free-forming date range, then pick closest dates
+#  #  lookback = 504
+#
+#  #  ind_i = db_dates.get_loc(date_i)
+#  #  ind_f = db_dates.get_loc(date_f)
+#  #  n_vec = ind_f - ind_i + 1
+#  #  dates = db_dates[ind_i: ind_f + 1]
+#  #  assert(len(dates) == n_vec)
+#
+#  #  labelstep = (22 if n_vec <= 252 else
+#  #               66 if (n_vec > 252 and n_vec <= 756) else
+#  #               121)
+#
+#  #  # NOTE: data here does not contain values needed in lookback
+#  #  # TODO: better name might be dates_analyzed_df
+#  #  ticker_df = database.iloc[ind_i: ind_f + 1]
+#  #  assert((n_vec, len(tickers)) == ticker_df.shape)
+#
+#  #  N = len(database)
+#  #  for l in range(initial_index, final_index + 1, anal_freq):
+#
+#  #  return_type = "log"  # choices is one of ["basic", "relative", "log"]
+#
+#  #  tau = 1
+#
+#  #  standardize = "No"
+#  #  standardize_target = "Tail"  # choices is one of ['Full Series', 'Tail']
+#  #
+#  #  abs_value = "No"
+#  #  abs_target = "Tail"  # choices is one of ['Full Series', 'Tail']
+#  #
+#  #  approach = "rolling"  # choices is one of ['static', 'rolling', 'increasing']
+#  #  anal_freq = 1
+#  #
+#  #  tail_selected = "both"
+#  #  use_right_tail = True if tail_selected in ["right", "both"] else False
+#  #  use_left_tail = True if tail_selected in ["left", "both"] else False
+#  #  if tail_selected == "both":
+#  #      multiplier = 0.5
+#  #  else:
+#  #      multiplier = 1.0
+#  #
+#  #  data_nature = "Continuous"
+#  #
+#  #  xmin_rule = "Clauset"
+#  #  xmin_value = None  # only used for xmin_rule == "Manual"
+#  #  xmin_sign = None  # only used for xmin_rule == "Percentile"
+#  #
+#  #  significance = 0.05
+#  #
+#  #  c_iter = 100
+#  #
+#  #  # NOTE: if anal_freq == 1, then dates also == dates[::anal_freq]
+#  #  spec_dates = dates[::anal_freq] if anal_freq > 1 else dates
+#  #  #  n_spdt = len(spec_dates)
+#  #  spec_labelstep = 22 if anal_freq > 1 else labelstep
+#  #
+#  #  show_plots = True
+#  #  save_plots = False
 
 
 # NOTE: these lists appear to only be used for plotting
@@ -182,40 +187,40 @@ results = results_lists_init()
 # TODO: zero "results" container on each ticker iteration OR store them all
 
 
-# object to hold all options data determined by user input data
-# NOTE: consider using json (module), dataclasses, namedtuple?
-# TODO: set values of these dynamically based on user input
-settings_dict = {"tickers": tickers,
-                 "lookback": lookback,
-                 "return_type": return_type,
-                 "tau": tau,
-                 "standardize": False,
-                 "absolutize": False,
-                 "approach": approach,
-                 # NOTE: anal_freq only defined for approach != 'Static'
-                 "anal_freq": anal_freq,
-                 "use_right_tail": use_right_tail,
-                 "use_left_tail": use_left_tail,
-                 "data_nature": data_nature,
-                 "xmin_rule": xmin_rule,
-                 "significance": significance,
-                 "dates": dates,
-                 "date_i": dates[0],
-                 "date_f": dates[-1],
-                 "n_vec": n_vec,  # FIXME: should be length of spec_dates?
-                 "labelstep": labelstep,
-                 "spec_dates": spec_dates,
-                 "n_spdt": len(spec_dates),
-                 "spec_labelstep": spec_labelstep,
-                 "show_plots": show_plots,
-                 "save_plots": save_plots}
-# TODO: add "labels" and other important values into options dict
-settings = SimpleNamespace(**settings_dict)
+#  # object to hold all options data determined by user input data
+#  # NOTE: consider using json (module), dataclasses, namedtuple?
+#  # TODO: set values of these dynamically based on user input
+#  settings_dict = {"tickers": tickers,
+#                   "lookback": lookback,
+#                   "return_type": return_type,
+#                   "tau": tau,
+#                   "standardize": False,
+#                   "absolutize": False,
+#                   "approach": approach,
+#                   # NOTE: anal_freq only defined for approach != 'static'
+#                   "anal_freq": anal_freq,
+#                   "use_right_tail": use_right_tail,
+#                   "use_left_tail": use_left_tail,
+#                   "data_nature": data_nature,
+#                   "xmin_rule": xmin_rule,
+#                   "significance": significance,
+#                   "dates": dates,
+#                   "date_i": dates[0],
+#                   "date_f": dates[-1],
+#                   "n_vec": n_vec,  # FIXME: should be length of spec_dates?
+#                   "labelstep": labelstep,
+#                   "spec_dates": spec_dates,
+#                   "n_spdt": len(spec_dates),
+#                   "spec_labelstep": spec_labelstep,
+#                   "show_plots": show_plots,
+#                   "save_plots": save_plots}
+#  # TODO: add "labels" and other important values into options dict
+#  settings = SimpleNamespace(**settings_dict)
 
 
 # Execution logic for the actual calculations
 
-#  if approach == "Static":
+#  if approach == "static":
 #
 #      # TODO: add list below to results_lists_init function?
 #      tail_statistics = []
@@ -260,7 +265,7 @@ settings = SimpleNamespace(**settings_dict)
 #
 #          tail_plus, tail_neg, fit_1, fit_2 = fit_tail(tail_selected, X)
 #
-#          # TODO: when only Right or Left tail selected,
+#          # TODO: when only right or left tail selected,
 #          #       the other fit object will be None
 #          alpha1 = fit_1.power_law.alpha
 #          xmin1 = fit_1.power_law.xmin
@@ -270,18 +275,18 @@ settings = SimpleNamespace(**settings_dict)
 #          xmin2 = fit_2.power_law.xmin
 #          s_err2 = fit_2.power_law.sigma
 #
-#          if tail_selected == "Right" or tail_selected == "Both":
+#          if tail_selected == "right" or tail_selected == "both":
 #              p1 = plpva.plpva(tail_plus, float(xmin1), "reps", c_iter, "silent")
 #              results["pos_α_ks"].append(p1[0])
 #
-#          if tail_selected == "Left" or tail_selected == "Both":
+#          if tail_selected == "left" or tail_selected == "both":
 #              p2 = plpva.plpva(tail_neg, float(xmin2), "reps", c_iter, "silent")
 #              results["neg_α_ks"].append(p2[0])
 #
 #          # Figures Plot & Show Sections below
-#          if tail_selected == "Right" or tail_selected == "Both":
+#          if tail_selected == "right" or tail_selected == "both":
 #
-#              plt.figure("Right tail scaling for " + tickers[i - 1])
+#              plt.figure("right tail scaling for " + tickers[i - 1])
 #              z.gca().set_position((0.1, 0.20, 0.83, 0.70))
 #              fig4 = fit_1.plot_ccdf(color="b", linewidth=2,
 #                                     label="Empirical CCDF")
@@ -329,7 +334,7 @@ settings = SimpleNamespace(**settings_dict)
 #              the_table.scale(0.5, 0.5)
 #              plt.show()
 #
-#              plt.figure("Right tail comparison for " + tickers[i - 1])
+#              plt.figure("right tail comparison for " + tickers[i - 1])
 #              fig4 = fit_1.plot_ccdf(color="b", linewidth=2,
 #                                     label="Empirical CCDF")
 #              fit_1.power_law.plot_ccdf(
@@ -419,9 +424,9 @@ settings = SimpleNamespace(**settings_dict)
 #              z.grid()
 #              # z.show()
 #
-#          if tail_selected == "Left" or tail_selected == "Both":
+#          if tail_selected == "left" or tail_selected == "both":
 #
-#              plt.figure("Left tail scaling for " + tickers[i - 1])
+#              plt.figure("left tail scaling for " + tickers[i - 1])
 #              z.gca().set_position((0.1, 0.20, 0.83, 0.70))
 #              fig4 = fit_2.plot_ccdf(color="b", linewidth=2,
 #                                     label="Empirical CCDF")
@@ -469,7 +474,7 @@ settings = SimpleNamespace(**settings_dict)
 #              the_table.scale(0.5, 0.5)
 #              plt.show()
 #
-#              plt.figure("Left tail comparison for " + tickers[i - 1])
+#              plt.figure("left tail comparison for " + tickers[i - 1])
 #              fig4 = fit_2.plot_ccdf(color="b", linewidth=2,
 #                                     label="Empirical CCDF")
 #              fit_2.power_law.plot_ccdf(
@@ -561,7 +566,7 @@ settings = SimpleNamespace(**settings_dict)
 #              z.grid()
 #              # z.show()
 #
-#          if tail_selected == "Right" or tail_selected == "Both":
+#          if tail_selected == "right" or tail_selected == "both":
 #
 #              results["pos_α_vec"].append(alpha1)
 #              results["pos_up_bound"].append(
@@ -574,7 +579,7 @@ settings = SimpleNamespace(**settings_dict)
 #                  len(filter(lambda x: x >= xmin1, tail_plus)) /
 #                  float(len(tail_plus)))
 #
-#          if tail_selected == "Left" or tail_selected == "Both":
+#          if tail_selected == "left" or tail_selected == "both":
 #              results["neg_α_vec"].append(alpha2)
 #              results["neg_up_bound"].append(
 #                  alpha2 + (st.norm.ppf(1 - multiplier * significance)) * s_err2)
@@ -588,25 +593,25 @@ settings = SimpleNamespace(**settings_dict)
 #
 #          # Building tail statistics section
 #
-#          if tail_selected == "Right" or tail_selected == "Both":
+#          if tail_selected == "right" or tail_selected == "both":
 #              tstat_right = get_tail_stats(fit_1, tail_plus, p1)
-#          if tail_selected == "Left" or tail_selected == "Both":
+#          if tail_selected == "left" or tail_selected == "both":
 #              tstat_left = get_tail_stats(fit_2, tail_neg, p2)
 #
-#          if tail_selected == "Both":
+#          if tail_selected == "both":
 #              row = tail_stat_zipper(tstat_right, tstat_left)
-#          elif tail_selected == "Right":
+#          elif tail_selected == "right":
 #              row = tail_stat_zipper(tstat_right, np.zeros(len(tstat_right)))
-#          elif tail_selected == "Left":
+#          elif tail_selected == "left":
 #              row = tail_stat_zipper(np.zeros(len(tstat_left)), tstat_left)
 #
 #          tail_statistics.append(row)
 #
 #      # Preparing the figure
 #
-#      z.figure("Static alpha")
+#      z.figure("static alpha")
 #      z.gca().set_position((0.1, 0.20, 0.83, 0.70))
-#      if tail_selected == "Right" or tail_selected == "Both":
+#      if tail_selected == "right" or tail_selected == "both":
 #          z.plot(
 #              range(1, len(tickers) + 1, 1),
 #              #  positive_alpha_vec,
@@ -615,9 +620,9 @@ settings = SimpleNamespace(**settings_dict)
 #              markersize=10.0,
 #              linewidth=0.0,
 #              color="green",
-#              label="Right tail",
+#              label="right tail",
 #          )
-#      if tail_selected == "Left" or tail_selected == "Both":
+#      if tail_selected == "left" or tail_selected == "both":
 #          z.plot(
 #              range(1, len(tickers) + 1, 1),
 #              #  negative_alpha_vec,
@@ -626,7 +631,7 @@ settings = SimpleNamespace(**settings_dict)
 #              markersize=10.0,
 #              linewidth=0.0,
 #              color="red",
-#              label="Left tail",
+#              label="left tail",
 #          )
 #      z.xticks(range(1, len(tickers) + 1, 1), tickers)
 #      z.xlim(xmin=0.5, xmax=len(tickers) + 0.5)
@@ -650,7 +655,7 @@ settings = SimpleNamespace(**settings_dict)
 #      z.grid()
 #      # z.show()
 #
-#      if tail_selected == "Right" or tail_selected == "Both":
+#      if tail_selected == "right" or tail_selected == "both":
 #
 #          # Confidence interval for the right tail
 #          z.figure("Confidence interval for the right tail")
@@ -663,7 +668,7 @@ settings = SimpleNamespace(**settings_dict)
 #              markersize=7.0,
 #              linewidth=0.0,
 #              color="green",
-#              label="Right tail",
+#              label="right tail",
 #          )
 #          z.plot(
 #              range(1, len(tickers) + 1, 1),
@@ -720,7 +725,7 @@ settings = SimpleNamespace(**settings_dict)
 #          z.grid()
 #          # z.show()
 #
-#      if tail_selected == "Left" or tail_selected == "Both":
+#      if tail_selected == "left" or tail_selected == "both":
 #
 #          # Confidence interval for the left tail
 #          z.figure("Confidence interval for the left tail")
@@ -733,7 +738,7 @@ settings = SimpleNamespace(**settings_dict)
 #              markersize=7.0,
 #              linewidth=0.0,
 #              color="green",
-#              label="Left tail",
+#              label="left tail",
 #          )
 #          z.plot(
 #              range(1, len(tickers) + 1, 1),
@@ -795,23 +800,23 @@ settings = SimpleNamespace(**settings_dict)
 #      z.figure("Absolute tail lengths")
 #      z.gca().set_position((0.1, 0.20, 0.83, 0.70))
 #      amplitude = 0.5
-#      if tail_selected == "Right" or tail_selected == "Both":
+#      if tail_selected == "right" or tail_selected == "both":
 #          z.bar(
 #              np.arange(0, 2 * len(tickers), 2),
 #              #  positive_abs_length,
 #              results["pos_abs_len"],
 #              amplitude,
 #              color="green",
-#              label="Right tail",
+#              label="right tail",
 #          )
-#      if tail_selected == "Left" or tail_selected == "Both":
+#      if tail_selected == "left" or tail_selected == "both":
 #          z.bar(
 #              np.arange(amplitude, 2 * len(tickers) + amplitude, 2),
 #              #  negative_abs_length,
 #              results["neg_abs_len"],
 #              amplitude,
 #              color="red",
-#              label="Left tail",
+#              label="left tail",
 #          )
 #      z.xticks(np.arange(amplitude, 2 * len(tickers) + amplitude, 2), tickers)
 #      z.ylabel("Tail length")
@@ -837,23 +842,23 @@ settings = SimpleNamespace(**settings_dict)
 #      z.figure("Relative tail lengths")
 #      z.gca().set_position((0.1, 0.20, 0.83, 0.70))
 #      amplitude = 0.5
-#      if tail_selected == "Right" or tail_selected == "Both":
+#      if tail_selected == "right" or tail_selected == "both":
 #          z.bar(
 #              np.arange(0, 2 * len(tickers), 2),
 #              #  positive_rel_length,
 #              results["pos_rel_len"],
 #              amplitude,
 #              color="green",
-#              label="Right tail",
+#              label="right tail",
 #          )
-#      if tail_selected == "Left" or tail_selected == "Both":
+#      if tail_selected == "left" or tail_selected == "both":
 #          z.bar(
 #              np.arange(amplitude, 2 * len(tickers) + amplitude, 2),
 #              #  negative_rel_length,
 #              results["neg_rel_len"],
 #              amplitude,
 #              color="red",
-#              label="Left tail",
+#              label="left tail",
 #          )
 #      z.xticks(np.arange(amplitude, 2 * len(tickers) + amplitude, 2), tickers)
 #      z.ylabel("Tail relative length")
@@ -879,23 +884,23 @@ settings = SimpleNamespace(**settings_dict)
 #      z.figure("KS test p value for the tails")
 #      z.gca().set_position((0.1, 0.20, 0.83, 0.70))
 #      amplitude = 0.5
-#      if tail_selected == "Right" or tail_selected == "Both":
+#      if tail_selected == "right" or tail_selected == "both":
 #          z.bar(
 #              np.arange(0, 2 * len(tickers), 2),
 #              #  positive_alpha_KS,
 #              results["pos_α_ks"],
 #              amplitude,
 #              color="green",
-#              label="Right tail",
+#              label="right tail",
 #          )
-#      if tail_selected == "Left" or tail_selected == "Both":
+#      if tail_selected == "left" or tail_selected == "both":
 #          z.bar(
 #              np.arange(amplitude, 2 * len(tickers) + amplitude, 2),
 #              #  negative_alpha_KS,
 #              results["neg_α_ks"],
 #              amplitude,
 #              color="red",
-#              label="Left tail",
+#              label="left tail",
 #          )
 #      z.xticks(np.arange(amplitude, 2 * len(tickers) + amplitude, 2), tickers)
 #      z.ylabel("p-value")
@@ -934,8 +939,8 @@ settings = SimpleNamespace(**settings_dict)
 #      df = pd.DataFrame(df_data, columns=column_headers)
 #      df.to_csv(filename, index=False)
 
-#  elif approach == "Rolling" or approach == "Increasing":
-if approach == "Rolling" or approach == "Increasing":
+#  elif approach == "rolling" or approach == "increasing":
+if s.approach == "rolling" or s.approach == "increasing":
 
     #  question      = "Do you want to save the sequential scaling plot?"
     #  choices      = ['Yes', 'No']
@@ -961,7 +966,7 @@ if approach == "Rolling" or approach == "Increasing":
     #  print(f"N = {N}")
     #  for i in range(1, N, 1):
     #  for tck in tickers:
-    for tck in ticker_df:
+    for tck in s.ticker_df:
         #  print(tck)
 
         #  if plot_storing == "Yes":
@@ -981,17 +986,17 @@ if approach == "Rolling" or approach == "Increasing":
 
         #  print(len(range(ind_i, ind_f + 1, anal_freq)))
         #  print(len(spec_dates), type(spec_dates))
-        assert(len(range(ind_i, ind_f + 1, anal_freq)) == len(spec_dates))
-        for l, dt in enumerate(spec_dates, start=ind_i):
+        #  assert(len(range(ind_i, ind_f + 1, anal_freq)) == len(spec_dates))
+        for l, dt in enumerate(s.spec_dates, start=s.ind_i):
 
-            # ASK: is the none "Rolling" approach, "Increasing"?
-            lbk = (l if approach == "Rolling" else ind_i) - lookback + 1
+            # ASK: is the none "rolling" approach, "increasing"?
+            lbk = (l if s.approach == "rolling" else s.ind_i) - s.lookback + 1
 
             # NOTE: must convert Series to PandasArray to remove Index,
             # otherwise all operations will be aligned on their indexes
-            series = database[tck].iloc[lbk: l + 1].array
+            series = s.db_df[tck].iloc[lbk: l + 1].array
 
-            begin_date = db_dates[lbk]
+            begin_date = s.db_dates[lbk]
             end_date = dt
             #  assert(end_date == db_dates[l])
 
@@ -1024,12 +1029,12 @@ if approach == "Rolling" or approach == "Increasing":
 
             X = utils.preprocess_series(series)
 
-            if settings.use_right_tail:
+            if s.use_right_tail:
                 tail_plus, fit_1 = utils.fit_tail(X)
-            if settings.use_left_tail:
+            if s.use_left_tail:
                 tail_neg, fit_2 = utils.fit_tail(-X)
 
-            # TODO: when only Right or Left tail selected,
+            # TODO: when only right or left tail selected,
             #       the other fit object will be None
             alpha1 = fit_1.power_law.alpha
             xmin1 = fit_1.power_law.xmin
@@ -1041,10 +1046,10 @@ if approach == "Rolling" or approach == "Increasing":
             #  # Plot Storing if-block
             #  if plot_storing == "Yes":
             #
-            #      if tail_selected == "Right" or tail_selected == "Both":
+            #      if tail_selected == "right" or tail_selected == "both":
             #
             #          plt.figure(
-            #              "Right tail scaling for "
+            #              "right tail scaling for "
             #              + labels[i - 1]
             #              + begin_date
             #              + "_"
@@ -1103,7 +1108,7 @@ if approach == "Rolling" or approach == "Increasing":
             #          the_table.set_fontsize(10)
             #          the_table.scale(0.5, 0.5)
             #          plt.savefig(
-            #              "Right-tail scaling_"
+            #              "right-tail scaling_"
             #              + begin_date
             #              + "_"
             #              + end_date
@@ -1113,7 +1118,7 @@ if approach == "Rolling" or approach == "Increasing":
             #          )
             #          plt.close()
             #
-            #          plt.figure("Right tail comparison for " + labels[i - 1])
+            #          plt.figure("right tail comparison for " + labels[i - 1])
             #          fig4 = fit_1.plot_ccdf(
             #              color="b", linewidth=2, label="Empirical CCDF"
             #          )
@@ -1144,7 +1149,7 @@ if approach == "Rolling" or approach == "Increasing":
             #          fig4.grid()
             #          fig4.legend()
             #          plt.savefig(
-            #              "Right-tail fitting comparison_"
+            #              "right-tail fitting comparison_"
             #              + begin_date
             #              + "_"
             #              + end_date
@@ -1154,10 +1159,10 @@ if approach == "Rolling" or approach == "Increasing":
             #          )
             #          plt.close()
             #
-            #      if tail_selected == "Left" or tail_selected == "Both":
+            #      if tail_selected == "left" or tail_selected == "both":
             #
             #          plt.figure(
-            #              "Left tail scaling for "
+            #              "left tail scaling for "
             #              + labels[i - 1]
             #              + begin_date
             #              + "_"
@@ -1216,7 +1221,7 @@ if approach == "Rolling" or approach == "Increasing":
             #          the_table.set_fontsize(10)
             #          the_table.scale(0.5, 0.5)
             #          plt.savefig(
-            #              "Left-tail scaling_"
+            #              "left-tail scaling_"
             #              + begin_date
             #              + "_"
             #              + end_date
@@ -1226,7 +1231,7 @@ if approach == "Rolling" or approach == "Increasing":
             #          )
             #          plt.close()
             #
-            #          plt.figure("Left tail comparison for " + labels[i - 1])
+            #          plt.figure("left tail comparison for " + labels[i - 1])
             #          fig4 = fit_2.plot_ccdf(
             #              color="b", linewidth=2, label="Empirical CCDF"
             #          )
@@ -1257,7 +1262,7 @@ if approach == "Rolling" or approach == "Increasing":
             #          fig4.grid()
             #          fig4.legend()
             #          plt.savefig(
-            #              "Left-tail fitting comparison_"
+            #              "left-tail fitting comparison_"
             #              + begin_date
             #              + "_"
             #              + end_date
@@ -1267,14 +1272,15 @@ if approach == "Rolling" or approach == "Increasing":
             #          )
             #          plt.close()
 
-            if tail_selected == "Right" or tail_selected == "Both":
+            #  if s.tail_selected == "right" or s.tail_selected == "both":
+            if s.use_right_tail:
 
                 results["pos_α_vec"].append(alpha1)
                 results["pos_up_bound"].append(
-                    alpha1 + (st.norm.ppf(1 - multiplier * significance))
+                    alpha1 + (st.norm.ppf(1 - s.tail_mult * s.alpha_sgnf))
                     * s_err1)
                 results["pos_low_bound"].append(
-                    alpha1 - (st.norm.ppf(1 - multiplier * significance))
+                    alpha1 - (st.norm.ppf(1 - s.tail_mult * s.alpha_sgnf))
                     * s_err1
                 )
                 results["pos_abs_len"].append(len(
@@ -1283,7 +1289,7 @@ if approach == "Rolling" or approach == "Increasing":
                     len(tail_plus[tail_plus >= xmin1]) /
                     float(len(tail_plus)))
                 p1 = plpva.plpva(tail_plus, float(xmin1),
-                                 "reps", c_iter, "silent")
+                                 "reps", s.plpva_iter, "silent")
                 results["pos_α_ks"].append(p1[0])
 
                 distribution_list = ["truncated_power_law",
@@ -1300,15 +1306,16 @@ if approach == "Rolling" or approach == "Increasing":
                 results["loglr_right"].append(daily_r_ratio)
                 results["loglpv_right"].append(daily_r_p)
 
-            if tail_selected == "Left" or tail_selected == "Both":
+            #  if s.tail_selected == "left" or s.tail_selected == "both":
+            if s.use_left_tail:
 
                 results["neg_α_vec"].append(alpha2)
                 results["neg_up_bound"].append(
-                    alpha2 + (st.norm.ppf(1 - multiplier * significance))
+                    alpha2 + (st.norm.ppf(1 - s.tail_mult * s.alpha_sgnf))
                     * s_err2
                 )
                 results["neg_low_bound"].append(
-                    alpha2 - (st.norm.ppf(1 - multiplier * significance))
+                    alpha2 - (st.norm.ppf(1 - s.tail_mult * s.alpha_sgnf))
                     * s_err2
                 )
                 # NOTE: tail_plus was already converted;
@@ -1319,7 +1326,7 @@ if approach == "Rolling" or approach == "Increasing":
                     len(tail_neg[tail_neg >= xmin2]) /
                     float(len(tail_neg)))
                 p2 = plpva.plpva(tail_neg, float(xmin2),
-                                 "reps", c_iter, "silent")
+                                 "reps", s.plpva_iter, "silent")
                 results["neg_α_ks"].append(p2[0])
 
                 distribution_list = ["truncated_power_law",
@@ -1337,23 +1344,23 @@ if approach == "Rolling" or approach == "Increasing":
                 results["loglpv_left"].append(daily_l_p)
 
             # Building tail statistics section
-            if tail_selected == "Right" or tail_selected == "Both":
+            if s.use_right_tail:
                 tstat_right = get_tail_stats(fit_1, tail_plus, p1)
                 logl_tstat_right = get_logl_tstats(daily_r_ratio, daily_r_p)
-            if tail_selected == "Left" or tail_selected == "Both":
+            if s.use_left_tail:
                 tstat_left = get_tail_stats(fit_2, tail_neg, p2)
                 logl_tstat_left = get_logl_tstats(daily_l_ratio, daily_l_p)
 
-            if tail_selected == "Both":
+            if s.tail_selected == "both":
                 row = (tail_stat_zipper(tstat_right, tstat_left) +
                        logl_tstat_right +
                        logl_tstat_left)
-            elif tail_selected == "Right":
+            elif s.tail_selected == "right":
                 row = (tail_stat_zipper(tstat_right,
                                         np.zeros(len(tstat_right)))
                        + logl_tstat_right
                        + list("0" * 6))
-            elif tail_selected == "Left":
+            elif s.tail_selected == "left":
                 row = (tail_stat_zipper(np.zeros(len(tstat_left)),
                                         tstat_left)
                        + list("0" * 6)
@@ -1363,19 +1370,19 @@ if approach == "Rolling" or approach == "Increasing":
 
         # NOTE: these are used for the boxplots
         # ----> treat w/ care when adding multiprocessing
-        if tail_selected == "Right" or tail_selected == "Both":
+        if s.tail_selected == "right" or s.tail_selected == "both":
             boxplot_mat["pos_α_mat"].append(results["pos_α_vec"])
-        if tail_selected == "Left" or tail_selected == "Both":
+        if s.tail_selected == "left" or s.tail_selected == "both":
             boxplot_mat["neg_α_mat"].append(results["neg_α_vec"])
 
         # Plot the alpha exponent in time (right/left/both tail)
         # Plotting the histograms for the rolling alpha
-        trp.tabled_figure_plotter(tck, settings, results)
+        trp.tabled_figure_plotter(tck, s, results)
 
         # Plot the alpha exponent confidence interval in time
         # and the other 3 time rolling plots
-        trp.time_rolling_plotter(tck, settings, results)
-        # FIXME: the above does not plot left tails even with Both selected
+        trp.time_rolling_plotter(tck, s, results)
+        # FIXME: the above does not plot left tails even with both selected
 
         # Write Tail Statistics to CSV file
         data_io.write_csv_stats(tail_statistics)
