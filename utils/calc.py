@@ -6,7 +6,8 @@ from settings import settings as s
 
 import utils
 #  import data_io
-import plpva as plpva
+#  import _plpva as plpva
+from _plpva import plpva
 
 #  import plot_funcs.tail_risk_plotter as trp
 
@@ -44,7 +45,7 @@ def calc_n_store(series, results):
     #  rel_len = len(tail[tail >= xmin]) / len(tail)
 
     # TODO: think of way to rid dependency on settings module
-    ks_pv, _ = plpva.plpva(series, xmin, "reps", s.plpva_iter, "silent")
+    ks_pv, _ = plpva(series, xmin, "reps", s.plpva_iter, "silent")
     results['ks_pv'].append(ks_pv)
 
     for distro, pdf in pl_distro_map.items():

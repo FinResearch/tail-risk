@@ -1,8 +1,3 @@
-#  import numpy as np
-
-#  from settings import settings as s
-
-
 #  labels = ("pos_α_vec", "neg_α_vec", "pos_α_ks", "neg_α_ks",
 #            "pos_up_bound", "neg_up_bound", "pos_low_bound", "neg_low_bound",
 #            "pos_abs_len", "neg_abs_len", "pos_rel_len", "neg_rel_len",
@@ -38,3 +33,18 @@ def boxplot_mat_init():
 
 def gen_vector_colnames(tails_used):
     pass
+
+
+def store_results():
+    pass
+
+
+def build_csv_row(results):
+    csv_row = []
+
+    for lab, val in results.items():
+        if s.tail_selected == 'both':
+            csv_row.append(val[-2])
+        csv_row.append(val[-1])
+
+    return csv_row
