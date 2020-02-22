@@ -1,5 +1,7 @@
 import os
 import re
+from statistics import NormalDist
+
 import pandas as pd
 
 import click
@@ -32,8 +34,24 @@ def xmin_cb(ctx, param, xmin):
         return xmin, xmin_defaults[xmin]
 
 
+def get_tails_used(tail_selected):
+    """Return tuple containing the tails selected/used
+    """
+
+    use_right = True if tail_selected in ['right', 'both'] else False
+    use_left = True if tail_selected in ['left', 'both'] else False
+
+    tails_used = []
+    if use_right:
+        tails_used.append("right")
+    if use_left:
+        tails_used.append("left")
+
+    return use_right, use_left, tuple(tails_used)
+
+
 @click.command()
-# TODO: change default to last specified
+# TODO: change default db_file to be last specified on CLI
 @click.option('--db-file', default='dbMSTR_test.csv',
               type=click.File(mode='r'),
               help=f'select database to use: {_get_db_choices()}; or your own')
@@ -60,7 +78,7 @@ def xmin_cb(ctx, param, xmin):
 # TODO: --analyze-freq is only applies to non-static approach
 @click.option('--analyze-freq', 'anal_freq', default=1, show_default=True)
 # TODO: allow specifying 'both' with '--tail left right' below (variable vals)
-@click.option('-t', '--tail', 'tail_selected',
+@click.option('-t', '--tail', 'tail_selected',  # TODO: use feature switch(es)?
               default='both', show_default=True,
               type=click.Choice(['left', 'right', 'both']))
 @click.option('-n', '--data-nature', default='continuous', show_default=True,
@@ -84,7 +102,8 @@ def xmin_cb(ctx, param, xmin):
 def get_uis(db_file, tickers, date_i, date_f, lookback, return_type, tau,
             standardize, absolutize, approach, anal_freq, tail_selected,
             data_nature, xmin_inputs, alpha_sgnf, plpva_iter,
-            show_plots, save_plots):
+            show_plots, save_plots):  # TODO: add verbosity feature/flag
+    # TODO: make distinction b/w private/internal & public variables
 
     db_df = pd.read_csv(db_file, index_col='Date')[tickers]
     db_dates = db_df.index
@@ -107,9 +126,10 @@ def get_uis(db_file, tickers, date_i, date_f, lookback, return_type, tau,
 
     ticker_df = db_df.iloc[ind_i: ind_f + 1]
 
-    use_right_tail = True if tail_selected in ['right', 'both'] else False
-    use_left_tail = True if tail_selected in ['left', 'both'] else False
-    tail_mult = 0.5 if tail_selected == 'both' else 1
+    use_right_tail, use_left_tail, tails_used = get_tails_used(tail_selected)
+
+    _tail_mult = 0.5 if tail_selected == 'both' else 1
+    alpha_quantile = NormalDist().inv_cdf(1 - _tail_mult * alpha_sgnf)
 
     #  if xmin_rule != 'clauset' and xmin_var_qty is None:
     #      xmin_var_qty = prompt_xmin_var_qty(xmin_rule)

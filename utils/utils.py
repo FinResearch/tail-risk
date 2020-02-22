@@ -23,7 +23,7 @@ def _get_xmin(data, xmin=None):
     return xmin
 
 
-def powerlaw_fit(data, xmin=None):
+def init_fit_obj(data, xmin=None):
 
     # NOTE: only keep/use non-zero elements
     data1 = np.array(data)[np.nonzero(data)]
@@ -36,16 +36,16 @@ def powerlaw_fit(data, xmin=None):
     return pl.Fit(data1, discrete=discrete, xmin=xmin)
 
 
-def fit_tail(data):
+def get_fit(data):
 
-    fit = powerlaw_fit(data)
+    fit = init_fit_obj(data)
 
     # TODO: test standardization branch
     if s.standardize and s.standardize_target == "tail":
         xmin = fit.power_law.xmin
         fit = standardize_tail(data, xmin)
 
-    return data, fit
+    return fit
 
 
 # TODO: test standardization function
@@ -60,7 +60,7 @@ def standardize_tail(tail_data, xmin):
     if s.absolutize and s.absz_target == "tail":
         X = absolutize_tail(X)
 
-    return powerlaw_fit(X, s.xmin_rule, np.min(X))
+    return init_fit_obj(X, s.xmin_rule, np.min(X))
 
 
 # TODO: test absolutize function
@@ -70,30 +70,9 @@ def absolutize_tail(tail_data):
     return np.abs(tail_data)
 
 
-#  def get_tail_stats(fit_obj, tail_data, ks_pvgof_tup):
-#      alpha = fit_obj.power_law.alpha
-#      xmin = fit_obj.power_law.xmin
-#      s_err = fit_obj.power_law.sigma
-#      tail_size = len(tail_data[tail_data >= xmin])
-#      ks_pv = ks_pvgof_tup[0]
-#      return alpha, xmin, s_err, tail_size, ks_pv
-#
-#
-#  # NOTE: do the right/left values have to alternate in output CSV?
-#  def tail_stat_zipper(tstat1, tstat2):
-#      return [val for pair in zip(tstat1, tstat2) for val in pair]
-#
-#
-#  # TODO: merge this extraction function into get_tail_stats()
-#  def get_logl_tstats(daily_log_ratio, daily_log_pv):
-#      r_tpl, r_exp, r_logn = daily_log_ratio
-#      p_tpl, p_exp, p_logn = daily_log_pv
-#      return list((r_tpl, r_exp, r_logn, p_tpl, p_exp, p_logn))
+# configure given series to chosen return_type
 
-
-# process given series
-
-def preprocess_series(series):
+def cofig_series(series):
 
     # TODO: add fullname for return_types, ex. {"log": "Log Returns"}
     print(f"You opted for the analysis of the {s.return_type}")
