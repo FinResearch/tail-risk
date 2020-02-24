@@ -56,18 +56,16 @@ def boxplot_mat_init():
     return {l: [] for l in labels}
 
 
-def gen_vector_colnames(tails_used):
-    pass
+def label_plot_vecs(plot_vecs_tup):
+    vec_labels = ("α_vec", "up_bound", "low_bound",
+                  "abs_len", "rel_len", "α_ks",)
 
+    pvtc = tuple(zip(*plot_vecs_tup))  # pvtc: plot vecs tup convolved
 
-#  def store_results():
-#      pass
+    plot_vecs_map = {}
+    for t, tdir in enumerate(s.tails_used):
+        tsgs = 'pos' if tdir == 'right' else 'neg'
+        for l, lab in enumerate(vec_labels):
+            plot_vecs_map[f'{tsgs}_{lab}'] = pvtc[t][l]
 
-
-#  def build_csv_row(results):
-#      csv_row = []
-#      for lab, val in results.items():
-#          if s.tail_selected == 'both':
-#              csv_row.append(val[-2])
-#          csv_row.append(val[-1])
-#      return csv_row
+    return plot_vecs_map

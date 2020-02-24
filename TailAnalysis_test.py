@@ -1041,6 +1041,9 @@ if s.approach == "rolling" or s.approach == "increasing":
             #          )
             #          plt.close()
 
+        # getting vectors required for plotting
+        plot_vecs = structs.label_plot_vecs(calc.get_plot_vecs(csv_array.T))
+
         # NOTE: these are used for the boxplots
         # ----> treat w/ care when adding multiprocessing
         #  if s.tail_selected == "right" or s.tail_selected == "both":
@@ -1052,11 +1055,11 @@ if s.approach == "rolling" or s.approach == "increasing":
 
         # Plot the alpha exponent in time (right/left/both tail)
         # AND plot the histograms for the rolling alpha
-        trp.tabled_figure_plotter(tck, s, results)
+        trp.tabled_figure_plotter(tck, s, plot_vecs)
 
         # Plot the alpha exponent confidence interval in time
         # and the other 3 time rolling plots
-        trp.time_rolling_plotter(tck, s, results)
+        trp.time_rolling_plotter(tck, s, plot_vecs)
         # FIXME: the above does not plot left tails even with both selected
 
         # Write Tail Statistics to CSV file

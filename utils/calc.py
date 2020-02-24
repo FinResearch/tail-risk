@@ -147,13 +147,29 @@ def get_results_tup(series):
     return [stat for stat_tup in zip(*trl) for stat in stat_tup]
 
 
-def get_extra_plot_vecs(results_mat):
-    pass
-    #  extras = ('up_bound', 'low_bound', 'rel_len')
-    #  bound_delta = s.alpha_quantile * s_err
-    #  up_bound = alpha + bound_delta
-    #  low_bound = alpha - bound_delta
+# TODO: make function more efficinet; i.e. avoid making copies
+def get_plot_vecs(csv_array_T):
 
-    #  abs_len = len(tail[tail >= xmin])
-    #  # TODO: rel_len is just abs_len / const known in advance
-    #  rel_len = len(tail[tail >= xmin]) / len(tail)
+    # TODO: make below row indexing more succinct
+    if sett.tail_selected == 'both':
+        alp, sig, abl, aks = (0, 1), (4, 5), (6, 7), (8, 9)
+    else:
+        alp, sig, abl, aks = 0, 2, 3, 4
+
+    alphas = csv_array_T[np.r_[alp]]
+    _sigmas = csv_array_T[np.r_[sig]]
+    abs_lens = csv_array_T[np.r_[abl]]
+    ks_pvs = csv_array_T[np.r_[aks]]
+
+    bound_deltas = sett.alpha_quantile * _sigmas
+    up_bounds = alphas + bound_deltas
+    low_bounds = alphas - bound_deltas
+
+    # NOTE: rel_len = abs_len / tail_len (known in advance)
+    if sett.approach == 'rolling':
+        tlen = 504
+    elif sett.approach == 'increasing':
+        tlen = None  # FIXME: consider using a generator?
+    rel_lens = abs_lens / tlen
+
+    return alphas, up_bounds, low_bounds, abs_lens, rel_lens, ks_pvs
