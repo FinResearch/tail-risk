@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from ui import get_uis
+from .ui import get_uis
 
 
 uis = get_uis.main(standalone_mode=False)

@@ -1,7 +1,13 @@
+import numpy as np
+
+from .settings import settings as s
+
+
 #  labels = ("pos_α_vec", "neg_α_vec", "pos_α_ks", "neg_α_ks",
 #            "pos_up_bound", "neg_up_bound", "pos_low_bound", "neg_low_bound",
 #            "pos_abs_len", "neg_abs_len", "pos_rel_len", "neg_rel_len",
-#            "loglr_right", "loglr_left", "loglpv_right", "loglpv_left")
+# NOTE: the above 12 vectors are used for plotting
+#  #            "loglr_right", "loglr_left", "loglpv_right", "loglpv_left")
 
 
 pl_distro_map = {'tpl': "truncated_power_law",
@@ -16,14 +22,33 @@ def init_tickers_results(tickers):
 
 #  # TODO: use a defaultdict to initialize the data storage container???
 # NOTE: len of each list is len(spec_dates) == n_spdt -> use np.ndarray?
-def init_results_lists():
+def init_csv_array(N=None, M=None):
 
-    tail_stats_labs = ('α', 'xmin', 'σ', 'abs_len', 'ks_pv')
-    loglR_labs = tuple(f'loglR_{distro}' for distro in pl_distro_map)
-    loglp_labs = tuple(f'loglp_{distro}' for distro in pl_distro_map)
+    # TODO: add build-in Pandas DataFrame support (use labels below)
+    #  tail_stats_labs = ('α', 'xmin', 'σ', 'abs_len', 'ks_pv')
+    #  loglR_labs = tuple(f'loglR_{distro}' for distro in pl_distro_map)
+    #  loglp_labs = tuple(f'loglp_{distro}' for distro in pl_distro_map)
+    #  m = len(tail_stats_labs + loglR_labs + loglp_labs)
+    #  M = 2*m if s.tail_selected == 'both' else m
+    #  # TODO: consider using deque module for fast appending?
+    #  return {lab: [] for lab in tail_stats_labs + loglR_labs + loglp_labs}
 
-    # TODO: consider using deque module for fast appending?
-    return {lab: [] for lab in tail_stats_labs + loglR_labs + loglp_labs}
+    if N is None:
+        N = s.n_spdt
+    if M is None:
+        M = 22 if s.tail_selected == 'both' else 11
+
+    return np.zeros((N, M))
+
+
+#  def add_stats_to_array_(results, csv_array, n_row):
+#      """this function mutates passed csv_array, and returns None
+#      :param results: an unnested tuple (or iterable) of floats
+#      """
+#      #  res_list = []
+#      #  for rdict in results:
+#      #      res_list += list(rdict.items())
+#      csv_array[n_row, :] = results
 
 
 def boxplot_mat_init():
@@ -35,16 +60,14 @@ def gen_vector_colnames(tails_used):
     pass
 
 
-def store_results():
-    pass
+#  def store_results():
+#      pass
 
 
-def build_csv_row(results):
-    csv_row = []
-
-    for lab, val in results.items():
-        if s.tail_selected == 'both':
-            csv_row.append(val[-2])
-        csv_row.append(val[-1])
-
-    return csv_row
+#  def build_csv_row(results):
+#      csv_row = []
+#      for lab, val in results.items():
+#          if s.tail_selected == 'both':
+#              csv_row.append(val[-2])
+#          csv_row.append(val[-1])
+#      return csv_row

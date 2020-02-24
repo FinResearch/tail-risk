@@ -1,11 +1,6 @@
-from settings import settings as s
+from utils.settings import settings as s
 
-import utils
-
-# FIXME: fix imports below
-import data_io
-from calculate import calc_n_store, build_csv_row
-from storage import init_results_lists
+from utils import ui, structs, calc
 
 import plot_funcs.tail_risk_plotter as trp
 #  import plot_funcs.boxplot as pfbx
@@ -748,7 +743,7 @@ if s.approach == "rolling" or s.approach == "increasing":
     #  choices      = ['Yes', 'No']
     #  plot_storing = eg.choicebox(question, 'Plot', choices)
     #  plot_storing = "No"
-
+    #
     #  if plot_storing == "Yes":
     #      question = "What is the target directory for the pictures?"
     #      motherpath = eg.enterbox(
@@ -759,7 +754,9 @@ if s.approach == "rolling" or s.approach == "increasing":
     #      )
 
     # TODO: add lists below to results_lists_init function?
-    boxplot_mat = boxplot_mat_init()
+    #  boxplot_mat = boxplot_mat_init()
+
+    csv_array = structs.init_csv_array()
 
     for tck in s.ticker_df:
 
@@ -772,20 +769,16 @@ if s.approach == "rolling" or s.approach == "increasing":
         #              raise
         #      os.chdir(directory)
 
-        #  dict containing lists to store computed results
-        results = init_results_lists()
+        #  for l, dt in enumerate(s.spec_dates, start=s.ind_i):
+        for i, dt in enumerate(s.spec_dates):
 
-        # TODO: add list below to results_lists_init function
-        tail_statistics = []
-
-        for l, dt in enumerate(s.spec_dates, start=s.ind_i):
-
+            ll = s.ind_i + i
             # ASK: is the none "rolling" approach, "increasing"?
-            lbk = (l if s.approach == "rolling" else s.ind_i) - s.lookback + 1
+            lbk = (ll if s.approach == "rolling" else s.ind_i) - s.lookback + 1
 
             # NOTE: must convert Series to PandasArray to remove Index,
             # otherwise all operations will be aligned on their indexes
-            series = s.db_df[tck].iloc[lbk: l + 1].array
+            series = s.db_df[tck].iloc[lbk: ll + 1].array
 
             begin_date = s.db_dates[lbk]
             end_date = dt
@@ -817,17 +810,9 @@ if s.approach == "rolling" or s.approach == "increasing":
             print(f"I am analyzing the time series for {tck} "
                   f"between {begin_date} and {end_date}")
 
-            X = utils.config_series(series)
-            nX = len(X)
-
-            for tdir in s.tails_used:
-                tail_data = X if tdir == 'right' else -X
-                calc_n_store(tail_data, results)
-
-            tail_statistics.append(build_csv_row(results))
-
-            print(results)
-            print(tail_statistics)
+            results = calc.get_results_tup(series)
+            csv_array[i, :] = results
+            print(csv_array)
 
             #  # Plot Storing if-block
             #  if plot_storing == "Yes":
@@ -1060,10 +1045,10 @@ if s.approach == "rolling" or s.approach == "increasing":
 
         # NOTE: these are used for the boxplots
         # ----> treat w/ care when adding multiprocessing
-        if s.tail_selected == "right" or s.tail_selected == "both":
-            boxplot_mat["pos_α_mat"].append(results["pos_α_vec"])
-        if s.tail_selected == "left" or s.tail_selected == "both":
-            boxplot_mat["neg_α_mat"].append(results["neg_α_vec"])
+        #  if s.tail_selected == "right" or s.tail_selected == "both":
+        #      boxplot_mat["pos_α_mat"].append(results["pos_α_vec"])
+        #  if s.tail_selected == "left" or s.tail_selected == "both":
+        #      boxplot_mat["neg_α_mat"].append(results["neg_α_vec"])
 
         # TODO: consider doing all plotting at very end of script
 
@@ -1077,7 +1062,7 @@ if s.approach == "rolling" or s.approach == "increasing":
         # FIXME: the above does not plot left tails even with both selected
 
         # Write Tail Statistics to CSV file
-        data_io.write_csv_stats(tail_statistics)
+        #  data_io.write_csv_stats(tail_statistics)
 
     #  # Plot the boxplots for the alpha tail(s))
     #  pfbx.boxplot(tickers, boxplot_mat, settings, show_plot=True)
