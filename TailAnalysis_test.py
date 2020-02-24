@@ -756,8 +756,6 @@ if s.approach == "rolling" or s.approach == "increasing":
     # TODO: add lists below to results_lists_init function?
     #  boxplot_mat = boxplot_mat_init()
 
-    csv_array = structs.init_csv_array()
-
     for tck in s.ticker_df:
 
         #  if plot_storing == "Yes":
@@ -768,6 +766,9 @@ if s.approach == "rolling" or s.approach == "increasing":
         #          if not os.path.isdir(directory):
         #              raise
         #      os.chdir(directory)
+
+        # init 2D-array containing results to be written to CSV (per ticker)
+        csv_array = structs.init_csv_array()
 
         #  for l, dt in enumerate(s.spec_dates, start=s.ind_i):
         for i, dt in enumerate(s.spec_dates):
@@ -1041,8 +1042,12 @@ if s.approach == "rolling" or s.approach == "increasing":
             #          )
             #          plt.close()
 
+        # Write Tail Statistics to CSV file
+        #  FIXME: data_io.write_csv_stats(tail_statistics)
+
         # getting vectors required for plotting
         plot_vecs = structs.label_plot_vecs(calc.get_plot_vecs(csv_array.T))
+        # TODO: move transpose taking into function??
 
         # NOTE: these are used for the boxplots
         # ----> treat w/ care when adding multiprocessing
@@ -1062,8 +1067,6 @@ if s.approach == "rolling" or s.approach == "increasing":
         trp.time_rolling_plotter(tck, s, plot_vecs)
         # FIXME: the above does not plot left tails even with both selected
 
-        # Write Tail Statistics to CSV file
-        #  data_io.write_csv_stats(tail_statistics)
-
     #  # Plot the boxplots for the alpha tail(s))
+    # TODO: avoid making an array copy, and just use needed vectors directly
     #  pfbx.boxplot(tickers, boxplot_mat, settings, show_plot=True)

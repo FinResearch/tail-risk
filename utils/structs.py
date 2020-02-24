@@ -35,7 +35,7 @@ def init_csv_array(N=None, M=None):
 
     if N is None:
         N = s.n_spdt
-    if M is None:
+    if M is None:  # TODO: M differs by approach & script type
         M = 22 if s.tail_selected == 'both' else 11
 
     return np.zeros((N, M))
@@ -60,6 +60,7 @@ def label_plot_vecs(plot_vecs_tup):
     vec_labels = ("α_vec", "up_bound", "low_bound",
                   "abs_len", "rel_len", "α_ks",)
 
+    # NOTE: need to convolve to group vectors by tail_direction (if both)
     pvtc = tuple(zip(*plot_vecs_tup))  # pvtc: plot vecs tup convolved
 
     plot_vecs_map = {}
