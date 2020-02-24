@@ -172,4 +172,5 @@ def get_plot_vecs(csv_array_T):
         tlen = None  # FIXME: consider using a generator?
     rel_lens = abs_lens / tlen
 
+    # TODO: consider doing the zip/convolution here?
     return alphas, up_bounds, low_bounds, abs_lens, rel_lens, ks_pvs

@@ -49,13 +49,16 @@ def get_tails_used(tail_selected):
 
     return use_right, use_left, tuple(tails_used)
 
+tickers = ["DE 01Y", "DE 03Y", "DE 05Y", "DE 10Y"]
 
 @click.command()
 # TODO: change default db_file to be last specified on CLI
 @click.option('--db-file', default='dbMSTR_test.csv',
               type=click.File(mode='r'),
               help=f'select database to use: {_get_db_choices()}; or your own')
-@click.option('--tickers', default=["DE 01Y"], type=list)  # TODO:use config
+# FIXME: how to manually specify a list of tickers on the CLI?
+#  @click.option('--tickers', default=["DE 01Y"], type=list)  # TODO:use config
+@click.option('--tickers', default=tickers, type=list)  # TODO:use config
 @click.option('--init-date', 'date_i', default='31-03-16')
 @click.option('--final-date', 'date_f', default='5/5/2016')
 # TODO: in above 3 options, autodetect tickers & dates from passed database
@@ -104,6 +107,8 @@ def get_uis(db_file, tickers, date_i, date_f, lookback, return_type, tau,
             data_nature, xmin_inputs, alpha_sgnf, plpva_iter,
             show_plots, save_plots):  # TODO: add verbosity feature/flag
     # TODO: make distinction b/w private/internal & public variables
+
+    print(f'using tickers: {tickers}')
 
     db_df = pd.read_csv(db_file, index_col='Date')[tickers]
     db_dates = db_df.index

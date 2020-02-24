@@ -15,9 +15,21 @@ pl_distro_map = {'tpl': "truncated_power_law",
                  'logn': "lognormal"}
 
 
-def init_tickers_results(tickers):
+#  def boxplot_mat_init():
+#      labels = ("pos_α_mat", "neg_α_mat")
+#      return {l: [] for l in labels}
+
+
+# TODO: combine the two init_ 2D matrix functions?
+def init_alpha_bpmat(N=None, M=None):  # bpm: boxplot matrix
     """persistent store for computed tail fitting data of all tickers"""
-    pass
+    if N is None:
+        n = 2 if s.tail_selected == 'both' else 1
+        N = n * len(s.tickers)
+    if M is None:
+        M = s.n_spdt
+
+    return np.zeros((N, M))
 
 
 #  # TODO: use a defaultdict to initialize the data storage container???
@@ -51,11 +63,6 @@ def init_csv_array(N=None, M=None):
 #      csv_array[n_row, :] = results
 
 
-def boxplot_mat_init():
-    labels = ("pos_α_mat", "neg_α_mat")
-    return {l: [] for l in labels}
-
-
 def label_plot_vecs(plot_vecs_tup):
     vec_labels = ("α_vec", "up_bound", "low_bound",
                   "abs_len", "rel_len", "α_ks",)
@@ -70,3 +77,13 @@ def label_plot_vecs(plot_vecs_tup):
             plot_vecs_map[f'{tsgs}_{lab}'] = pvtc[t][l]
 
     return plot_vecs_map
+
+
+#  def label_boxplot_mat(csv_array):
+#      #  mat_labels = ("pos_α_mat", "neg_α_mat",)
+#      bpmat_map = {}
+#      for t, tdir in enumerate(s.tails_used):
+#          tsgs = 'pos' if tdir == 'right' else 'neg'
+#          for l, lab in enumerate(vec_labels):
+#              plot_vecs_map[f'{tsgs}_{lab}'] = pvtc[t][l]
+#      return bpmat_map

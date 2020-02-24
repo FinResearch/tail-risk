@@ -3,7 +3,7 @@ from utils.settings import settings as s
 from utils import ui, structs, calc
 
 import plot_funcs.tail_risk_plotter as trp
-#  import plot_funcs.boxplot as pfbx
+import plot_funcs.boxplot as pfbx
 
 
 # TODO: factor plot making & storing code sections
@@ -755,8 +755,9 @@ if s.approach == "rolling" or s.approach == "increasing":
 
     # TODO: add lists below to results_lists_init function?
     #  boxplot_mat = boxplot_mat_init()
+    alpha_bpmat = structs.init_alpha_bpmat()
 
-    for tck in s.ticker_df:
+    for t, tck in enumerate(s.ticker_df):
 
         #  if plot_storing == "Yes":
         #      directory = motherpath + "PowerLawAnimation\\" + labels[i - 1]
@@ -1046,8 +1047,7 @@ if s.approach == "rolling" or s.approach == "increasing":
         #  FIXME: data_io.write_csv_stats(tail_statistics)
 
         # getting vectors required for plotting
-        plot_vecs = structs.label_plot_vecs(calc.get_plot_vecs(csv_array.T))
-        # TODO: move transpose taking into function??
+        plot_vecs_tup = calc.get_plot_vecs(csv_array.T)
 
         # NOTE: these are used for the boxplots
         # ----> treat w/ care when adding multiprocessing
@@ -1055,6 +1055,17 @@ if s.approach == "rolling" or s.approach == "increasing":
         #      boxplot_mat["pos_α_mat"].append(results["pos_α_vec"])
         #  if s.tail_selected == "left" or s.tail_selected == "both":
         #      boxplot_mat["neg_α_mat"].append(results["neg_α_vec"])
+        alphas = plot_vecs_tup[0]
+        r = len(alphas)  # 1 if only uses 1 tail, 2 if both
+        alpha_bpmat[r*t: r*(t+1)] = alphas
+        # FIXME: need to group by tail used and label to plot
+        #  print(alphas)
+        #  print(r*t, r*(t+1))
+        #  print(alpha_bpmat)
+
+        # add appropriate labels to vectors to be plotted
+        plot_vecs = structs.label_plot_vecs(plot_vecs_tup)
+        # TODO: move transpose taking into function??
 
         # TODO: consider doing all plotting at very end of script
 
@@ -1069,4 +1080,4 @@ if s.approach == "rolling" or s.approach == "increasing":
 
     #  # Plot the boxplots for the alpha tail(s))
     # TODO: avoid making an array copy, and just use needed vectors directly
-    #  pfbx.boxplot(tickers, boxplot_mat, settings, show_plot=True)
+    pfbx.boxplot(s.tickers, alpha_bpmat, s, show_plot=True)
