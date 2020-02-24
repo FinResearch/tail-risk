@@ -141,6 +141,7 @@ class TailRiskPlotter(ABC):
         type (CI, tail size, KS, etc.), and eventually ticker ID
         """
         self.curr_mult = mult  # multiplicity: must be 'single' OR 'double'
+        # TODO: simplify naming to use either 'pos/neg' OR 'right/left'???
         self.curr_tdir = tdir
         self.curr_tsgn = "negative" if self.curr_tdir == "left" else "positive"
         self.curr_tsgs = self.curr_tsgn[:3]  # tail sign short form, ex. "pos"

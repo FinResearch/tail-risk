@@ -4,7 +4,7 @@ from powerlaw import Fit
 from ._plpva import plpva as _plpva
 
 # TODO: rid dependency on settings module? --> use OOP
-from .settings import settings as s
+from .settings import settings as sett
 
 
 #  pl_distro_map = {'tpl': "truncated_power_law",
@@ -23,7 +23,7 @@ def __get_xmin(data, xmin=None):
         return xmin
 
     # TODO: don't use global s settings var
-    xmin_rule, xmin_val = s.xmin_inputs
+    xmin_rule, xmin_val = sett.xmin_inputs
 
     if xmin_rule == "clauset":
         xmin = None
@@ -43,7 +43,7 @@ def _get_Fit(data, xmin=None):
     data = np.array(data)[np.nonzero(data)]
 
     # data_nature is one of ['discrete', 'continuous']
-    discrete = False if s.data_nature == 'continuous' else True
+    discrete = False if sett.data_nature == 'continuous' else True
 
     return Fit(data, discrete=discrete, xmin=xmin)
 
@@ -53,7 +53,7 @@ def _get_Fit(data, xmin=None):
 #      fit = init_fit(data)
 #
 #      # TODO: test standardization branch
-#      if s.standardize and s.standardize_target == "tail":
+#      if sett.standardize and sett.standardize_target == "tail":
 #          xmin = fit.power_law.xmin
 #          fit = standardize_tail(data, xmin)
 #
@@ -80,25 +80,25 @@ def _get_Fit(data, xmin=None):
 def _config_series(series):
 
     # TODO: add fullname for return_types, ex. {"log": "Log Returns"}
-    print(f"You opted for the analysis of the {s.return_type}")
+    print(f"You opted for the analysis of the {sett.return_type}")
 
-    tau = s.tau
+    tau = sett.tau
 
     pt_f = series[tau:]
     pt_i = series[0: len(series) - tau]
 
-    if s.return_type == "basic":
+    if sett.return_type == "basic":
         X = pt_f - pt_i
-    elif s.return_type == "relative":
+    elif sett.return_type == "relative":
         X = pt_f / pt_i - 1.0
-    elif s.return_type == "log":
+    elif sett.return_type == "log":
         X = np.log(pt_f/pt_i)
 
-    if s.standardize is True:
+    if sett.standardize is True:
         print("I am standardizing your time series")
         X = (X - X.mean())/X.std()
 
-    if s.absolutize is True:
+    if sett.absolutize is True:
         print("I am taking the absolute value of your time series")
         X = X.abs()
 
@@ -113,7 +113,7 @@ def _get_tail_stats(fit, series):
     sigma = fpl.sigma
 
     abs_len = len(series[series >= xmin])
-    ks_pv, _ = _plpva(series, xmin, 'reps', s.plpva_iter, 'silent')
+    ks_pv, _ = _plpva(series, xmin, 'reps', sett.plpva_iter, 'silent')
 
     return [alpha, xmin, sigma, abs_len, ks_pv]
 
@@ -135,7 +135,7 @@ def get_results_tup(series):
     X = _config_series(series)
 
     trl = []  # trl: tails results list
-    for tdir in s.tails_used:
+    for tdir in sett.tails_used:
         data = X if tdir == 'right' else -X
         fit = _get_Fit(data)
 

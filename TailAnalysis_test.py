@@ -810,9 +810,7 @@ if s.approach == "rolling" or s.approach == "increasing":
             print(f"I am analyzing the time series for {tck} "
                   f"between {begin_date} and {end_date}")
 
-            results = calc.get_results_tup(series)
-            csv_array[i, :] = results
-            print(csv_array)
+            csv_array[i, :] = calc.get_results_tup(series)
 
             #  # Plot Storing if-block
             #  if plot_storing == "Yes":
