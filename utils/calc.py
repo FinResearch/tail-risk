@@ -50,32 +50,21 @@ def _get_Fit(data, xmin=None):
     return Fit(data, discrete=discrete, xmin=xmin)
 
 
-#  def get_fit(data):
-#
-#      fit = init_fit(data)
-#
-#      # TODO: test standardization branch
-#      if sett.standardize and sett.standardize_target == "tail":
-#          xmin = fit.power_law.xmin
-#          fit = standardize_tail(data, xmin)
-#
-#      return fit
+# TODO: test standardization function
+def _std_abs_tail(data, fit):
 
+    # TODO: consider passing in fit.power_law.xmin directly, instead of fit
 
-# FIXME: need to have good way to standardize & absolutize tails
-#  # TODO: test standardization function
-#  def standardize_tail(data):
-#      print("I am standardizing your data")
-#      S = np.array(data)
-#      m = np.mean(S)
-#      v = np.std(S)
-#      X = (S - m) / v
-#      return X
-#
-#  # TODO: test absolutize function
-#  def absolutize_tail(data):
-#      print("I am taking the absolute value of your data")
-#      return np.abs(data)
+    print("I am standardizing your tail")
+    S = np.array(data)  # TODO: ensure data is np.ndarray so no need to cast
+    S = S[S >= fit.power_law.xmin]
+    X = (S - S.mean()) / S.std()
+
+    if sett.absolutize and sett.abs_target == "tail":
+        print("I am taking the absolute value of your tail")
+        X = np.abs(X)
+
+    return X
 
 
 # configure given series to chosen return_type
@@ -141,6 +130,13 @@ def get_results_tup(series):
     for tdir in sett.tails_used:
         data = X if tdir == 'right' else -X
         fit = _get_Fit(data)
+
+        if (sett.approach == 'static' and
+                sett.standardize and sett.std_target == 'tail'):
+            X = _std_abs_tail(data, fit)
+            # FIXME: call below uses manually-passed xmin val for all xmin_rule
+            fit = _get_Fit(X, X.min())
+            # NOTE: for above, need X.min() to not apply to clauset & percent??
 
         tail_stats = _get_tail_stats(fit, data)
         logl_stats = _get_logl_tstats(fit)
