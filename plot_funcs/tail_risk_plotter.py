@@ -1,3 +1,5 @@
+# TODO: need to add boxplot, plotter using powerlaw's Fit API, barplot
+
 from abc import ABC  # TODO: label @abstracmethod
 from itertools import product
 from string import Template

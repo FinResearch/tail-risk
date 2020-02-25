@@ -1,9 +1,9 @@
 from utils.settings import settings as s
 
-from utils import ui, structs, calc
+from utils import io, ui, structs, calc
 
 import plot_funcs.tail_risk_plotter as trp
-import plot_funcs.boxplot as pfbx
+#  import plot_funcs.boxplot as pfbx
 
 
 # TODO: factor plot making & storing code sections
@@ -1057,8 +1057,8 @@ if s.approach == "rolling" or s.approach == "increasing":
         #      boxplot_mat["neg_α_mat"].append(results["neg_α_vec"])
         alphas = plot_vecs_tup[0]
         r = len(alphas)  # 1 if only uses 1 tail, 2 if both
+        # FIXME: need to group by tails_used, and label to plot
         alpha_bpmat[r*t: r*(t+1)] = alphas
-        # FIXME: need to group by tail used and label to plot
         #  print(alphas)
         #  print(r*t, r*(t+1))
         #  print(alpha_bpmat)
@@ -1080,4 +1080,4 @@ if s.approach == "rolling" or s.approach == "increasing":
 
     #  # Plot the boxplots for the alpha tail(s))
     # TODO: avoid making an array copy, and just use needed vectors directly
-    pfbx.boxplot(s.tickers, alpha_bpmat, s, show_plot=True)
+    #  pfbx.boxplot(s.tickers, alpha_bpmat, s, show_plot=True)

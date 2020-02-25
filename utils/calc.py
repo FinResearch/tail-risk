@@ -1,3 +1,5 @@
+# TODO: revise function and variable names to be better descriptive
+
 import numpy as np
 
 from powerlaw import Fit
@@ -19,7 +21,7 @@ distros = ('truncated_power_law', 'exponential', 'lognormal')
 def __get_xmin(data, xmin=None):
 
     # NOTE: if explicitly passed xmin to function, then ofc use it
-    if xmin is not None:  # NOTE: use this for Rolling
+    if xmin is not None:  # NOTE: use this for Rolling xmin_rule in GroupTA
         return xmin
 
     # TODO: don't use global s settings var
@@ -43,7 +45,7 @@ def _get_Fit(data, xmin=None):
     data = np.array(data)[np.nonzero(data)]
 
     # data_nature is one of ['discrete', 'continuous']
-    discrete = False if sett.data_nature == 'continuous' else True
+    discrete = True if sett.data_nature == 'discrete' else False
 
     return Fit(data, discrete=discrete, xmin=xmin)
 
@@ -94,6 +96,7 @@ def _config_series(series):
     elif sett.return_type == "log":
         X = np.log(pt_f/pt_i)
 
+    # TODO: std/abs series only applies to static when _target == 'full series'
     if sett.standardize is True:
         print("I am standardizing your time series")
         X = (X - X.mean())/X.std()

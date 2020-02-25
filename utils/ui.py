@@ -69,6 +69,7 @@ tickers = ["DE 01Y", "DE 03Y", "DE 05Y", "DE 10Y"]
 # TODO: provide as (str) choices? rename to delta??
 @click.option('--tau', default=1, show_default=True,
               help='specify the time lag of the input series')
+# TODO: need to specify std/abs targets if approach is static
 @click.option('--standardize/--no-standardize',
               default=False, show_default=True,
               help='normalize each investigated time series')
