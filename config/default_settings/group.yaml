@@ -1,0 +1,7 @@
+---
+
+# default settings specific to group_tail_analysis
+
+lookback: 252
+xmin: 'average'
+plpva_iter: 2

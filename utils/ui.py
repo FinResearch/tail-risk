@@ -6,6 +6,22 @@ import pandas as pd
 
 import click
 
+import yaml
+#  from .io import load_settings
+
+
+def load_settings(script_type):
+    sett_path = 'config/default_settings/'
+
+    with open(f'{sett_path}/common.yaml') as sett:
+        common = yaml.load(sett, Loader=yaml.SafeLoader)
+
+    with open(f'{sett_path}/{script_type}.yaml') as sett:
+        specific = yaml.load(sett, Loader=yaml.SafeLoader)
+
+    return {**common, **specific}
+
+
 # CLI choice constants
 xmin_chlist = ['clauset', 'manual', 'percentile']
 
@@ -62,30 +78,31 @@ tickers = ["DE 01Y", "DE 03Y", "DE 05Y", "DE 10Y"]
 @click.option('--init-date', 'date_i', default='31-03-16')
 @click.option('--final-date', 'date_f', default='5/5/2016')
 # TODO: in above 3 options, autodetect tickers & dates from passed database
-@click.option('--lookback', default=504, show_default=True)
-@click.option('--return-type', default='log', show_default=True,
+@click.option('-G', '--group', 'analyze_group',
+              default=False, is_flag=True, is_eager=True,
+              help='set this flag to use group tail analysis')
+@click.option('--lookback', type=int,
+              help='lookback (in days) to use for rolling analysis')
+@click.option('--return-type',
               type=click.Choice(['basic', 'relative', 'log']),
               help='specify which type of series to study')
 # TODO: provide as (str) choices? rename to delta??
-@click.option('--tau', default=1, show_default=True,
+@click.option('--tau', type=int,
               help='specify the time lag of the input series')
 # TODO: need to specify std/abs targets if approach is static
 @click.option('--standardize/--no-standardize',
-              default=False, show_default=True,
               help='normalize each investigated time series')
 @click.option('--absolutize/--no-absolutize',
-              default=False, show_default=True,
               help='take the absolute value of your series')
 # TODO: consider using Enum types for these Choice values
-@click.option('-a', '--approach', default='rolling', show_default=True,
+@click.option('-a', '--approach',
               type=click.Choice(['static', 'rolling', 'increasing']))
 # TODO: --analyze-freq is only applies to non-static approach
-@click.option('--analyze-freq', 'anal_freq', default=1, show_default=True)
+@click.option('--analyze-freq', 'anal_freq', type=int)
 # TODO: allow specifying 'both' with '--tail left right' below (variable vals)
 @click.option('-t', '--tail', 'tail_selected',  # TODO: use feature switch(es)?
-              default='both', show_default=True,
               type=click.Choice(['left', 'right', 'both']))
-@click.option('-n', '--data-nature', default='continuous', show_default=True,
+@click.option('-n', '--data-nature',
               type=click.Choice(['discrete', 'continuous']))
 # TODO: allow None default for all xmin_rule choices (likely needs cb)
 # TODO: likely need custom option type to allow a range of args
@@ -97,18 +114,28 @@ tickers = ["DE 01Y", "DE 03Y", "DE 05Y", "DE 10Y"]
 # TODO: and better name, ex. xmin_rule_specific_qty
 #  @click.option('--xmin-var-qty', default=None, type=float,
 #                help='variable quantity used to calculate xmin based on rule')
-@click.option('--alpha-signif', 'alpha_sgnf', default=0.05, show_default=True,
+@click.option('--alpha-signif', type=float,
               help='significance of the confidence interval: 1-α')
-@click.option('--plpva-iter', default=100, show_default=True,
-              help='number of iterations for the Clauset p-value algorithm')
-@click.option('--show-plots/--no-show-plots', default=True, show_default=True)
-@click.option('--save-plots/--no-save-plots', default=False, show_default=True)
-def get_uis(db_file, tickers, date_i, date_f, lookback, return_type, tau,
-            standardize, absolutize, approach, anal_freq, tail_selected,
-            data_nature, xmin_inputs, alpha_sgnf, plpva_iter,
+@click.option('--plpva-iter',  type=int,
+              help='Clauset p-value algorithm num of iterations')
+@click.option('--show-plots/--no-show-plots')
+@click.option('--save-plots/--no-save-plots')
+def get_uis(db_file, tickers, date_i, date_f, analyze_group, lookback,
+            return_type, tau, standardize, absolutize, approach, anal_freq,
+            tail_selected, data_nature, xmin_inputs, alpha_signif, plpva_iter,
             show_plots, save_plots):  # TODO: add verbosity feature/flag
     # TODO: make distinction b/w private/internal & public variables
 
+    kwarg_dict = locals()
+
+    script_type = 'group' if analyze_group else 'tail'
+    sett = load_settings(script_type)
+
+    for key, arg in kwarg_dict.items():
+        if arg is None:
+            kwarg_dict[key] = sett[key]
+
+    return kwarg_dict
     print(f'using tickers: {tickers}')
 
     db_df = pd.read_csv(db_file, index_col='Date')[tickers]

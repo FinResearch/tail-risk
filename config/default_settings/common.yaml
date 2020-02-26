@@ -1,0 +1,19 @@
+---
+
+# default settings common to both tail_analysis & group_tail_analysis
+
+# db_file:
+# tickers:
+# date_i:
+# date_f:
+return_type: 'log'
+tau: 1
+standardize: false
+absolutize: false
+approach: 'rolling'
+anal_freq: 1
+tail_selected: 'both'
+data_nature: 'continuous'
+alpha_signif: 0.05
+show_plots: true
+save_plots: false

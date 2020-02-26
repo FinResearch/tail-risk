@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+#  import yaml
 
 from .settings import settings as s
 
@@ -42,8 +43,16 @@ headers_B = [
 ]
 
 
-def read_settings():
-    pass
+#  def load_settings(script_type):
+#      sett_path = 'config/default_settings/'
+#
+#      with open(f'{sett_path}/common.yaml') as sett:
+#          common_sett = yaml.load(sett, Loader=yaml.SafeLoader)
+#
+#      with open(f'{sett_path}/{script_type}.yaml') as sett:
+#          specific_sett = yaml.load(sett, Loader=yaml.SafeLoader)
+#
+#      return {**common_sett, **specific_sett}
 
 
 # TODO: account for GroupTailAnalysis too
