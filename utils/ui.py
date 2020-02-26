@@ -65,7 +65,9 @@ def get_tails_used(tail_selected):
 
     return use_right, use_left, tuple(tails_used)
 
+
 tickers = ["DE 01Y", "DE 03Y", "DE 05Y", "DE 10Y"]
+
 
 @click.command()
 # TODO: change default db_file to be last specified on CLI
@@ -74,9 +76,10 @@ tickers = ["DE 01Y", "DE 03Y", "DE 05Y", "DE 10Y"]
               help=f'select database to use: {_get_db_choices()}; or your own')
 # FIXME: how to manually specify a list of tickers on the CLI?
 #  @click.option('--tickers', default=["DE 01Y"], type=list)  # TODO:use config
-@click.option('--tickers', default=tickers, type=list)  # TODO:use config
+@click.option('--tickers', default=tickers, type=list)  # TODO: use config
 @click.option('--init-date', 'date_i', default='31-03-16')
 @click.option('--final-date', 'date_f', default='5/5/2016')
+# TODO: convert options above into arguments
 # TODO: in above 3 options, autodetect tickers & dates from passed database
 @click.option('-G', '--group', 'analyze_group',
               default=False, is_flag=True, is_eager=True,
@@ -86,9 +89,9 @@ tickers = ["DE 01Y", "DE 03Y", "DE 05Y", "DE 10Y"]
 @click.option('--return-type',
               type=click.Choice(['basic', 'relative', 'log']),
               help='specify which type of series to study')
-# TODO: provide as (str) choices? rename to delta??
+# TODO: provide as (str) choices?; rename to delta??
 @click.option('--tau', type=int,
-              help='specify the time lag of the input series')
+              help='specify time (in days) lag of input series')
 # TODO: need to specify std/abs targets if approach is static
 @click.option('--standardize/--no-standardize',
               help='normalize each investigated time series')
@@ -107,6 +110,7 @@ tickers = ["DE 01Y", "DE 03Y", "DE 05Y", "DE 10Y"]
 # TODO: allow None default for all xmin_rule choices (likely needs cb)
 # TODO: likely need custom option type to allow a range of args
 @click.option('-x', '--xmin', 'xmin_inputs',
+              # FIXME: make consistent with YAML config
               default=('clauset', None), show_default=True,
               type=(click.Choice(xmin_chlist), float),  # callback=xmin_cb,
               help=f'CHOICE one of {xmin_chlist}')
@@ -186,5 +190,7 @@ def get_uis(db_file, tickers, date_i, date_f, analyze_group, lookback,
 #      return click.prompt(var_qty_prompts[xmin_rule], default=default_val)
 
 
-#  if __name__ == '__main__':
-#      get_uis()
+if __name__ == '__main__':
+    uis = get_uis.main(standalone_mode=False)
+    print(uis)
+    #  print(get_uis())
