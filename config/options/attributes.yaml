@@ -1,0 +1,123 @@
+---
+
+# options attributes for all forms of tail analysis
+
+lookback:
+  param_decls:
+    # - '-l'
+    - '--lookback'
+  type: 'int'
+  default: 504
+  help: 'lookback (in days) to use for rolling analysis'
+
+returns_type:
+  param_decls:
+    - '-r'
+    - '--returns-type'
+    # - '--rtype'
+    # - 'returns_type'
+  type:
+    - 'basic'
+    - 'relative'
+    - 'log'
+  default: 'log'
+  help: 'specify which type of series to study'
+
+tau:
+  param_decls:
+    - '--tau'
+    # - 'delta'
+  type: 'int'
+  default: 1
+  help: 'specify time (in days) lag of input series'
+
+standardize: 
+  param_decls:
+    - '--std/--no-std'
+    - 'standardize'
+  is_flag: true
+  # type: 'bool'
+  default: false
+  help: 'normalize each investigated time series'
+
+absolutize:
+  param_decls:
+    - '--abs/--no-abs'
+    - 'absolutize'
+  is_flag: true
+  # type: 'bool'
+  default: false
+  help: 'normalize each investigated time series'
+
+approach:
+  param_decls:
+    - '-a'
+    - '--approach'
+  type:
+    - 'static'
+    - 'rolling'
+    - 'increasing'
+  default: 'rolling'
+  help: ''
+
+# anal_freq: 1
+
+tail_selection:
+  param_decls:
+    - '-t'
+    - '--tails'
+    - 'tails_selection'
+  type:
+    - 'left'
+    - 'right'
+    - 'both'
+    # TODO: allow specifying as list: (left, right)
+  default: 'both'
+  help: ''
+
+data_nature:
+  param_decls:
+    - '-n'
+    - '--data-nature'
+  type:
+    - 'discrete'
+    - 'continuous'
+  default: 'continuous'
+  help: ''
+
+alpha_signif:
+  param_decls:
+    - '--alpha'
+    - 'alpha_significance'
+  type: 'float'
+  default: 0.05
+  help: 'significance of the confidence interval: 1-α'
+
+# xmin: 'average'
+
+plpva_iter:
+  param_decls:
+    - '--plpva-iter'
+    # - '--piter'
+    # - 'plpva_iter'
+  type: 'int'
+  default: 100
+  help: 'Clauset p-value algorithm num of iterations'
+
+show_plots:
+  param_decls:
+    - '--show-plots/--no-show-plots'
+    # - 'show_plots'
+  is_flag: true
+  # type: 'bool'
+  default: true
+  help: ''
+
+save_plots:
+  param_decls:
+    - '--save-plots/--no-save-plots'
+    # - 'save_plots'
+  is_flag: true
+  # type: 'bool'
+  default: false
+  help: ''

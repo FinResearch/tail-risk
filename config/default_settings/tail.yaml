@@ -1,7 +1,0 @@
----
-
-# default settings specific to tail_analysis
-
-lookback: 504
-xmin: 'clauset'
-plpva_iter: 100
