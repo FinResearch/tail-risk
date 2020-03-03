@@ -97,8 +97,16 @@ def set_group_opts(ctx, param, analyze_group):
 #          return xmin, xmin_defaults[xmin]
 
 
-# TODO: add context_settings, epilog to command
-@click.command(context_settings={})
+# TODO: update conda/conda-forge channel to Click 7.1 for show_default kwarg
+@click.command(context_settings=dict(default_map=None,
+                                     max_content_width=100,  # TODO: use 120?
+                                     help_option_names=('-h', '--help'),
+                                     #  token_normalize_func=None,
+                                     #  show_default=True,
+                                     ),
+               epilog='')
+# TODO: add opts: '--multicore', '--interative',
+#       '--load-opts', '--save-opts', '--verbose'
 @click.argument('dbfile', metavar='DB_FILE', nargs=1,
                 type=click.File(mode='r'),
                 default='dbMSTR_test.csv')  # TODO: use callback for default?
@@ -123,15 +131,14 @@ def set_group_opts(ctx, param, analyze_group):
 #  #  #                help='var quantity used to calc xmin based on rule')
 @click.option('-G', '--group', 'analyze_group',
               is_flag=True, is_eager=True, hidden=False,
-              default=False, callback=set_group_opts,
-              help=('set flag to run group analysis mode; use '
-                    'with --help to also see group specifics'))
+              default=False, show_default=True, callback=set_group_opts,
+              help=('set flag to run group analysis mode; use with '
+                    '--help to display group options specifics'))
 @attach_script_opts()  # NOTE: this decorator func call returns a decorator
-# TODO: add opts: '--multicore', '--interative',
-#       '--load-opts', '--save-opts', '--verbose'
+# TODO: widen first help column of options/args --> HelpFormatter.write_dl()
+# TODO: better formatting/line wrapping for options of type click.Choice
 def get_options(dbfile,  # tickers, date_i, date_f,
                 analyze_group, **script_opts):
-    # TODO: make distinction b/w private/internal & public variables
     print(locals())
     pass
 
@@ -152,6 +159,7 @@ def get_tails_used(tail_selected):
     return use_right, use_left, tuple(tails_used)
 
 
+# TODO: make distinction b/w private/internal & public setting?
 def set_context(kwd):
     #  print(f'using tickers: {tickers}')
     #
