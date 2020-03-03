@@ -1,42 +1,85 @@
-#  import os
-#  import re
-#  from statistics import NormalDist
+import click
+import yaml
 
+#  from statistics import NormalDist
 #  import pandas as pd
 
-import click
 
-#  import yaml
-#  from .io import load_settings
+def _load_opts_attrs():
+
+    attr_fpath = 'config/options/attributes.yaml'
+    with open(attr_fpath) as cfg:
+        opts_config = yaml.load(cfg, Loader=yaml.SafeLoader)
+
+    opts_attrs = {}
+    for opt, attrs in opts_config.items():
+        opt_type = attrs.get('type')
+        if opt_type is None:  # NOTE: don't explicitly set type for bool flags
+            pass
+        elif isinstance(opt_type, str):
+            attrs['type'] = eval(opt_type)
+        elif isinstance(opt_type, list):
+            attrs['type'] = click.Choice(opt_type)
+        else:  # TODO: revise error message
+            raise TypeError(f'{opt_type} of {type(opt_type)} cannot '
+                            'be used as type for click.Option')
+        opts_attrs[opt] = attrs
+
+    return opts_attrs
 
 
-#  def _load_defaults(anal_type):
-#      opt_dir = 'config/default_options/'
-#
-#      with open(f'{opt_dir}/shared.yaml') as shopts:
-#          _shared = yaml.load(shopts, Loader=yaml.SafeLoader)
-#          common = _shared['common']
-#          specific = _shared[anal_type]
-#
-#      with open(f'{opt_dir}/{anal_type}.yaml') as spopts:
-#          unique = yaml.load(spopts, Loader=yaml.SafeLoader)
-#          # NOTE: "else {}" b/c normal tail analysis has no unique options
-#          unique = unique if (unique is not None) else {}
-#
-#      return {**common, **specific, **unique}
+def attach_script_opts():
+    """Attach all options specified within attributes.yaml config file
+    to the decorated click.Command instance.
+    """
+    opts_attrs = _load_opts_attrs()
+
+    def decorator(cmd):
+        for opt in reversed(opts_attrs.values()):
+            param_decls = opt.pop('param_decls')
+            cmd = click.option(*param_decls, show_default=True, **opt)(cmd)
+        return cmd
+    return decorator
 
 
-# CLI choice constants
-#  xmin_chlist = ['clauset', 'manual', 'percentile']
+def _get_param_index(params_ls, param_name):
+    for i, p in enumerate(params_ls):
+        if p.name == param_name:
+            return i
+    else:
+        return None
 
-# TODO: add config file input option
-# TODO: add interative input function & option to save as config file
+
+def set_group_opts(ctx, param, analyze_group):
+
+    if analyze_group:
+
+        param.hidden = True  # NOTE: when -G set, hide its help
+
+        grp_defs_fpath = 'config/options/group_defaults.yaml'
+        with open(grp_defs_fpath) as cfg:
+            grp_defs = yaml.load(cfg, Loader=yaml.SafeLoader)
+
+        for opt, dflt in grp_defs.items():
+            i = _get_param_index(ctx.command.params, opt)
+            grp_opt = ctx.command.params[i]
+            grp_opt.default = dflt
+            if grp_opt.hidden:  # NOTE: show hidden opt when in group mode
+                grp_opt.hidden = False
+
+    return analyze_group
 
 
 #  def _get_db_choices():
 #      db_pat = re.compile(r'db.*\.(csv|xlsx)')  # TODO: confirm db name schema
 #      file_matches = [db_pat.match(f) for f in os.listdir()]
 #      return ', '.join([m.group() for m in file_matches if m is not None])
+
+
+#  tickers = ["DE 01Y", "DE 03Y", "DE 05Y", "DE 10Y"]
+
+# CLI choice constants
+#  xmin_chlist = ['clauset', 'manual', 'percentile']
 
 
 #  def xmin_cb(ctx, param, xmin):
@@ -54,6 +97,45 @@ import click
 #          return xmin, xmin_defaults[xmin]
 
 
+# TODO: add context_settings, epilog to command
+@click.command(context_settings={})
+@click.argument('dbfile', metavar='DB_FILE', nargs=1,
+                type=click.File(mode='r'),
+                default='dbMSTR_test.csv')  # TODO: use callback for default?
+#  help=f'select database to use: {_get_db_choices()}; or your own')
+# FIXME: how to manually specify a list of tickers on the CLI?
+# TODO: convert ticker & dates options into arguments?
+#  @click.option('--tickers', default=["DE 01Y"], type=list)  # TODO:use config
+#  @click.option('--tickers', default=tickers, type=list)  # TODO: use config
+#  @click.option('--init-date', 'date_i', default='31-03-16')
+#  @click.option('--final-date', 'date_f', default='5/5/2016')
+# TODO: for the 3 opts above, autodetect tickers & dates from passed db
+#  #  # TODO: allow None default for all xmin_rule choices (likely needs cb)
+#  #  # TODO: likely need custom option type to allow a range of args
+#  #  @click.option('-x', '--xmin', 'xmin_inputs',
+#  #                # FIXME: make consistent with YAML config
+#  #                default=('clauset', None), show_default=True,
+#  #                type=(click.Choice(xmin_chlist), float), #callback=xmin_cb,
+#  #                help=f'CHOICE one of {xmin_chlist}')
+#  #  # TODO: use callback validation for xmin_varq?
+#  #  # TODO: and better name, ex. xmin_rule_specific_qty
+#  #  #  @click.option('--xmin-var-qty', default=None, type=float,
+#  #  #                help='var quantity used to calc xmin based on rule')
+@click.option('-G', '--group', 'analyze_group',
+              is_flag=True, is_eager=True, hidden=False,
+              default=False, callback=set_group_opts,
+              help=('set flag to run group analysis mode; use '
+                    'with --help to also see group specifics'))
+@attach_script_opts()  # NOTE: this decorator func call returns a decorator
+# TODO: add opts: '--multicore', '--interative',
+#       '--load-opts', '--save-opts', '--verbose'
+def get_options(dbfile,  # tickers, date_i, date_f,
+                analyze_group, **script_opts):
+    # TODO: make distinction b/w private/internal & public variables
+    print(locals())
+    pass
+
+
 def get_tails_used(tail_selected):
     """Return tuple containing the tails selected/used
     """
@@ -68,92 +150,6 @@ def get_tails_used(tail_selected):
         tails_used.append("left")
 
     return use_right, use_left, tuple(tails_used)
-
-
-#  tickers = ["DE 01Y", "DE 03Y", "DE 05Y", "DE 10Y"]
-
-
-#  @click.group(name='tail-analysis', invoke_without_command=True)
-@click.command()
-@click.argument('dbfile', metavar='DB_FILE', nargs=1,
-                type=click.File(mode='r'),
-                default='dbMSTR_test.csv')  # TODO: use callback for default?
-#  help=f'select database to use: {_get_db_choices()}; or your own')
-# FIXME: how to manually specify a list of tickers on the CLI?
-#  @click.option('--tickers', default=["DE 01Y"], type=list)  # TODO:use config
-#  @click.option('--tickers', default=tickers, type=list)  # TODO: use config
-#  @click.option('--init-date', 'date_i', default='31-03-16')
-#  @click.option('--final-date', 'date_f', default='5/5/2016')
-# TODO: convert the 3 options above into arguments?
-# TODO: in the 3 options above, autodetect tickers & dates from passed database
-@click.option('-G', '--group', 'analyze_group',
-              default=False, is_flag=True, is_eager=True,
-              help='set this flag to use group tail analysis')
-@click.option('--lookback', type=int,
-              help='lookback (in days) to use for rolling analysis')
-@click.option('--return-type',
-              type=click.Choice(['basic', 'relative', 'log']),
-              help='specify which type of series to study')
-# TODO: provide as (str) choices?; rename to delta??
-@click.option('--tau', type=int,
-              help='specify time (in days) lag of input series')
-# TODO: need to specify std/abs targets if approach is static
-@click.option('--standardize/--no-standardize',
-              help='normalize each investigated time series')
-@click.option('--absolutize/--no-absolutize',
-              help='take the absolute value of your series')
-# TODO: consider using Enum types for these Choice values
-@click.option('-a', '--approach',
-              type=click.Choice(['static', 'rolling', 'increasing']))
-# TODO: --analyze-freq is only applies to non-static approach
-@click.option('--analyze-freq', 'anal_freq', type=int)
-# TODO: allow specifying 'both' with '--tail left right' below (variable vals)
-@click.option('-p', '--partition', hidden=True,
-              help='option for group analysis')
-@click.option('-t', '--tail', 'tail_selected',  # TODO: use feature switch(es)?
-              type=click.Choice(['left', 'right', 'both']))
-@click.option('-n', '--data-nature',
-              type=click.Choice(['discrete', 'continuous']))
-#  # TODO: allow None default for all xmin_rule choices (likely needs cb)
-#  # TODO: likely need custom option type to allow a range of args
-#  @click.option('-x', '--xmin', 'xmin_inputs',
-#                # FIXME: make consistent with YAML config
-#                default=('clauset', None), show_default=True,
-#                type=(click.Choice(xmin_chlist), float),  # callback=xmin_cb,
-#                help=f'CHOICE one of {xmin_chlist}')
-#  # TODO: use callback validation for xmin_varq?
-#  # TODO: and better name, ex. xmin_rule_specific_qty
-#  #  @click.option('--xmin-var-qty', default=None, type=float,
-#  #                help='var quantity used to calculate xmin based on rule')
-@click.option('--alpha-signif', type=float,
-              help='significance of the confidence interval: 1-α')
-@click.option('--plpva-iter',  type=int,
-              help='Clauset p-value algorithm num of iterations')
-@click.option('--show-plots/--no-show-plots')
-@click.option('--save-plots/--no-save-plots')
-def get_options(dbfile,  # tickers, date_i, date_f,
-                analyze_group, **script_opts):
-    #  lookback, return_type, tau, standardize, absolutize,
-    #  approach, anal_freq, partition, tail_selected, data_nature,
-    #  xmin_inputs, alpha_signif, plpva_iter,
-    #  show_plots, save_plots):  # TODO: add verbosity feature/flag
-    # TODO: make distinction b/w private/internal & public variables
-    pass
-
-    #  if ctx.invoked_subcommand is None:
-    #      defaults = _load_defaults('normal')
-    #      #  uis = ctx.invoke(_get_shared_opts, **kwargs)
-    #
-    #  kwarg_dict = locals()
-
-    #  script_type = 'group' if analyze_group else 'normal'
-    #  sett = _load_defaults(script_type)
-
-    #  for key, arg in kwarg_dict.items():
-    #      if arg is None:
-    #          kwarg_dict[key] = defaults.get(key)
-
-    #  return kwarg_dict
 
 
 def set_context(kwd):
