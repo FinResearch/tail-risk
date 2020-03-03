@@ -21,7 +21,7 @@ returns_type:
     - 'relative'
     - 'log'
   default: 'log'
-  help: 'specify which type of series to study'
+  help: 'specify the type of returns to analyse'
 
 tau:
   param_decls:
@@ -29,7 +29,7 @@ tau:
     # - 'delta'  # ASK: is 'delta' more fitting?
   type: 'int'  # TODO: provide as (str) choices of discrete ints
   default: 1
-  help: 'specify time (in days) lag of input series'
+  help: 'specify the time lag (in days) of the input series'
 
 # ASK: need to specify std/abs targets if approach is static?
 standardize: 
@@ -39,7 +39,7 @@ standardize:
   is_flag: true
   # type: 'bool'  # TODO: cast to proper click.BOOL type
   default: false
-  help: 'normalize each investigated time series'
+  help: 'standardize/normalize the input data'
 
 absolutize:
   param_decls:
@@ -48,7 +48,7 @@ absolutize:
   is_flag: true
   # type: 'bool'
   default: false
-  help: 'normalize each investigated time series'
+  help: 'take the absolute value of the input data'
 
 approach:
   param_decls:
@@ -90,7 +90,7 @@ tail_selection:
     - 'both'
     # TODO: allow specifying as mult-val: ex. '--tails left right'
   default: 'both'
-  help: ''
+  help: 'choose the tail(s) to analyse'
 
 data_nature:
   param_decls:
