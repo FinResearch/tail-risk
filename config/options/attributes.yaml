@@ -16,7 +16,7 @@ returns_type:
     - '--returns-type'
     # - '--rtype'
     # - 'returns_type'
-  type:
+  type:  # TODO: consider using Enum types for all Choice values
     - 'basic'
     - 'relative'
     - 'log'
@@ -26,17 +26,18 @@ returns_type:
 tau:
   param_decls:
     - '--tau'
-    # - 'delta'
-  type: 'int'
+    # - 'delta'  # ASK: is 'delta' more fitting?
+  type: 'int'  # TODO: provide as (str) choices of discrete ints
   default: 1
   help: 'specify time (in days) lag of input series'
 
+# ASK: need to specify std/abs targets if approach is static?
 standardize: 
   param_decls:
     - '--std/--no-std'
     - 'standardize'
   is_flag: true
-  # type: 'bool'
+  # type: 'bool'  # TODO: cast to proper click.BOOL type
   default: false
   help: 'normalize each investigated time series'
 
@@ -60,18 +61,34 @@ approach:
   default: 'rolling'
   help: ''
 
+# NOTE: --analyze-freq only applies to non-static approaches
 # anal_freq: 1
+# sliding_window: 1
+
+partition:
+  param_decls:
+    - '-p'
+    - '--partition'
+  type:
+    - 'country'
+    - 'maturity'
+    - 'core_vs_peripheral'
+    - 'all'
+    - 'none'
+  default: null
+  hidden: true
+  help: 'method for grouping tickers'
 
 tail_selection:
   param_decls:
     - '-t'
     - '--tails'
     - 'tails_selection'
-  type:
+  type:  # TODO: consider using feature switch(es)?
     - 'left'
     - 'right'
     - 'both'
-    # TODO: allow specifying as list: (left, right)
+    # TODO: allow specifying as mult-val: ex. '--tails left right'
   default: 'both'
   help: ''
 
@@ -85,6 +102,9 @@ data_nature:
   default: 'continuous'
   help: ''
 
+# xmin_rule: 'average'
+# xmin_extra: 'average'
+
 alpha_signif:
   param_decls:
     - '--alpha'
@@ -92,8 +112,6 @@ alpha_signif:
   type: 'float'
   default: 0.05
   help: 'significance of the confidence interval: 1-α'
-
-# xmin: 'average'
 
 plpva_iter:
   param_decls:
