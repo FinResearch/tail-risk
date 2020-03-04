@@ -62,12 +62,11 @@ def set_group_opts(ctx, param, analyze_group):
 
         for opt, dflt in grp_defs.items():
             i = _get_param_index(ctx.command.params, opt)
-            grp_opt = ctx.command.params[i]
-            grp_opt.default = dflt
-            if grp_opt.hidden:  # NOTE: show hidden opt when in group mode
+            grp_opt.default = dflt  # NOTE: update to group specific defaults
+            if grp_opt.hidden:  # NOTE: show opts hidden in non-group mode
                 grp_opt.hidden = False
 
-    return analyze_group
+    return analyze_group  # TODO: return more useful value?
 
 
 #  def _get_db_choices():
@@ -97,20 +96,28 @@ def set_group_opts(ctx, param, analyze_group):
 #          return xmin, xmin_defaults[xmin]
 
 
+# TODO: create VarNargsOption --> Option allowing variable numbers of args
+#       also allow: i) an optional separator, examples: one of ",/ |\" etc.
+#                   ii) passing the var number of args as Python list literal
+# TODO: use for: --tickers, --dates, --approach, --tail, --xmin
+
+
 # TODO: update conda/conda-forge channel to Click 7.1 for show_default kwarg
-@click.command(context_settings=dict(default_map=None,
+@click.command(  # name='',
+               context_settings=dict(default_map=None,
                                      max_content_width=100,  # TODO: use 120?
                                      help_option_names=('-h', '--help'),
                                      #  token_normalize_func=None,
                                      #  show_default=True,
                                      ),
                epilog='')
-# TODO: add opts: '--multicore', '--interative',
-#       '--load-opts', '--save-opts', '--verbose'
-@click.argument('dbfile', metavar='DB_FILE', nargs=1,
-                type=click.File(mode='r'),
+# TODO: customize --help
+#   - widen first help column of options/args --> HelpFormatter.write_dl()
+#   - better formatting/line wrapping for options of type click.Choice
+#   - remove cluttering & useless type annotations
+@click.argument('db_df', metavar='DB_FILE', nargs=1, is_eager=True,
+                type=click.File(mode='r'), callback=gset_db_df,
                 default='dbMSTR_test.csv')  # TODO: use callback for default?
-#  help=f'select database to use: {_get_db_choices()}; or your own')
 # FIXME: how to manually specify a list of tickers on the CLI?
 # TODO: convert ticker & dates options into arguments?
 #  @click.option('--tickers', default=["DE 01Y"], type=list)  # TODO:use config
@@ -118,7 +125,7 @@ def set_group_opts(ctx, param, analyze_group):
 #  @click.option('--init-date', 'date_i', default='31-03-16')
 #  @click.option('--final-date', 'date_f', default='5/5/2016')
 # TODO: for the 3 opts above, autodetect tickers & dates from passed db
-#  #  # TODO: allow None default for all xmin_rule choices (likely needs cb)
+#  #  # TODO: allow None default for all xmin_rule choices (likely needs cb?)
 #  #  # TODO: likely need custom option type to allow a range of args
 #  #  @click.option('-x', '--xmin', 'xmin_inputs',
 #  #                # FIXME: make consistent with YAML config
@@ -129,26 +136,25 @@ def set_group_opts(ctx, param, analyze_group):
 #  #  # TODO: and better name, ex. xmin_rule_specific_qty
 #  #  #  @click.option('--xmin-var-qty', default=None, type=float,
 #  #  #                help='var quantity used to calc xmin based on rule')
-@click.option('-G', '--group', 'analyze_group',
-              is_flag=True, is_eager=True, hidden=False,
-              default=False, show_default=True, callback=set_group_opts,
+@click.option('-G', '--group/--no-group', 'analyze_group',
+              is_eager=True, callback=set_group_opts,
+              default=False, show_default=True,
               help=('set flag to run group analysis mode; use with '
                     '--help to display group options specifics'))
 @attach_script_opts()  # NOTE: this decorator func call returns a decorator
-# TODO: widen first help column of options/args --> HelpFormatter.write_dl()
-# TODO: better formatting/line wrapping for options of type click.Choice
-def get_options(dbfile,  # tickers, date_i, date_f,
+# TODO: add opts: '--multicore', '--interative',
+#       '--load-opts', '--save-opts', '--verbose' # TODO: use count opt for -v?
+def get_options(db_df,  # tickers, date_i, date_f,
                 analyze_group, **script_opts):
     print(locals())
     pass
 
 
-def get_tails_used(tail_selected):
-    """Return tuple containing the tails selected/used
+def _get_tails_used(tail_selection):
+    """Return relevant tail selection settings
     """
-
-    use_right = True if tail_selected in ['right', 'both'] else False
-    use_left = True if tail_selected in ['left', 'both'] else False
+    use_right = True if tail_selection in ('right', 'both') else False
+    use_left = True if tail_selection in ('left', 'both') else False
 
     tails_used = []
     if use_right:

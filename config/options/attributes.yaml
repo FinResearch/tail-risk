@@ -82,8 +82,8 @@ partition:
 tail_selection:
   param_decls:
     - '-t'
-    - '--tails'
-    - 'tails_selection'
+    - '--tail'
+    - 'tail_selection'
   type:  # TODO: consider using feature switch(es)?
     - 'left'
     - 'right'
