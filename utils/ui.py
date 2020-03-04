@@ -1,8 +1,8 @@
 import click
 import yaml
 
+import pandas as pd
 #  from statistics import NormalDist
-#  import pandas as pd
 
 
 def _load_opts_attrs():
@@ -42,12 +42,14 @@ def attach_script_opts():
     return decorator
 
 
-def _get_param_index(params_ls, param_name):
-    for i, p in enumerate(params_ls):
-        if p.name == param_name:
-            return i
+# TODO: optimize using list.index(value)?
+def _get_param_from_ctx(ctx, param_name):
+    for param in ctx.command.params:
+        if param.name == param_name:
+            return param
     else:
-        return None
+        raise KeyError(f'{param_name} not found in params list of '
+                       f'click.Command: {ctx.command.name}')
 
 
 def set_group_opts(ctx, param, analyze_group):
@@ -61,7 +63,7 @@ def set_group_opts(ctx, param, analyze_group):
             grp_defs = yaml.load(cfg, Loader=yaml.SafeLoader)
 
         for opt, dflt in grp_defs.items():
-            i = _get_param_index(ctx.command.params, opt)
+            grp_opt = _get_param_from_ctx(ctx, opt)
             grp_opt.default = dflt  # NOTE: update to group specific defaults
             if grp_opt.hidden:  # NOTE: show opts hidden in non-group mode
                 grp_opt.hidden = False
@@ -69,13 +71,45 @@ def set_group_opts(ctx, param, analyze_group):
     return analyze_group  # TODO: return more useful value?
 
 
+def _infer_db_dflt_if_unset_(ctx, param_name, inferred_val):
+    """helper func used by db-related options to infer and set their
+    defaults, if they're not manually specified in the YAML config
+
+    mutates ctx state, and has no return value (as indicated by trailing _)
+    """
+    param = _get_param_from_ctx(ctx, param_name)
+    if param.default is None:
+        param.default = inferred_val
+
+
+# TODO: attach computed/processed objects, full: (df, tickers, dates) onto ctx?
+def gset_db_df(ctx, param, db_file):  # gset_db_df: Get/Set DataBase DataFrame
+
+    db_df = pd.read_csv(db_file, index_col='Date')  # TODO: index_col case-i?
+
+    # infer default tickers labels (when default not manually set in YAML cfg)
+    # TODO: filter out ticker columns with null values?
+    _infer_db_dflt_if_unset_(ctx, 'tickers', list(db_df.columns))
+    # FIXME: need to properly parse passed list into tickers elements
+
+    full_dates = db_df.index  # TODO: attach to ctx_obj for later access?
+    # CONFIRM: lookback good method for defaulting date_i
+    lbv = (ctx.params.get('lookback') or
+           _get_param_from_ctx(ctx, 'lookback').default)  # lbv: LookBack Value
+    # infer defaults for date_i & date_f from lkb & full_dates (when not set)
+    _infer_db_dflt_if_unset_(ctx, 'date_i', full_dates[lbv])
+    _infer_db_dflt_if_unset_(ctx, 'date_f', full_dates[-1])
+
+    # TODO: consider instead of read file & return DF, just return file handle?
+    return db_df
+    # FIXME: performance seems to be somewhat reduced due to this IO operation
+
+
 #  def _get_db_choices():
 #      db_pat = re.compile(r'db.*\.(csv|xlsx)')  # TODO: confirm db name schema
 #      file_matches = [db_pat.match(f) for f in os.listdir()]
 #      return ', '.join([m.group() for m in file_matches if m is not None])
 
-
-#  tickers = ["DE 01Y", "DE 03Y", "DE 05Y", "DE 10Y"]
 
 # CLI choice constants
 #  xmin_chlist = ['clauset', 'manual', 'percentile']
@@ -114,28 +148,21 @@ def set_group_opts(ctx, param, analyze_group):
 # TODO: customize --help
 #   - widen first help column of options/args --> HelpFormatter.write_dl()
 #   - better formatting/line wrapping for options of type click.Choice
-#   - remove cluttering & useless type annotations
+#   - remove cluttering & useless type annotations (set options' metavar attr)
 @click.argument('db_df', metavar='DB_FILE', nargs=1, is_eager=True,
                 type=click.File(mode='r'), callback=gset_db_df,
-                default='dbMSTR_test.csv')  # TODO: use callback for default?
-# FIXME: how to manually specify a list of tickers on the CLI?
-# TODO: convert ticker & dates options into arguments?
-#  @click.option('--tickers', default=["DE 01Y"], type=list)  # TODO:use config
-#  @click.option('--tickers', default=tickers, type=list)  # TODO: use config
-#  @click.option('--init-date', 'date_i', default='31-03-16')
-#  @click.option('--final-date', 'date_f', default='5/5/2016')
-# TODO: for the 3 opts above, autodetect tickers & dates from passed db
-#  #  # TODO: allow None default for all xmin_rule choices (likely needs cb?)
-#  #  # TODO: likely need custom option type to allow a range of args
-#  #  @click.option('-x', '--xmin', 'xmin_inputs',
-#  #                # FIXME: make consistent with YAML config
-#  #                default=('clauset', None), show_default=True,
-#  #                type=(click.Choice(xmin_chlist), float), #callback=xmin_cb,
-#  #                help=f'CHOICE one of {xmin_chlist}')
-#  #  # TODO: use callback validation for xmin_varq?
-#  #  # TODO: and better name, ex. xmin_rule_specific_qty
-#  #  #  @click.option('--xmin-var-qty', default=None, type=float,
-#  #  #                help='var quantity used to calc xmin based on rule')
+                default='dbMSTR_test.csv')
+#  # TODO: allow None default for all xmin_rule choices (likely needs cb?)
+#  # TODO: likely need custom option type to allow a range of args
+#  @click.option('-x', '--xmin', 'xmin_inputs',
+#                # FIXME: make consistent with YAML config
+#                default=('clauset', None), show_default=True,
+#                type=(click.Choice(xmin_chlist), float), #callback=xmin_cb,
+#                help=f'CHOICE one of {xmin_chlist}')
+#  # TODO: use callback validation for xmin_varq?
+#  # TODO: and better name, ex. xmin_rule_specific_qty
+#  #  @click.option('--xmin-var-qty', default=None, type=float,
+#  #                help='var quantity used to calc xmin based on rule')
 @click.option('-G', '--group/--no-group', 'analyze_group',
               is_eager=True, callback=set_group_opts,
               default=False, show_default=True,
@@ -144,7 +171,7 @@ def set_group_opts(ctx, param, analyze_group):
 @attach_script_opts()  # NOTE: this decorator func call returns a decorator
 # TODO: add opts: '--multicore', '--interative',
 #       '--load-opts', '--save-opts', '--verbose' # TODO: use count opt for -v?
-def get_options(db_df,  # tickers, date_i, date_f,
+def get_options(db_df,
                 analyze_group, **script_opts):
     print(locals())
     pass

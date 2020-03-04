@@ -2,6 +2,38 @@
 
 # options attributes for all forms of tail analysis
 
+# TODO: consider converting --tickers & dates options into arguments?
+tickers:
+  param_decls:
+    - '--tickers'
+  type: 'list'
+  default:
+    - 'DE 01Y'
+    - 'DE 03Y'
+    - 'DE 05Y'
+    - 'DE 10Y'
+  help: 'specify the list of tickers from the database to analyse'
+
+# TODO: use callback to validate dates?
+date_i:
+  param_decls:
+    - '-di'
+    - '--date-initial'
+    - 'date_i'
+  # metavar: ''  # NOTE: set metavar to '' to remove type annotation
+  type: 'str'  # TODO: use dedicated Date type
+  default: '31-03-16'
+  help: 'the starting date of the time series to analyse'
+
+date_f:
+  param_decls:
+    - '-df'
+    - '--date-final'
+    - 'date_f'
+  type: 'str'  # TODO: use dedicated Date type
+  default: '5/5/2016'
+  help: 'the final date of the time series to analyse'
+
 lookback:
   param_decls:
     # - '-l'
