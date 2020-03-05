@@ -134,8 +134,20 @@ data_nature:
   default: 'continuous'
   help: ''
 
-# xmin_rule: 'average'
-# xmin_extra: 'average'
+xmin_args:
+  param_decls:
+    - '-x'
+    - '--xmin'
+    - 'xmin_args'
+  cls: 'VnargsOption'
+  type: 'tuple'  # TODO: incorporate click.Choice type somehow
+  default:
+    - 'clauset'
+    - null
+  show_default: false
+  callback: 'process_xmin_args'
+  metavar: "f\"[{'|'.join(xmin_chlist)}]  [default: clauset]\""
+  help: "-manual: float value, default: 0\n-percentile: 0-100, default: 90"
 
 alpha_signif:
   param_decls:

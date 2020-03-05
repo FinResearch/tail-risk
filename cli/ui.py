@@ -3,28 +3,48 @@ import yaml
 
 #  from statistics import NormalDist
 
+from vnargs import VnargsOption  # NOTE: is used by an eval() call
 from callbacks import gset_db_df, set_group_opts
 
 
-def _load_opts_attrs():
+def _preprocess_special_attrs_(opt_attrs):
+    """Helper for correctly translating the data types from the YAML config
+    and Python; and to conveniently set some meta attributes.
 
-    attr_fpath = 'config/options/attributes.yaml'
-    with open(attr_fpath) as cfg:
-        opts_config = yaml.load(cfg, Loader=yaml.SafeLoader)
+    This function mutates the passed opt_attrs dict
+    """
 
-    opts_attrs = {}
-    for opt, attrs in opts_config.items():
-        opt_type = attrs.get('type')
-        if opt_type is None:  # NOTE: don't explicitly set type for bool flags
-            pass
-        elif isinstance(opt_type, str):
-            attrs['type'] = eval(opt_type)
-        elif isinstance(opt_type, list):
-            attrs['type'] = click.Choice(opt_type)
-        else:  # TODO: revise error message
-            raise TypeError(f'{opt_type} of {type(opt_type)} cannot '
-                            'be used as type for click.Option')
-        opts_attrs[opt] = attrs
+    # attrs that are special expression objects
+    expr_attrs = ('type', 'callback', 'cls', 'metavar',)
+    for attr in expr_attrs:
+        # check the attr is specified in the config & its value is truthy
+        if attr in opt_attrs and bool(opt_attrs[attr]):
+            attr_val = opt_attrs[attr]
+            if isinstance(attr_val, str):
+                opt_attrs[attr] = eval(attr_val)
+            elif attr == 'type' and isinstance(attr_val, list):
+                # branch specific to type attrs with list vals
+                opt_attrs['type'] = click.Choice(attr_val)
+            else:  # TODO: revise error message
+                raise TypeError(f'{attr_val} of {type(attr_val)} cannot be '
+                                f'used as the value for the {attr} attribute '
+                                'of click.Option objects')
+
+    # meta attrs that can be optionally passed, to regulate the help display
+    meta_help_attrs = {'show_default': True, 'metavar': None}
+    for attr, dflt in meta_help_attrs.items():
+        opt_attrs[attr] = opt_attrs.get(attr, dflt)
+
+
+# load (from YAML), get & set (preprocess) options attributes
+def _load_gset_opts_attrs():
+
+    cfg_path = 'config/options/attributes.yaml'
+    with open(cfg_path) as cfg:
+        opts_attrs = yaml.load(cfg, Loader=yaml.SafeLoader)
+
+    for opt, attrs in opts_attrs.items():
+        _preprocess_special_attrs_(attrs)
 
     return opts_attrs
 
@@ -33,12 +53,12 @@ def attach_script_opts():
     """Attach all options specified within attributes.yaml config file
     to the decorated click.Command instance.
     """
-    opts_attrs = _load_opts_attrs()
+    opts_attrs = _load_gset_opts_attrs()
 
     def decorator(cmd):
         for opt in reversed(opts_attrs.values()):
             param_decls = opt.pop('param_decls')
-            cmd = click.option(*param_decls, show_default=True, **opt)(cmd)
+            cmd = click.option(*param_decls, **opt)(cmd)
         return cmd
     return decorator
 
@@ -50,7 +70,7 @@ def attach_script_opts():
 
 
 # CLI choice constants
-#  xmin_chlist = ['clauset', 'manual', 'percentile']
+xmin_chlist = ('clauset', 'manual', 'percentile')  # TODO: shove into YAML cfg?
 
 
 #  def xmin_cb(ctx, param, xmin):
@@ -66,6 +86,12 @@ def attach_script_opts():
 #          #      return ('percentile', 90)
 #          xmin_defaults = {'clauset': None, 'manual': 0, 'percentile': 90}
 #          return xmin, xmin_defaults[xmin]
+
+
+# TODO/TODO: confirm click.ParameterSource & ctx.get_parameter_source usable
+def process_xmin_args(ctx, param, xmin_args):
+    print(xmin_args)
+    return xmin_args
 
 
 # TODO: create VarNargsOption --> Option allowing variable numbers of args
@@ -91,17 +117,6 @@ def attach_script_opts():
 @click.argument('db_df', metavar='DB_FILE', nargs=1, is_eager=True,
                 type=click.File(mode='r'), callback=gset_db_df,
                 default='dbMSTR_test.csv')
-#  # TODO: allow None default for all xmin_rule choices (likely needs cb?)
-#  # TODO: likely need custom option type to allow a range of args
-#  @click.option('-x', '--xmin', 'xmin_inputs',
-#                # FIXME: make consistent with YAML config
-#                default=('clauset', None), show_default=True,
-#                type=(click.Choice(xmin_chlist), float), #callback=xmin_cb,
-#                help=f'CHOICE one of {xmin_chlist}')
-#  # TODO: use callback validation for xmin_varq?
-#  # TODO: and better name, ex. xmin_rule_specific_qty
-#  #  @click.option('--xmin-var-qty', default=None, type=float,
-#  #                help='var quantity used to calc xmin based on rule')
 @click.option('-G', '--group/--no-group', 'analyze_group',
               is_eager=True, callback=set_group_opts,
               default=False, show_default=True,
@@ -113,6 +128,7 @@ def attach_script_opts():
 def get_options(db_df,
                 analyze_group, **script_opts):
     print(locals())
+    print(script_opts['xmin_args'], type(script_opts['xmin_args']))
     pass
 
 

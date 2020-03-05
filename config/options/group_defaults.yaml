@@ -4,5 +4,6 @@
 
 lookback: 252
 partition: 'country'
-# xmin: 'average'
+xmin: 'average'
+# xmin: 'sliding'
 plpva_iter: 2
