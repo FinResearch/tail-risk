@@ -193,6 +193,7 @@ def _get_tails_used(tail_selection):
 
 
 # TODO: make distinction b/w private/internal & public setting?
+# TODO: OR distinguish b/w analysis vs. control-flow settings!!
 def set_context(kwd):
     #  print(f'using tickers: {tickers}')
     #
