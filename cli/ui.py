@@ -74,7 +74,7 @@ def attach_script_opts():
 # TODO: use for: --tickers, --dates, --approach, --tail, --xmin
 
 
-# TODO: update conda/conda-forge channel to Click 7.1 for show_default kwarg
+# TODO/TODO: update conda/conda-forge channel to Click 7.1 for show_default kwarg
 @click.command(  # name='',
                context_settings=dict(default_map=None,
                                      max_content_width=100,  # TODO: use 120?
@@ -86,6 +86,7 @@ def attach_script_opts():
 # TODO: customize --help
 #   - widen first help column of options/args --> HelpFormatter.write_dl()
 #   - better formatting/line wrapping for options of type click.Choice
+#   - option help texts when multiline, doesn't wrap properly
 #   - remove cluttering & useless type annotations (set options' metavar attr)
 @click.argument('db_df', metavar='DB_FILE', nargs=1, is_eager=True,
                 type=click.File(mode='r'), callback=gset_db_df,

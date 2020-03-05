@@ -3,7 +3,7 @@
 # options attributes for all forms of tail analysis
 
 # TODO: consider converting --tickers & dates options into arguments?
-tickers:
+tickers:  # TODO: allow passing in a .txt file of tickers
   param_decls:
     - '--tickers'
   type: 'list'
