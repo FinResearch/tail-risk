@@ -19,7 +19,7 @@ def _preprocess_special_attrs_(opt_attrs):
     """
 
     # attrs that are special expression objects
-    expr_attrs = ('type', 'callback', 'cls', 'metavar',)
+    expr_attrs = ('type', 'callback', 'cls',)  # 'metavar',) <---no eval :FIXME
     for attr in expr_attrs:
         # check the attr is specified in the config & its value is truthy
         if attr in opt_attrs and bool(opt_attrs[attr]):
@@ -34,7 +34,7 @@ def _preprocess_special_attrs_(opt_attrs):
                                 f'used as the value for the {attr} attribute '
                                 'of click.Option objects')
 
-    # meta attrs that can be optionally passed, to regulate the help display
+    # meta attrs that can be optionally passed, to customize info from --help
     meta_help_attrs = {'show_default': True, 'metavar': None}
     for attr, dflt in meta_help_attrs.items():
         opt_attrs[attr] = opt_attrs.get(attr, dflt)

@@ -3,7 +3,9 @@
 # defaults values specific to group tail analysis
 
 lookback: 252
+
 partition: 'country'
 xmin: 'average'
 # xmin: 'sliding'
+
 plpva_iter: 2

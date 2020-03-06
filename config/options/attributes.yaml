@@ -6,12 +6,13 @@
 tickers:  # TODO: allow passing in a .txt file of tickers
   param_decls:
     - '--tickers'
-  type: 'list'
+  type: 'tuple'
   default:
     - 'DE 01Y'
     - 'DE 03Y'
     - 'DE 05Y'
     - 'DE 10Y'
+  metavar: '[ <csv on CLI> | <.csv> | <.txt> ]'
   help: 'specify the list of tickers from the database to analyse'
 
 # TODO: use callback to validate dates?
@@ -20,11 +21,12 @@ date_i:
     - '-di'
     - '--date-initial'
     - 'date_i'
-  # metavar: ''  # NOTE: set metavar to '' to remove type annotation
   type: 'str'  # TODO: use dedicated Date type
   default: '31-03-16'
+  metavar: ''
   help: 'the starting date of the time series to analyse'
 
+# TODO: set metavar to '' to remove type annotation
 date_f:
   param_decls:
     - '-df'
@@ -32,6 +34,7 @@ date_f:
     - 'date_f'
   type: 'str'  # TODO: use dedicated Date type
   default: '5/5/2016'
+  metavar: ''
   help: 'the final date of the time series to analyse'
 
 lookback:
@@ -40,6 +43,7 @@ lookback:
     - '--lookback'
   type: 'int'
   default: 504
+  metavar: '<INT (# days)>'
   help: 'lookback (in days) to use for rolling analysis'
 
 returns_type:
@@ -59,8 +63,13 @@ tau:
   param_decls:
     - '--tau'
     # - 'delta'  # ASK: is 'delta' more fitting?
-  type: 'int'  # TODO: provide as (str) choices of discrete ints
+  type:
+    - 1
+    - 5
+    - 22
   default: 1
+  # callback: ''  # TODO: use callback to convert value to int
+  metavar: '[ 1 (daily) | 5 (weekly) | 22 (monthly) ]'
   help: 'specify the time lag (in days) of the input series'
 
 # ASK: need to specify std/abs targets if approach is static?
@@ -160,6 +169,7 @@ alpha_signif:
     - 'alpha_significance'
   type: 'float'
   default: 0.05
+  metavar: '<FLOAT: [0, 1]>'
   help: 'significance of the confidence interval: 1-α'
 
 plpva_iter:
@@ -169,7 +179,8 @@ plpva_iter:
     # - 'plpva_iter'
   type: 'int'
   default: 100
-  help: 'Clauset p-value algorithm num of iterations'
+  metavar: '<INT (# iterations)>'
+  help: 'Clauset p-value algorithm number of iterations'
 
 show_plots:
   param_decls:
