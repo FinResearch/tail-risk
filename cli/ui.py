@@ -80,7 +80,7 @@ def attach_script_opts():
 # TODO: use for: --tickers, --dates, --approach, --tail, --xmin
 
 
-# TODO/TODO: update conda/conda-forge channel to Click 7.1 for show_default kwarg
+# TODO/TODO: update conda channel(s) to Click 7.1 for show_default kwarg
 @click.command(  # name='',
                context_settings=dict(default_map=None,
                                      max_content_width=100,  # TODO: use 120?
