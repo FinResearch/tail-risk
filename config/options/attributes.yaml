@@ -160,8 +160,10 @@ xmin_args:
     percentile: 90
   show_default: false
   callback: 'gset_xmin_args'
-  metavar: "f\"[{'|'.join(xmin_chlist)}]  [default: clauset]\""
-  help: "-manual: float value, default: 0\n-percentile: 0-100, default: 90"
+  # metavar: NOTE: this attr is set by the _set_xmin_metavar_help call
+  help: |
+    -manual: float value, default: 0
+    -percentile: 0-100, default: 90
 
 alpha_signif:
   param_decls:

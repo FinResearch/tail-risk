@@ -19,7 +19,7 @@ def _preprocess_special_attrs_(opt_attrs):
     """
 
     # attrs that are special expression objects
-    expr_attrs = ('type', 'callback', 'cls',)  # 'metavar',) <---no eval :FIXME
+    expr_attrs = ('type', 'callback', 'cls',)
     for attr in expr_attrs:
         # check the attr is specified in the config & its value is truthy
         if attr in opt_attrs and bool(opt_attrs[attr]):
@@ -72,10 +72,6 @@ def attach_script_opts():
 #      db_pat = re.compile(r'db.*\.(csv|xlsx)')  # TODO: confirm db name schema
 #      file_matches = [db_pat.match(f) for f in os.listdir()]
 #      return ', '.join([m.group() for m in file_matches if m is not None])
-
-
-# CLI choice constants
-xmin_chlist = ('clauset', 'manual', 'percentile')  # TODO: shove into YAML cfg?
 
 
 # TODO: create VarNargsOption --> Option allowing variable numbers of args

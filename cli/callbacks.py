@@ -46,6 +46,17 @@ def gset_db_df(ctx, param, db_file):  # gset_db_df: Get/Set DataBase DataFrame
     # FIXME: performance mighe be somewhat reduced due to this IO operation???
 
 
+# small mutating utility to correctly set the metavar & help attrs of xmin_args
+def _set_xmin_metavar_help_(ctx):
+    xmin_opt = _get_param_from_ctx(ctx, 'xmin_args')
+    xmin_rule_choices = tuple(xmin_opt.default.keys())
+    xmin_opt.metavar = (f"[{'|'.join(xmin_rule_choices)}]  "
+                        f"[default: {xmin_rule_choices[0]}]")
+    extra_help = ('-average: 2 INTs (# days) - sliding window & lag, '
+                  'default: 66, 0\n') if ctx.analyse_group else ''
+    xmin_opt.help = extra_help + xmin_opt.help
+
+
 # callback for -G, --group
 def gset_group_opts(ctx, param, analyze_group):
 
@@ -62,6 +73,9 @@ def gset_group_opts(ctx, param, analyze_group):
             grp_opt.default = dflt  # NOTE: update to group specific defaults
             if grp_opt.hidden:  # NOTE: show opts hidden in non-group mode
                 grp_opt.hidden = False
+
+    # NOTE: this hacky piggybacking only works b/c -G is an eager option
+    _set_xmin_metavar_help_(ctx)
 
     return analyze_group  # TODO: return more useful value?
 

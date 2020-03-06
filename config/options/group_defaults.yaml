@@ -5,7 +5,19 @@
 lookback: 252
 
 partition: 'country'
-xmin: 'average'
-# xmin: 'sliding'
+  # hidden: false
+
+xmin_args:
+  # default:
+  average:
+    - 66
+    - 0
+  clauset: null
+  manual: 0
+  percentile: 90
+  # help: |  # NOTE: this is set by the _set_xmin_metavar_help call
+  #   -average: 2 INTs (# days) - sliding window & lag, default: 66, 0
+  #   -manual: float value, default: 0
+  #   -percentile: 0-100, default: 90
 
 plpva_iter: 2
