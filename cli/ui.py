@@ -1,7 +1,7 @@
 import click
 import yaml
 
-# NOTE: names labeled as unused by linter are reified by eval() calls
+# NOTE: imports detected as unused by linter are reified by eval() calls
 from vnargs import VnargsOption
 from callbacks import (gset_db_df,
                        gset_group_opts,

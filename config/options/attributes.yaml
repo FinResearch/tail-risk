@@ -26,7 +26,6 @@ date_i:
   metavar: ''
   help: 'the starting date of the time series to analyse'
 
-# TODO: set metavar to '' to remove type annotation
 date_f:
   param_decls:
     - '-df'

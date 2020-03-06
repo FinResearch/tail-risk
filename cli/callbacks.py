@@ -60,7 +60,11 @@ def _set_xmin_metavar_help_(ctx):
 # callback for -G, --group
 def gset_group_opts(ctx, param, analyze_group):
 
+    # add custom top-level flag attr to Context for convenience of others
+    ctx.analyse_group = False  # NOTE spelling: analySe NOT analyZe
+
     if analyze_group:
+        ctx.analyse_group = True
 
         param.hidden = True  # NOTE: when -G set, hide its help
 
@@ -89,7 +93,7 @@ def gset_xmin_args(ctx, param, xmin_args):
 
     # FIXME: a bit hacky; use ctx.get_parameter_source when available
     # TODO: the 2 diff defaults are hardcoded rn; get as 1st from dflts_by_rule
-    dflt_rule = 'average' if ctx.params['analyze_group'] else 'clauset'
+    dflt_rule = 'average' if ctx.analyse_group else 'clauset'
     if rule == dflt_rule:
         vqarg = dflts_by_rule[dflt_rule]
 
@@ -116,11 +120,11 @@ def gset_xmin_args(ctx, param, xmin_args):
 # callback for options unique to -G --group mode (currently only partition)
 def confirm_group_flag_set(ctx, param, val):
     if val is not None:
-        assert ctx.params['analyze_group'],\
+        assert ctx.analyse_group,\
             (f"option '{param.name}' is only available when using "
              "group tail analysis mode; set -G to use")
     else:
         # NOTE: this error should never triger as the default value &
         #       click.Choice type constaints suppresses it
-        assert not ctx.params['analyze_group']
+        assert not ctx.analyse_group
     return val
