@@ -108,6 +108,7 @@ partition:
     - 'all'
     - 'none'
   default: null
+  callback: 'confirm_group_flag_set'
   hidden: true
   help: 'method for grouping tickers'
 

@@ -12,8 +12,8 @@ def _get_param_from_ctx(ctx, param_name):
                        f'click.Command: {ctx.command.name}')
 
 
-# callback for the db_df positional argument
 # TODO: attach computed/processed objects, full: (df, tickers, dates) onto ctx?
+# callback for the db_df positional argument
 def gset_db_df(ctx, param, db_file):  # gset_db_df: Get/Set DataBase DataFrame
 
     db_df = pd.read_csv(db_file, index_col='Date')  # TODO: index_col case-i?
@@ -70,6 +70,7 @@ def gset_group_opts(ctx, param, analyze_group):
 
 # TODO: manually upgrade v.7.1+ for features: ParameterSource & show_default
 # TODO/TODO: confirm click.ParameterSource & ctx.get_parameter_source usable
+# callback for the xmin_args (-x, --xmin) option
 def gset_xmin_args(ctx, param, xmin_args):
     rule, *vqarg = xmin_args  # vqarg: variable quantity arg(s)
     dflts_by_rule = param.default  # use default attr encoded in YAML config
@@ -100,3 +101,14 @@ def gset_xmin_args(ctx, param, xmin_args):
     return xmin_args  # NOTE: the number args might be in string form
 
 
+# callback for options unique to -G --group mode (currently only partition)
+def confirm_group_flag_set(ctx, param, val):
+    if val is not None:
+        assert ctx.params['analyze_group'],\
+            (f"option '{param.name}' is only available when using "
+             "group tail analysis mode; set -G to use")
+    else:
+        # NOTE: this error should never triger as the default value &
+        #       click.Choice type constaints suppresses it
+        assert not ctx.params['analyze_group']
+    return val
