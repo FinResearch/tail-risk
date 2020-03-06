@@ -1,10 +1,10 @@
 import click
 import yaml
 
-#  from statistics import NormalDist
+# NOTE: names labeled as unused by linter are reified by eval() calls
+from vnargs import VnargsOption
 
-from vnargs import VnargsOption  # NOTE: is used by an eval() call
-from callbacks import gset_db_df, set_group_opts
+#  from statistics import NormalDist
 
 
 def _preprocess_special_attrs_(opt_attrs):
@@ -49,6 +49,7 @@ def _load_gset_opts_attrs():
     return opts_attrs
 
 
+# decorator wrapping click.Option's decorator API
 def attach_script_opts():
     """Attach all options specified within attributes.yaml config file
     to the decorated click.Command instance.
@@ -71,21 +72,6 @@ def attach_script_opts():
 
 # CLI choice constants
 xmin_chlist = ('clauset', 'manual', 'percentile')  # TODO: shove into YAML cfg?
-
-
-#  def xmin_cb(ctx, param, xmin):
-#      print('fired xmin callback')
-#      if len(xmin) == 2:
-#          return
-#      elif len(xmin) == 1:
-#          #  if xmin[0] == 'clauset':
-#          #      return ('clauset', None)
-#          #  elif xmin[0] == 'manual':
-#          #      return ('manual', 0)
-#          #  elif xmin[0] == 'percentile':
-#          #      return ('percentile', 90)
-#          xmin_defaults = {'clauset': None, 'manual': 0, 'percentile': 90}
-#          return xmin, xmin_defaults[xmin]
 
 
 # TODO/TODO: confirm click.ParameterSource & ctx.get_parameter_source usable
@@ -116,17 +102,16 @@ def process_xmin_args(ctx, param, xmin_args):
 #   - remove cluttering & useless type annotations (set options' metavar attr)
 @click.argument('db_df', metavar='DB_FILE', nargs=1, is_eager=True,
                 type=click.File(mode='r'), callback=gset_db_df,
-                default='dbMSTR_test.csv')
+                default='dbMSTR_test.csv')  # TODO: allow 2nd pos-arg for cfg?
 @click.option('-G', '--group/--no-group', 'analyze_group',
-              is_eager=True, callback=set_group_opts,
+              is_eager=True, callback=gset_group_opts,
               default=False, show_default=True,
-              help=('set flag to run group analysis mode; use with '
-                    '--help to display group options specifics'))
+              help=('set flag to run in group analysis mode; use with --help '
+                    'to also see options specific to group analysis'))
 @attach_script_opts()  # NOTE: this decorator func call returns a decorator
 # TODO: add opts: '--multicore', '--interative',
 #       '--load-opts', '--save-opts', '--verbose' # TODO: use count opt for -v?
-def get_options(db_df,
-                analyze_group, **script_opts):
+def get_options(db_df, analyze_group, **script_opts):
     print(locals())
     print(script_opts['xmin_args'], type(script_opts['xmin_args']))
     pass
@@ -145,6 +130,27 @@ def _get_tails_used(tail_selection):
         tails_used.append("left")
 
     return use_right, use_left, tuple(tails_used)
+
+
+def get_xmin(xmin_args):
+    rule, *vqarg = xmin_args
+    # check that additional arg(s) given after xmin_rule is/are numeric(s)
+    if not all(map(str.isdecimal, vqarg)):
+        raise ValueError(f"extra arg(s) to xmin rule '{rule}' must be "
+                         f"numeric type(s), given: {', '.join(vqarg)}")
+#  def xmin_cb(ctx, param, xmin):
+#      print('fired xmin callback')
+#      if len(xmin) == 2:
+#          return
+#      elif len(xmin) == 1:
+#          #  if xmin[0] == 'clauset':
+#          #      return ('clauset', None)
+#          #  elif xmin[0] == 'manual':
+#          #      return ('manual', 0)
+#          #  elif xmin[0] == 'percentile':
+#          #      return ('percentile', 90)
+#          xmin_defaults = {'clauset': None, 'manual': 0, 'percentile': 90}
+#          return xmin, xmin_defaults[xmin]
 
 
 # TODO: make distinction b/w private/internal & public setting?

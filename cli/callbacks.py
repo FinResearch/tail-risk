@@ -49,7 +49,7 @@ def _infer_db_dflt_if_unset_(ctx, param_name, inferred_val):
 
 
 # callback for -G, --group
-def set_group_opts(ctx, param, analyze_group):
+def gset_group_opts(ctx, param, analyze_group):
 
     if analyze_group:
 
@@ -68,3 +68,5 @@ def set_group_opts(ctx, param, analyze_group):
     return analyze_group  # TODO: return more useful value?
 
 
+# TODO: manually upgrade v.7.1+ for features: ParameterSource & show_default
+# TODO/TODO: confirm click.ParameterSource & ctx.get_parameter_source usable
