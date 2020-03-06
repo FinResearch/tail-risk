@@ -3,6 +3,7 @@ import yaml
 
 # NOTE: names labeled as unused by linter are reified by eval() calls
 from vnargs import VnargsOption
+from callbacks import gset_db_df, gset_group_opts, gset_xmin_args
 
 #  from statistics import NormalDist
 
@@ -74,12 +75,6 @@ def attach_script_opts():
 xmin_chlist = ('clauset', 'manual', 'percentile')  # TODO: shove into YAML cfg?
 
 
-# TODO/TODO: confirm click.ParameterSource & ctx.get_parameter_source usable
-def process_xmin_args(ctx, param, xmin_args):
-    print(xmin_args)
-    return xmin_args
-
-
 # TODO: create VarNargsOption --> Option allowing variable numbers of args
 #       also allow: i) an optional separator, examples: one of ",/ |\" etc.
 #                   ii) passing the var number of args as Python list literal
@@ -113,7 +108,6 @@ def process_xmin_args(ctx, param, xmin_args):
 #       '--load-opts', '--save-opts', '--verbose' # TODO: use count opt for -v?
 def get_options(db_df, analyze_group, **script_opts):
     print(locals())
-    print(script_opts['xmin_args'], type(script_opts['xmin_args']))
     pass
 
 

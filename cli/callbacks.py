@@ -70,3 +70,33 @@ def gset_group_opts(ctx, param, analyze_group):
 
 # TODO: manually upgrade v.7.1+ for features: ParameterSource & show_default
 # TODO/TODO: confirm click.ParameterSource & ctx.get_parameter_source usable
+def gset_xmin_args(ctx, param, xmin_args):
+    rule, *vqarg = xmin_args  # vqarg: variable quantity arg(s)
+    dflts_by_rule = param.default  # use default attr encoded in YAML config
+
+    # FIXME: a bit hacky; use ctx.get_parameter_source when available
+    # TODO: the 2 diff defaults are hardcoded rn; get as 1st from dflts_by_rule
+    dflt_rule = 'average' if ctx.params['analyze_group'] else 'clauset'
+    if rule == dflt_rule:
+        vqarg = dflts_by_rule[dflt_rule]
+
+    # ensure selected xmin_rule is a valid choice
+    if rule not in dflts_by_rule:
+        raise ValueError('xmin determination rule must be one of: '
+                         f"{', '.join(dflts_by_rule.keys())}")
+
+    if not bool(vqarg):  # True if 'vqarg is None' OR 'len(vqarg) == 0'
+        xmin_args = rule, dflts_by_rule[rule]
+    elif len(vqarg) == 1:
+        xmin_args = rule, vqarg[0]
+    elif rule == 'average' and len(vqarg) == 2:  # NOTE: only applies w/ -G
+        # ASK/TODO: window > lag (i.e. sliding window vs. lag, in days) always
+        window, lag = sorted(vqarg, reverse=True)
+        xmin_args = rule, window, lag
+    else:
+        raise TypeError(f"xmin determination by '{rule}' rule is incompatible "
+                        f"with inputs: {', '.join(vqarg)}")
+
+    return xmin_args  # NOTE: the number args might be in string form
+
+

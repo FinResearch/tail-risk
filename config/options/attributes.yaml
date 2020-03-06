@@ -140,12 +140,16 @@ xmin_args:
     - '--xmin'
     - 'xmin_args'
   cls: 'VnargsOption'
-  type: 'tuple'  # TODO: incorporate click.Choice type somehow
+  max_nargs: 3
+  type: 'tuple'
   default:
-    - 'clauset'
-    - null
+    # NOTE: this default map is NOT actually used by the click.Option,
+    #       but is instead here for convenient serialization/encoding
+    clauset: null
+    manual: 0
+    percentile: 90
   show_default: false
-  callback: 'process_xmin_args'
+  callback: 'gset_xmin_args'
   metavar: "f\"[{'|'.join(xmin_chlist)}]  [default: clauset]\""
   help: "-manual: float value, default: 0\n-percentile: 0-100, default: 90"
 
