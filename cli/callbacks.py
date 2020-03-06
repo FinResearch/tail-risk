@@ -12,40 +12,38 @@ def _get_param_from_ctx(ctx, param_name):
                        f'click.Command: {ctx.command.name}')
 
 
-# TODO: attach computed/processed objects, full: (df, tickers, dates) onto ctx?
 # callback for the db_df positional argument
 def gset_db_df(ctx, param, db_file):  # gset_db_df: Get/Set DataBase DataFrame
+    """Open and read the passed File as a Pandas DataFrame
+
+    If the default attr isn't manually set in the YAML config,
+    infer the defaults of these extra options related to the
+    database file; namely: tickers, date_i & date_f
+
+    NOTE: the function mutates the ctx state to add the above inferred vals
+    """
 
     db_df = pd.read_csv(db_file, index_col='Date')  # TODO: index_col case-i?
-
-    # infer default tickers labels (when default not manually set in YAML cfg)
-    # TODO: filter out ticker columns with null values?
-    _infer_db_dflt_if_unset_(ctx, 'tickers', list(db_df.columns))
-    # FIXME: need to properly parse passed list into tickers elements
+    # TODO: attach computed objects such as {df, tickers, dates} onto ctx??
 
     full_dates = db_df.index  # TODO: attach to ctx_obj for later access?
-    # CONFIRM: lookback good method for defaulting date_i
+    # ASK/CONFIRM: using lookback good method for inferring date_i default?
     lbv = (ctx.params.get('lookback') or
            _get_param_from_ctx(ctx, 'lookback').default)  # lbv: LookBack Value
-    # infer defaults for date_i & date_f from lkb & full_dates (when not set)
-    _infer_db_dflt_if_unset_(ctx, 'date_i', full_dates[lbv])
-    _infer_db_dflt_if_unset_(ctx, 'date_f', full_dates[-1])
+
+    db_extra_opts_map = {'tickers': tuple(db_df.columns),  # TODO:filter nulls?
+                         'date_i': full_dates[lbv],
+                         'date_f': full_dates[-1]}
+
+    # use inferred defaults when default attr isn't manually set in YAML config
+    for opt_name, infrd_dflt in db_extra_opts_map.items():
+        opt = _get_param_from_ctx(ctx, opt_name)
+        if opt.default is None:
+            opt.default = infrd_dflt
 
     # TODO: consider instead of read file & return DF, just return file handle?
     return db_df
-    # FIXME: performance seems to be somewhat reduced due to this IO operation
-
-
-# helper for gset_db_df
-def _infer_db_dflt_if_unset_(ctx, param_name, inferred_val):
-    """helper func used by db-related options to infer and set their
-    defaults, if they're not manually specified in the YAML config
-
-    mutates ctx state, and has no return value (as indicated by trailing _)
-    """
-    param = _get_param_from_ctx(ctx, param_name)
-    if param.default is None:
-        param.default = inferred_val
+    # FIXME: performance mighe be somewhat reduced due to this IO operation???
 
 
 # callback for -G, --group
