@@ -1,8 +1,8 @@
 import click
+import os
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-from dct_cbs import attach_script_opts, gset_db_df, gset_group_opts
-
-#  from statistics import NormalDist
+from .dct_cbs import attach_script_opts, gset_db_df, gset_group_opts
 
 
 #  def _get_db_choices():
@@ -27,7 +27,7 @@ from dct_cbs import attach_script_opts, gset_db_df, gset_group_opts
 #   - remove cluttering & useless type annotations (set options' metavar attr)
 @click.argument('db_df', metavar='DB_FILE', nargs=1, is_eager=True,
                 type=click.File(mode='r'), callback=gset_db_df,
-                default='dbMSTR_test.csv')  # TODO: allow 2nd pos-arg for cfg?
+                default=f'{ROOT_DIR}/dbMSTR_test.csv')  # TODO: allow 2nd pos-arg for cfg?
 # TODO: consider moving DB_FILE & -G into config/options/attributes.yaml ??
 @click.option('-G', '--group/--no-group', 'analyze_group',
               is_eager=True, callback=gset_group_opts,
@@ -118,5 +118,6 @@ def set_context(kwd):
     pass
 
 
+# NOTE: cannot run as __main__ in packaged mode
 if __name__ == '__main__':
     uis = get_options.main(standalone_mode=False)

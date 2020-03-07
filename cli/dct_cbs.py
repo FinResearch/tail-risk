@@ -2,8 +2,9 @@ import click
 import yaml
 import pandas as pd
 
-# NOTE: import detected as unused by linter, but is reified by eval() call
-from _vnargs import VnargsOption
+from ._vnargs import VnargsOption  # NOTE: linter detect as unused; reified by eval() call
+from . import ROOT_DIR
+OPT_CFG_DIR = f'{ROOT_DIR}/config/options/'  # TODO: use pathlib.Path ??
 
 
 # # Decorator
@@ -40,8 +41,8 @@ def __preprocess_special_attrs_(opt_attrs):
 # load (from YAML), get & set (preprocess) options attributes
 def _load_gset_opts_attrs():
 
-    cfg_path = 'config/options/attributes.yaml'
-    with open(cfg_path) as cfg:
+    attrs_path = OPT_CFG_DIR + 'attributes.yaml'
+    with open(attrs_path) as cfg:
         opts_attrs = yaml.load(cfg, Loader=yaml.SafeLoader)
 
     for opt, attrs in opts_attrs.items():
@@ -133,7 +134,7 @@ def gset_group_opts(ctx, param, analyze_group):
 
         param.hidden = True  # NOTE: when -G set, hide its help
 
-        grp_defs_fpath = 'config/options/group_defaults.yaml'
+        grp_defs_fpath = OPT_CFG_DIR + 'group_defaults.yaml'
         with open(grp_defs_fpath) as cfg:
             grp_defs = yaml.load(cfg, Loader=yaml.SafeLoader)
 
