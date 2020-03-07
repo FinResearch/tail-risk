@@ -52,7 +52,7 @@ def _load_gset_opts_attrs():
 
 
 # decorator wrapping click.Option's decorator API
-def attach_script_opts():
+def attach_yaml_opts():
     """Attach all options specified within attributes.yaml config file
     to the decorated click.Command instance.
     """
