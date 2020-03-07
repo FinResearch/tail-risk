@@ -93,6 +93,7 @@ absolutize:
   default: false
   help: 'take the absolute value of the input data'
 
+# TODO: use VnargsOption for --approach ??
 approach:
   param_decls:
     - '-a'
@@ -123,6 +124,7 @@ partition:
   hidden: true
   help: 'method for grouping tickers'
 
+# TODO: use VnargsOption for --tail ??
 tail_selection:
   param_decls:
     - '-t'

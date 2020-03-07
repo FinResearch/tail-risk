@@ -74,12 +74,6 @@ def attach_script_opts():
 #      return ', '.join([m.group() for m in file_matches if m is not None])
 
 
-# TODO: create VarNargsOption --> Option allowing variable numbers of args
-#       also allow: i) an optional separator, examples: one of ",/ |\" etc.
-#                   ii) passing the var number of args as Python list literal
-# TODO: use for: --tickers, --dates, --approach, --tail, --xmin
-
-
 # TODO/TODO: update conda channel(s) to Click 7.1 for show_default kwarg
 @click.command(  # name='',
                context_settings=dict(default_map=None,
