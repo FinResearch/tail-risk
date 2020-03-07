@@ -6,13 +6,16 @@
 tickers:  # TODO: allow passing in a .txt file of tickers
   param_decls:
     - '--tickers'
+  cls: 'VnargsOption'
+  separator: ','
   type: 'tuple'
   default:
     - 'DE 01Y'
     - 'DE 03Y'
     - 'DE 05Y'
     - 'DE 10Y'
-  metavar: '[ <csv on CLI> | <.csv> | <.txt> ]'
+      # metavar: '[ <csv on CLI> | <.csv> | <.txt> ]'  # TODO: file options
+  metavar: '<csv on CLI>'
   help: 'specify the list of tickers from the database to analyse'
 
 # TODO: use callback to validate dates?

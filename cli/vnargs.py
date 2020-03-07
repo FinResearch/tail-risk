@@ -13,11 +13,12 @@ class VnargsOption(click.Option):
     :param max_nargs: integer specifying the maximum number args for the option
     """
 
-    def __init__(self, *param_decls, separtor=None,
+    def __init__(self, *param_decls, separator=None,
                  min_nargs=1, max_nargs=float('inf'),
                  **attrs):
 
-        self.separtor = separtor
+        # attrs specific to the VnargsOption subclass
+        self.separator = separator
         self.min_nargs = min_nargs
         self.max_nargs = max_nargs
 
@@ -48,9 +49,9 @@ class VnargsOption(click.Option):
             # split the passed args appropriately if given valid separator
             # NOTE: both leading & trailing whitespaces on each arg are removed
             # NOTE: empty args (i.e. "--opt=a,,b") are ignored => {opt: (a, b)}
-            if bool(self.separtor):
+            if bool(self.separator):
                 vals = [arg.strip() for arg in
-                        ' '.join(vals).split(sep=self.separtor)
+                        ' '.join(vals).split(sep=self.separator)
                         if bool(arg)]
 
             # check the number of args is within the specified range
