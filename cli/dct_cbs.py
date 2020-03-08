@@ -79,7 +79,8 @@ def _get_param_from_ctx(ctx, param_name):
 
 
 # callback for the db_df positional argument
-def gset_db_df(ctx, param, db_file):  # gset_db_df: Get/Set DataBase DataFrame
+# gset_full_dbdf: Get/Set Full DataBase DataFrame
+def gset_full_dbdf(ctx, param, db_file):
     """Open and read the passed File as a Pandas DataFrame
 
     If the default attr isn't manually set in the YAML config,
@@ -90,14 +91,15 @@ def gset_db_df(ctx, param, db_file):  # gset_db_df: Get/Set DataBase DataFrame
     """
 
     db_df = pd.read_csv(db_file, index_col='Date')  # TODO: index_col case-i?
+    full_dbdf = pd.read_csv(db_file, index_col='Date')  # TODO: index_col case-i?
     # TODO: attach computed objects such as {df, tickers, dates} onto ctx??
 
-    full_dates = db_df.index  # TODO: attach to ctx_obj for later access?
+    full_dates = full_dbdf.index  # TODO: attach to ctx_obj for later access?
     # ASK/CONFIRM: using lookback good method for inferring date_i default?
     lbv = (ctx.params.get('lookback') or
            _get_param_from_ctx(ctx, 'lookback').default)  # lbv: LookBack Value
 
-    db_extra_opts_map = {'tickers': tuple(db_df.columns),  # TODO:filter nulls?
+    db_extra_opts_map = {'tickers': list(full_dbdf.columns),  # TODO:filter nulls?
                          'date_i': full_dates[lbv],
                          'date_f': full_dates[-1]}
 
@@ -108,7 +110,7 @@ def gset_db_df(ctx, param, db_file):  # gset_db_df: Get/Set DataBase DataFrame
             opt.default = infrd_dflt
 
     # TODO: consider instead of read file & return DF, just return file handle?
-    return db_df
+    return full_dbdf
     # FIXME: performance mighe be somewhat reduced due to this IO operation???
 
 

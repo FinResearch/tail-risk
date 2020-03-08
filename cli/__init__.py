@@ -2,7 +2,7 @@ import click
 import os
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-from .dct_cbs import attach_yaml_opts, gset_db_df, gset_group_opts
+from .dct_cbs import attach_yaml_opts, gset_full_dbdf, gset_group_opts
 
 
 # TODO: present possible DB_FILE options if not passed & no defaults set
@@ -25,8 +25,8 @@ from .dct_cbs import attach_yaml_opts, gset_db_df, gset_group_opts
 #   - better formatting/line wrapping for options of type click.Choice
 #   - option help texts when multiline, doesn't wrap properly
 #   - remove cluttering & useless type annotations (set options' metavar attr)
-@click.argument('db_df', metavar='DB_FILE', nargs=1, is_eager=True,
-                type=click.File(mode='r'), callback=gset_db_df,
+@click.argument('full_dbdf', metavar='DB_FILE', nargs=1, is_eager=True,
+                type=click.File(mode='r'), callback=gset_full_dbdf,
                 default=f'{ROOT_DIR}/dbMSTR_test.csv')
 # TODO: accept optional 2nd positional argument as options config file?
 @click.option('-G', '--group/--no-group', 'analyze_group',
@@ -38,8 +38,8 @@ from .dct_cbs import attach_yaml_opts, gset_db_df, gset_group_opts
 @attach_yaml_opts()  # NOTE: this decorator func call returns a decorator
 # TODO: add opts: '--multicore', '--interative',
 #       '--load-opts', '--save-opts', '--verbose' # TODO: use count opt for -v?
-def get_ui_options(db_df, analyze_group, **yaml_opts):
-    return dict(db_df=db_df,
+def get_ui_options(full_dbdf, analyze_group, **yaml_opts):
+    return dict(full_dbdf=full_dbdf,
                 analyze_group=analyze_group,
                 **yaml_opts)
 # TODO: consider removing kv-pairs w/ None vals (ex. partition when no -G)?
