@@ -1,77 +1,95 @@
+#  import numpy as np
+
+from types import SimpleNamespace
 from statistics import NormalDist
 
 
-def _get_tails_used(tail_selection):
-    """Return relevant tail selection settings
-    """
-    use_right = True if tail_selection in ('right', 'both') else False
-    use_left = True if tail_selection in ('left', 'both') else False
+class Settings:
 
-    tails_used = []
-    if use_right:
-        tails_used.append("right")
-    if use_left:
-        tails_used.append("left")
+    def __init__(self, ui_options):
+        for opt, val in ui_options.items():
+            setattr(self, opt, val)
 
-    return use_right, use_left, tuple(tails_used)
+        self._get_db_objects()
+        self._set_tails()
+        self._validate_xmin_args()
 
+        self.ctrl_settings = {}
+        self.data_settings = {}
 
-def get_xmin(xmin_args):
-    rule, *vqarg = xmin_args
-    # check that additional arg(s) given after xmin_rule is/are numeric(s)
-    if not all(map(str.isdecimal, vqarg)):
-        raise ValueError(f"extra arg(s) to xmin rule '{rule}' must be "
-                         f"numeric type(s), given: {', '.join(vqarg)}")
-#  def xmin_cb(ctx, param, xmin):
-#      print('fired xmin callback')
-#      if len(xmin) == 2:
-#          return
-#      elif len(xmin) == 1:
-#          #  if xmin[0] == 'clauset':
-#          #      return ('clauset', None)
-#          #  elif xmin[0] == 'manual':
-#          #      return ('manual', 0)
-#          #  elif xmin[0] == 'percentile':
-#          #      return ('percentile', 90)
-#          xmin_defaults = {'clauset': None, 'manual': 0, 'percentile': 90}
-#          return xmin, xmin_defaults[xmin]
+    def _get_db_objects(self):
+        #  self.tickers_df = self.full_dbdf[self.tickers]
+        #  self.dbdf = self.full_dbdf.iloc[self.ind_i: self.ind_f + 1]
+        self.dbdf = self.full_dbdf.loc[self.date_i:self.date_f, self.tickers]
 
+        #  self.full_dates = self.full_dbdf.index
+        full_dates = self.full_dbdf.index
+        self.ind_i = full_dates.get_loc(self.date_i)
+        self.ind_f = full_dates.get_loc(self.date_f)
+        self.anal_dates = self.full_dates[self.ind_i:self.ind_f+1]
 
-# TODO: make distinction b/w private/internal & public setting?
-# TODO: OR distinguish b/w analysis vs. control-flow settings!!
-def set_context(kwd):
-    #  print(f'using tickers: {tickers}')
-    #
-    #  db_df = pd.read_csv(db_file, index_col='Date')[tickers]
-    #  db_dates = db_df.index
-    #  ind_i, ind_f = db_dates.get_loc(date_i), db_dates.get_loc(date_f)
-    #  n_vec = ind_f - ind_i + 1  # FIXME: should be length of spec_dates?
-    #  dates = db_dates[ind_i: ind_f + 1]
-    #
-    #  labelstep = (22 if n_vec <= 252 else
-    #               66 if (n_vec > 252 and n_vec <= 756) else
-    #               121)
-    #
-    #  # TODO: remove need for "spec_" variables
-    #  if anal_freq > 1:
-    #      spec_dates = dates[::anal_freq]
-    #      spec_labelstep = 22
-    #  elif anal_freq == 1:
-    #      spec_dates = dates
-    #      spec_labelstep = labelstep
-    #  n_spdt = len(spec_dates)
-    #
-    #  ticker_df = db_df.iloc[ind_i: ind_f + 1]
-    #
-    #  use_right_tail, use_left_tail, tails_used = get_tails_used(tail_select)
-    #
-    #  _tail_mult = 0.5 if tail_selected == 'both' else 1
-    #  alpha_quantile = NormalDist().inv_cdf(1 - _tail_mult * alpha_sgnf)
+    def _set_tails(self):
+        """Return relevant tail selection settings
+        """
+        self.use_right = True if self.tail_selection in ('right', 'both') else False
+        self.use_left = True if self.tail_selection in ('left', 'both') else False
 
-    #  if xmin_rule != 'clauset' and xmin_var_qty is None:
-    #      xmin_var_qty = prompt_xmin_var_qty(xmin_rule)
+        tails_used = []
+        if self.use_right:
+            tails_used.append('right')
+        if self.use_left:
+            tails_used.append('left')
+        self.tails_used = tuple(tails_used)
 
-    #  click.echo(locals())
+        mult = 0.5 if self.tail_selection == 'both' else 1
+        self.alpha_qtl = NormalDist().inv_cdf(1 - mult * self.alpha_signif)
 
-    #  return locals()
-    pass
+    def _validate_xmin_args(self):
+        rule, *vqarg = self.xmin_args
+
+        # confirm extra args are numeric types
+        if rule != 'clauset':
+            try:
+                vqarg = map(float, vqarg)
+            except ValueError:
+                raise ValueError(f"extra arg(s) to xmin rule '{rule}' must be "
+                                 f"numeric type(s), given: {', '.join(vqarg)}")
+
+        # validate numeric args by xmin rule
+        if rule == 'clauset':
+            assert vqarg[0] is None,\
+                ("xmin determination rule 'clauset' does not "
+                 "take additional arguments")
+        elif rule == 'manual':
+            assert vqarg[0] == float(vqarg)  # TODO: use better check
+        elif rule == 'percentile':  # ASK/TODO: use <= OR < is okay??
+            assert 0 < vqarg[0] < 100,\
+                ("xmin determination rule 'percentile' takes "
+                 "a number between 0 and 100")
+        elif rule == 'average':
+            assert vqarg[0] >= vqarg[1]  # TODO: use better check
+
+    def _get_misc_metainfo(self):
+
+        # FIXME: should be length of spec_dates?
+        self.n_vec = self.ind_f - self.ind_i + 1
+
+        #  labelstep = (22 if n_vec <= 252 else
+        #               66 if (n_vec > 252 and n_vec <= 756) else
+        #               121)
+        #
+        #  # TODO: remove need for "spec_" variables
+        #  if anal_freq > 1:
+        #      spec_dates = dates[::anal_freq]
+        #      spec_labelstep = 22
+        #  elif anal_freq == 1:
+        #      spec_dates = dates
+        #      spec_labelstep = labelstep
+        #  n_spdt = len(spec_dates)
+
+    # TODO: OR distinguish b/w analysis vs. control-flow settings!!
+    def set_ctrl_settings(self):
+        pass
+
+    def set_data_settings(self):
+        pass

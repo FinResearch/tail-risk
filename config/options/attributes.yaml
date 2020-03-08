@@ -8,7 +8,7 @@ tickers:  # TODO: allow passing in a .txt file of tickers
     - '--tickers'
   cls: 'VnargsOption'
   separator: ','
-  type: 'tuple'
+  type: 'list'
   default:
     - 'DE 01Y'
     - 'DE 03Y'
