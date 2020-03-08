@@ -11,11 +11,11 @@ partition: 'country'
 xmin_args:
   # default:
   average:
-    - 66
-    - 0
+    - '66'
+    - '0'
   clauset: null
-  manual: 0
-  percentile: 90
+  manual: '0'
+  percentile: '90'
   # help: |  # NOTE: this is set by the _set_xmin_metavar_help call
   #   -average: 2 INTs (# days) - sliding window & lag, default: 66, 0
   #   -manual: float value, default: 0

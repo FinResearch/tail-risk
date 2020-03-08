@@ -93,17 +93,25 @@ absolutize:
   default: false
   help: 'take the absolute value of the input data'
 
-# TODO: use VnargsOption for --approach ??
 approach:
   param_decls:
     - '-a'
     - '--approach'
-  type:
-    - 'static'
-    - 'rolling'
-    - 'increasing'
-  default: 'rolling'
-  help: ''
+  cls: 'VnargsOption'
+  max_nargs: 2
+  type: 'tuple'
+  default:
+    # NOTE: this default map is NOT actually used by the click.Option,
+    #       but is instead here for convenient serialization/encoding
+    rolling: '1'
+    static: null
+    increasing: '1'
+  show_default: false
+  callback: 'validate_approach_args'
+  # metavar:
+  help: >
+    for 'rolling' or 'increasing', optionally specify <INT (# days)>
+    as the analysis frequency, default: 1
 
 # NOTE: --analyze-freq only applies to non-static approaches
 # anal_freq: 1
@@ -160,10 +168,10 @@ xmin_args:
     # NOTE: this default map is NOT actually used by the click.Option,
     #       but is instead here for convenient serialization/encoding
     clauset: null
-    manual: 0
-    percentile: 90
+    manual: '0'
+    percentile: '90'
   show_default: false
-  callback: 'gset_xmin_args'
+  callback: 'validate_xmin_args'
   # metavar: NOTE: this attr is set by the _set_xmin_metavar_help call
   help: |
     -manual: float value, default: 0

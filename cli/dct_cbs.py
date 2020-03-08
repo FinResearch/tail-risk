@@ -113,14 +113,19 @@ def gset_db_df(ctx, param, db_file):  # gset_db_df: Get/Set DataBase DataFrame
 
 
 # small mutating utility to correctly set the metavar & help attrs of xmin_args
-def _set_xmin_metavar_help_(ctx):
-    xmin_opt = _get_param_from_ctx(ctx, 'xmin_args')
-    xmin_rule_choices = tuple(xmin_opt.default.keys())
-    xmin_opt.metavar = (f"[{'|'.join(xmin_rule_choices)}]  "
-                        f"[default: {xmin_rule_choices[0]}]")
-    extra_help = ('-average: 2 INTs (# days) - sliding window & lag, '
-                  'default: 66, 0\n') if ctx.analyse_group else ''
-    xmin_opt.help = extra_help + xmin_opt.help
+def _set_vnargs_choice_metahelp_(ctx):
+    xmin_extra_help = ('-average: 2 INTs (# days) as window & lag, '
+                       'default: 66, 0\n') if ctx.analyse_group else ''
+
+    vnargs_choice_opts = ('approach', 'xmin_args',)
+
+    for opt_name in vnargs_choice_opts:
+        opt_obj = _get_param_from_ctx(ctx, opt_name)
+        opt_choices = tuple(opt_obj.default.keys())
+        opt_obj.metavar = (f"[{'|'.join(opt_choices)}]  "
+                           f"[default: {opt_choices[0]}]")
+        extra_help = xmin_extra_help if opt_name == 'xmin_args' else ''
+        opt_obj.help = extra_help + opt_obj.help
 
 
 # callback for -G, --group
@@ -145,42 +150,97 @@ def gset_group_opts(ctx, param, analyze_group):
                 grp_opt.hidden = False
 
     # NOTE: this hacky piggybacking only works b/c -G is an eager option
-    _set_xmin_metavar_help_(ctx)
+    _set_vnargs_choice_metahelp_(ctx)
 
     return analyze_group  # TODO: return more useful value?
 
 
-# TODO: manually upgrade v.7.1+ for features: ParameterSource & show_default
-# TODO/TODO: confirm click.ParameterSource & ctx.get_parameter_source usable
+def _gset_vnargs_choice_default(ctx, param, inputs, dflt=None):
+
+    dflts_by_chce = param.default  # use default map encoded in YAML config
+    choices = tuple(dflts_by_chce.keys())
+
+    chce, *vals = inputs  # NOTE: here vals is always a list
+
+    # ensure selected choice is in the set of possible values
+    if chce not in choices:
+        raise ValueError(f"'{param.name}' must be one of: "
+                         f"{', '.join(choices)}; given: {chce}")
+
+    # set the default to the 1st entry of the choice list when dflt not given
+    if dflt is None:
+        dflt = choices[0]
+
+    # NOTE: click.ParameterSource unavailable in v7.0; using HEAD (symlink)
+    opt_src = ctx.get_parameter_source(param.name)
+    if opt_src == click.ParameterSource.DEFAULT:
+        vals = dflts_by_chce[dflt]
+    elif opt_src == click.ParameterSource.COMMANDLINE:
+        if len(vals) == 0:
+            vals = dflts_by_chce[chce]
+        elif len(vals) == 1:
+            vals = vals[0]
+        else:
+            vals = tuple(vals)
+
+    return chce, vals
+
+
+# callback for the approach option
+def validate_approach_args(ctx, param, approach_args):
+
+    approach, freq = _gset_vnargs_choice_default(ctx, param, approach_args)
+
+    if approach == 'static':
+        assert freq is None,\
+            "approach 'static' does not take extra args"
+    elif approach in ('rolling', 'increasing') and isinstance(freq, str):
+        try:
+            freq_float = float(freq)
+            freq_int = int(freq_float)
+            assert freq_int == freq_float
+            freq = freq_int
+        except (ValueError, AssertionError):
+            raise TypeError(f"argument to approach '{approach}' must be "
+                            f"an INT (# days); given: {freq}")
+    else:  # NOTE/TODO: this branch will never get reached, right? -> remove?
+        raise TypeError(f"approach '{approach}' is incompatible "
+                        f"with inputs: {freq}")
+
+    return approach, freq
+
+
 # callback for the xmin_args (-x, --xmin) option
-def gset_xmin_args(ctx, param, xmin_args):
-    rule, *vqarg = xmin_args  # vqarg: variable quantity arg(s)
-    dflts_by_rule = param.default  # use default attr encoded in YAML config
+def validate_xmin_args(ctx, param, xmin_args):
 
-    # FIXME: a bit hacky; use ctx.get_parameter_source when available
-    # TODO: the 2 diff defaults are hardcoded rn; get as 1st from dflts_by_rule
     dflt_rule = 'average' if ctx.analyse_group else 'clauset'
-    if rule == dflt_rule:
-        vqarg = dflts_by_rule[dflt_rule]
+    rule, vqarg = _gset_vnargs_choice_default(ctx, param, xmin_args, dflt_rule)
 
-    # ensure selected xmin_rule is a valid choice
-    if rule not in dflts_by_rule:
-        raise ValueError('xmin determination rule must be one of: '
-                         f"{', '.join(dflts_by_rule.keys())}")
+    try:
+        if rule == 'clauset':
+            assert vqarg is None,\
+                "xmin determination rule 'clauset' does not take extra args"
+        elif rule in ('manual', 'percentile') and isinstance(vqarg, str):
+            vqarg_float = float(vqarg)
+            vqarg_int = int(vqarg_float)
+            vqarg = vqarg_int if vqarg_int == vqarg_float else vqarg_float
+        elif rule == 'average' and len(vqarg) == 2:  # NOTE: only applies w/ -G
+            # TODO: need to account for when only given 1 value for average??
+            # ASK/TODO: window > lag (sliding window vs. lag, in days) always
+            vqarg_str = vqarg
+            vqarg_float = tuple(map(float, vqarg))
+            vqarg = tuple(map(int, vqarg_float))
+            assert vqarg == vqarg_float,\
+                {"both args to xmin rule 'average' must be INTs (# days); "
+                 f"given: {', '.join(vqarg_str)}"}
+        else:
+            raise TypeError(f"xmin determination rule '{rule}' rule is "
+                            f"incompatible with inputs: {vqarg}")
+    except ValueError:
+        raise TypeError(f"arg(s) to xmin determination rule '{rule}' must be "
+                        f"number(s); given: {vqarg}")
 
-    if not bool(vqarg):  # True if 'vqarg is None' OR 'len(vqarg) == 0'
-        xmin_args = rule, dflts_by_rule[rule]
-    elif len(vqarg) == 1:
-        xmin_args = rule, vqarg[0]
-    elif rule == 'average' and len(vqarg) == 2:  # NOTE: only applies w/ -G
-        # ASK/TODO: window > lag (i.e. sliding window vs. lag, in days) always
-        window, lag = sorted(vqarg, reverse=True)
-        xmin_args = rule, window, lag
-    else:
-        raise TypeError(f"xmin determination by '{rule}' rule is incompatible "
-                        f"with inputs: {', '.join(vqarg)}")
-
-    return xmin_args  # NOTE: the number args might be in string form
+    return rule, vqarg   # NOTE: num args are all of str type (incl. defaults)
 
 
 # callback for options unique to -G --group mode (currently only partition)
