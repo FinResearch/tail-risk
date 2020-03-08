@@ -36,6 +36,9 @@ from .dct_cbs import attach_yaml_opts, gset_full_dbdf, gset_group_opts
                     'to also see options specific to group analysis'))
 # TODO: consider moving DB_FILE & -G into config/options/attributes.yaml ??
 @attach_yaml_opts()  # NOTE: this decorator func call returns a decorator
+# FIXME: allow passing in negative number as args to opts;
+#        currently interpreted as an option;
+#        see: https://github.com/pallets/click/issues/555
 # TODO: add opts: '--multicore', '--interative',
 #       '--load-opts', '--save-opts', '--verbose' # TODO: use count opt for -v?
 def get_ui_options(full_dbdf, analyze_group, **yaml_opts):

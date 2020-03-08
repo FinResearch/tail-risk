@@ -90,7 +90,7 @@ def gset_full_dbdf(ctx, param, db_file):
     NOTE: the function mutates the ctx state to add the above inferred vals
     """
 
-    db_df = pd.read_csv(db_file, index_col='Date')  # TODO: index_col case-i?
+    # TODO: checkout Pandas' DatetimeIndex
     full_dbdf = pd.read_csv(db_file, index_col='Date')  # TODO: index_col case-i?
     # TODO: attach computed objects such as {df, tickers, dates} onto ctx??
 
