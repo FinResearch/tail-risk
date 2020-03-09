@@ -1,4 +1,6 @@
 import click
+from click.core import ParameterSource
+
 import yaml
 import pandas as pd
 
@@ -175,9 +177,9 @@ def _gset_vnargs_choice_default(ctx, param, inputs, dflt=None):
 
     # NOTE: click.ParameterSource unavailable in v7.0; using HEAD (symlink)
     opt_src = ctx.get_parameter_source(param.name)
-    if opt_src == click.ParameterSource.DEFAULT:
+    if opt_src == ParameterSource.DEFAULT:
         vals = dflts_by_chce[dflt]
-    elif opt_src == click.ParameterSource.COMMANDLINE:
+    elif opt_src == ParameterSource.COMMANDLINE:
         if len(vals) == 0:
             vals = dflts_by_chce[chce]
         elif len(vals) == 1:
@@ -208,6 +210,8 @@ def validate_approach_args(ctx, param, approach_args):
     else:  # NOTE/TODO: this branch will never get reached, right? -> remove?
         raise TypeError(f"approach '{approach}' is incompatible "
                         f"with inputs: {freq}")
+
+    # TODO: set anal_freq as an attribute to be returned?
 
     return approach, freq
 

@@ -113,9 +113,7 @@ approach:
     for 'rolling' or 'increasing', optionally specify <INT (# days)>
     as the analysis frequency, default: 1
 
-# NOTE: --analyze-freq only applies to non-static approaches
-# anal_freq: 1
-# sliding_window: 1
+# ASK/CONFIRM: anal_freq (in normal) == sliding_window (in group)
 
 partition:
   param_decls:
