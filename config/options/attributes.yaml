@@ -94,10 +94,11 @@ absolutize:
   default: false
   help: 'take the absolute value of the input data'
 
-approach:
+approach_args:
   param_decls:
     - '-a'
     - '--approach'
+    - 'approach_args'
   cls: 'VnargsOption'
   max_nargs: 2
   type: 'tuple'

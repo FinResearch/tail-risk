@@ -17,6 +17,9 @@ class Settings:
         self.ctrl_settings = {}
         self.data_settings = {}
 
+    def _get_anal_freq(self):
+        self.approach, self.anal_freq = self.approach_args
+
     def _get_db_objects(self):
         #  self.tickers_df = self.full_dbdf[self.tickers]
         #  self.dbdf = self.full_dbdf.iloc[self.ind_i: self.ind_f + 1]

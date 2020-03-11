@@ -121,7 +121,7 @@ def _set_vnargs_choice_metahelp_(ctx):
     xmin_extra_help = ('-average: 2 INTs (# days) as window & lag, '
                        'default: 66, 0\n') if ctx.analyse_group else ''
 
-    vnargs_choice_opts = ('approach', 'xmin_args',)
+    vnargs_choice_opts = ('approach_args', 'xmin_args',)
 
     for opt_name in vnargs_choice_opts:
         opt_obj = _get_param_from_ctx(ctx, opt_name)
