@@ -24,7 +24,7 @@ class Settings:
 
         #  self.full_dates = self.full_dbdf.index
         full_dates = self.full_dbdf.index
-        self.ind_i = full_dates.get_loc(self.date_i)
+        self.ind_i = full_dates.get_loc(self.date_i)  # TODO:inds still needed?
         self.ind_f = full_dates.get_loc(self.date_f)
         self.anal_dates = self.full_dates[self.ind_i:self.ind_f+1]
 

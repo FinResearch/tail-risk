@@ -205,7 +205,7 @@ def validate_approach_args(ctx, param, approach_args):
             assert freq_int == freq_float
             freq = freq_int
         except (ValueError, AssertionError):
-            raise TypeError(f"argument to approach '{approach}' must be "
+            raise TypeError(f"frequency arg to approach '{approach}' must be "
                             f"an INT (# days); given: {freq}")
     else:  # NOTE/TODO: this branch will never get reached, right? -> remove?
         raise TypeError(f"approach '{approach}' is incompatible "
@@ -227,12 +227,12 @@ def validate_xmin_args(ctx, param, xmin_args):
             assert vqarg is None,\
                 "xmin determination rule 'clauset' does not take extra args"
         elif rule in ('manual', 'percentile') and isinstance(vqarg, str):
+            # FIXME: need to allow negative number inputs on the CLI
             vqarg_float = float(vqarg)
             vqarg_int = int(vqarg_float)
             vqarg = vqarg_int if vqarg_int == vqarg_float else vqarg_float
         elif rule == 'average' and len(vqarg) == 2:  # NOTE: only applies w/ -G
             # TODO: need to account for when only given 1 value for average??
-            # ASK/TODO: window > lag (sliding window vs. lag, in days) always
             vqarg_str = vqarg
             vqarg_float = tuple(map(float, vqarg))
             vqarg = tuple(map(int, vqarg_float))

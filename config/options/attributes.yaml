@@ -71,7 +71,7 @@ tau:
     - 22
   default: 1
   # callback: ''  # TODO: use callback to convert value to int
-  metavar: '[ 1 (daily) | 5 (weekly) | 22 (monthly) ]'
+  metavar: '[1 (daily) | 5 (weekly) | 22 (monthly)]'
   help: 'specify the time lag (in days) of the input series'
 
 # ASK: need to specify std/abs targets if approach is static?
@@ -84,6 +84,7 @@ standardize:
   default: false
   help: 'standardize/normalize the input data'
 
+# TODO use VnargsOption to allow specify target
 absolutize:
   param_decls:
     - '--abs/--no-abs'
@@ -171,7 +172,7 @@ xmin_args:
   show_default: false
   callback: 'validate_xmin_args'
   # metavar: NOTE: this attr is set by the _set_xmin_metavar_help call
-  help: |
+  help: |  # FIXME: newline below not preserved in --help
     -manual: float value, default: 0
     -percentile: 0-100, default: 90
 
