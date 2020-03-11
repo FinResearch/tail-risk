@@ -202,7 +202,7 @@ def validate_approach_args(ctx, param, approach_args):
         try:
             freq_float = float(freq)
             freq_int = int(freq_float)
-            assert freq_int == freq_float
+            assert freq_int >= 1 and freq_int == freq_float
             freq = freq_int
         except (ValueError, AssertionError):
             raise TypeError(f"frequency arg to approach '{approach}' must be "
@@ -231,6 +231,11 @@ def validate_xmin_args(ctx, param, xmin_args):
             vqarg_float = float(vqarg)
             vqarg_int = int(vqarg_float)
             vqarg = vqarg_int if vqarg_int == vqarg_float else vqarg_float
+            if rule == 'percentile':  # verify percentile is given a valid %
+                # ASK/TODO: use '<=' OR is '<' is okay??
+                assert 0 < vqarg < 100,\
+                    ("xmin determination rule 'percentile' takes "
+                     "a number between 0 and 100")
         elif rule == 'average' and len(vqarg) == 2:  # NOTE: only applies w/ -G
             # TODO: need to account for when only given 1 value for average??
             vqarg_str = vqarg
@@ -239,6 +244,7 @@ def validate_xmin_args(ctx, param, xmin_args):
             assert vqarg == vqarg_float,\
                 {"both args to xmin rule 'average' must be INTs (# days); "
                  f"given: {', '.join(vqarg_str)}"}
+            vqarg = tuple(sorted(vqarg, reverse=True))  # always: window > lag
         else:
             raise TypeError(f"xmin determination rule '{rule}' rule is "
                             f"incompatible with inputs: {vqarg}")
