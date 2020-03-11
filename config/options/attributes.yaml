@@ -98,7 +98,7 @@ approach_args:
   param_decls:
     - '-a'
     - '--approach'
-    - 'approach_args'
+    - 'approach_args'  # TODO: use 'approach' in errmsgs not 'approach_args'
   cls: 'VnargsOption'
   max_nargs: 2
   type: 'tuple'
@@ -160,7 +160,7 @@ xmin_args:
   param_decls:
     - '-x'
     - '--xmin'
-    - 'xmin_args'
+    - 'xmin_args'  # TODO: use 'xmin' in errmsgs not 'xmin_args'
   cls: 'VnargsOption'
   max_nargs: 3
   type: 'tuple'
