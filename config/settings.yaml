@@ -1,0 +1,45 @@
+---
+
+# all settings to be used in the scripts
+
+## control settings (changes the way the scripts are executed)
+ctrl:
+  - interactive
+  - gui
+  - load_opts
+  - save_opts
+  - partial_saves
+  - verbosity
+  - analyze_group
+  - num_cores
+  - show_plots
+  - save_plots
+
+# data settings (changes the type and method of data computation)
+data:
+  - full_dbdf
+  - dbdf
+  - tickers
+  - full_dates
+  - date_i
+  - date_f
+  - ind_i
+  - ind_f
+  - anal_dates
+  - lookback
+  - returns_type
+  - tau
+  - standardize
+  - absolutize
+  - approach
+  - anal_freq
+  - partition
+  - tail_selection
+  - use_right
+  - use_left
+  - tails_to_use
+  - data_nature
+  - xmin_rule
+  - xmin_vqty
+  - alpha_qntl
+  - plpva_iter

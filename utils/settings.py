@@ -1,4 +1,4 @@
-#  import numpy as np
+import yaml
 
 from types import SimpleNamespace
 from statistics import NormalDist
@@ -17,8 +17,9 @@ class Settings:
         self._set_tails()
         self._set_labelstep()
 
-        self.ctrl_settings = {}
-        self.data_settings = {}
+        self.settings_config = self._load_settings_config()
+        self.ctrl_settings = self.make_settings_object('ctrl')
+        self.data_settings = self.make_settings_object('data')
 
     def _get_anal_freq(self):
         self.approach, self.anal_freq = self.approach_args
@@ -29,9 +30,9 @@ class Settings:
         self.dbdf = self.full_dbdf.loc[self.date_i:self.date_f, self.tickers]
 
         #  self.full_dates = self.full_dbdf.index
-        full_dates = self.full_dbdf.index
-        self.ind_i = full_dates.get_loc(self.date_i)  # TODO:inds still needed?
-        self.ind_f = full_dates.get_loc(self.date_f)
+        self.full_dates = self.full_dbdf.index
+        self.ind_i = self.full_dates.get_loc(self.date_i)  # TODO:still needed?
+        self.ind_f = self.full_dates.get_loc(self.date_f)
         self.anal_dates = self.full_dates[self.ind_i:
                                           self.ind_f+1:
                                           self.anal_freq]
@@ -55,7 +56,7 @@ class Settings:
         self.tails_to_use = tuple(tails_to_use)
 
         mult = 0.5 if self.tail_selection == 'both' else 1
-        self.alpha_qntl = NormalDist().inv_cdf(1 - mult * self.alpha_signif)
+        self.alpha_qntl = NormalDist().inv_cdf(1 - mult * self.alpha_significance)
 
     def _set_labelstep(self):
         # FIXME: should be length of spec_dates?
@@ -64,9 +65,19 @@ class Settings:
                      66 if 252 < n_vec <= 756 else 121)
         self.labelstep = 22 if self.anal_freq > 1 else labelstep
 
-    # TODO: OR distinguish b/w analysis vs. control-flow settings!!
-    def set_ctrl_settings(self):
-        pass
+    def _load_settings_config(self):
+        SETTINGS_CFG = 'config/settings.yaml'  # TODO: refactor PATH into root
+        with open(SETTINGS_CFG) as cfg:
+            return yaml.load(cfg, Loader=yaml.SafeLoader)
+        #  self.ctrl_sett_list = settings_list['ctrl']
+        #  self.data_sett_list = settings_list['data']
+        #  return ctrl_settings, data_settings
 
-    def set_data_settings(self):
-        pass
+    def make_settings_object(self, sett_type):
+        sett_map = {}
+        for sett in self.settings_config[sett_type]:
+            sett_map[sett] = getattr(self, sett, None)
+        return SimpleNamespace(**sett_map)
+
+    def get_settings_object(self, sett_type):
+        return getattr(self, f'{sett_type}_settings')
