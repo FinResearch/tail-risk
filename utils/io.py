@@ -2,8 +2,6 @@ import numpy as np
 import pandas as pd
 #  import yaml
 
-from .settings import settings as s
-
 
 # TODO: need to allow Template replacement
 csv_filenames = {
