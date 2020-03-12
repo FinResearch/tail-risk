@@ -15,7 +15,7 @@ ctrl:
   - show_plots
   - save_plots
 
-# data settings (changes the type and method of data computation)
+## data settings (changes the type and method of data computation)
 data:
   - full_dbdf
   - dbdf

@@ -7,6 +7,7 @@ import pandas as pd
 from ._vnargs import VnargsOption  # NOTE: linter detect as unused; reified by eval() call
 from . import ROOT_DIR
 OPT_CFG_DIR = f'{ROOT_DIR}/config/options/'  # TODO: use pathlib.Path ??
+# TODO: once ROOT_DIR added to sys.path in project top level, ref from ROOT_DIR
 
 
 # # Decorator
