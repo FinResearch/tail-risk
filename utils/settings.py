@@ -29,7 +29,6 @@ class Settings:
         #  self.dbdf = self.full_dbdf.iloc[self.ind_i: self.ind_f + 1]
         self.dbdf = self.full_dbdf.loc[self.date_i:self.date_f, self.tickers]
 
-        #  self.full_dates = self.full_dbdf.index
         self.full_dates = self.full_dbdf.index
         self.ind_i = self.full_dates.get_loc(self.date_i)  # TODO:still needed?
         self.ind_f = self.full_dates.get_loc(self.date_f)
@@ -69,15 +68,19 @@ class Settings:
         SETTINGS_CFG = 'config/settings.yaml'  # TODO: refactor PATH into root
         with open(SETTINGS_CFG) as cfg:
             return yaml.load(cfg, Loader=yaml.SafeLoader)
-        #  self.ctrl_sett_list = settings_list['ctrl']
-        #  self.data_sett_list = settings_list['data']
-        #  return ctrl_settings, data_settings
 
-    def make_settings_object(self, sett_type):
+    def _valid_settings_cls(self, sett_cls):
+        sett_classes = self.settings_config.keys()
+        assert sett_cls in sett_classes,\
+            f"settings class name must be one of: {', '.join(sett_classes)}"
+
+    def make_settings_object(self, sett_cls):
+        self._valid_settings_cls(sett_cls)
         sett_map = {}
-        for sett in self.settings_config[sett_type]:
+        for sett in self.settings_config[sett_cls]:
             sett_map[sett] = getattr(self, sett, None)
         return SimpleNamespace(**sett_map)
 
-    def get_settings_object(self, sett_type):
-        return getattr(self, f'{sett_type}_settings')
+    def get_settings_object(self, sett_cls):
+        self._valid_settings_cls(sett_cls)
+        return getattr(self, f'{sett_cls}_settings')
