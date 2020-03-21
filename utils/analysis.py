@@ -90,7 +90,6 @@ class Analyzer(ABC):
         xmin = self.__get_xmin()
         self.curr_fit = Fit(data, discrete=discrete, xmin=xmin)
 
-    #  def __get_curr_tail_stats(self):
     def _get_curr_tail_stats(self):
         alpha, xmin, sigma = (getattr(self.curr_fit.power_law, prop)
                               for prop in ('alpha', 'xmin', 'sigma'))
@@ -100,28 +99,11 @@ class Analyzer(ABC):
         locs = locals()
         return {vn: locs.get(vn) for vn in self.outcol_labels if vn in locs}
 
-    # TODO: consider moving under DynamicAnalyzer only
-    #  def __get_curr_logl_stats(self):
-    def _get_curr_logl_stats(self):
-        logl_stats = {}
-        for key, distro in {'tpl': 'truncated_power_law',
-                            'exp': 'exponential',
-                            'lgn': 'lognormal'}.items():
-            R, p = self.curr_fit.distribution_compare('power_law', distro,
-                                                      normalized_ratio=True)
-            logl_stats[f'R_{key}'] = R
-            logl_stats[f'p_{key}'] = p
-        return logl_stats
-
-    @abstractmethod
-    def _set_curr_rslt_series(self):
-        pass
-
     def _store_partial_results(self, tdir):
-        self._set_curr_rslt_series()
-        assert len(self.curr_rslt_series) == len(self.outcol_labels)
+        curr_rslt_series = pd.Series(self._get_curr_tail_stats())
+        assert len(curr_rslt_series) == len(self.outcol_labels)
         idx, col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
-        self.results_df.loc[idx, col + (tdir,)].update(self.curr_rslt_series)
+        self.results_df.loc[idx, col + (tdir,)].update(curr_rslt_series)
 
     # # # orchestration / driver methods # # #
 
@@ -162,11 +144,6 @@ class StaticAnalyzer(Analyzer):
         data_array = self.ds.dbdf[tick].array
         self.curr_input_array = self._preprocess_data_array(data_array)
 
-    # TODO: set curr_rslt_series in __get_curr_tail_stats
-    def _set_curr_rslt_series(self):
-        self.curr_rslt_series = pd.Series(self.__get_curr_tail_stats())
-        # FIXME: self.__get_curr_tail_stats above DNE due to name mangling
-
 
 class DynamicAnalyzer(Analyzer):
 
@@ -200,9 +177,18 @@ class DynamicAnalyzer(Analyzer):
         data_array = self.ds.full_dbdf[tick].iloc[d_lkb:d_ind].array
         self.curr_input_array = self._preprocess_data_array(data_array)
 
-    # TODO: override self._get_curr_tail_stats() for DynamicAnalyzer,
-    #       set self.curr_rslt_series & call __get_curr_logl_stats() there,
-    #       and call in _store_partial_results(), thus remove need for this mtd
-    def _set_curr_rslt_series(self):
-        self.curr_rslt_series = pd.Series({**self._get_curr_tail_stats(),
-                                           **self._get_curr_logl_stats()})
+    def __get_curr_logl_stats(self):
+        logl_stats = {}
+        for key, distro in {'tpl': 'truncated_power_law',
+                            'exp': 'exponential',
+                            'lgn': 'lognormal'}.items():
+            R, p = self.curr_fit.distribution_compare('power_law', distro,
+                                                      normalized_ratio=True)
+            logl_stats[f'R_{key}'] = R
+            logl_stats[f'p_{key}'] = p
+        return logl_stats
+
+    def _get_curr_tail_stats(self):
+        tail_stats = super(DynamicAnalyzer, self)._get_curr_tail_stats()
+        logl_stats = self.__get_curr_logl_stats()
+        return {**tail_stats, **logl_stats}
