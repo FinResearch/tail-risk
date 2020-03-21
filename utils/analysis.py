@@ -18,8 +18,8 @@ class Analyzer(ABC):
         self.cs = ctrl_settings
         self.ds = data_settings
         self._set_subcls_spec_props()
-        self.outcol_labels = self.__load_output_columns_labels()
-        self.results_df = self.__init_results_df()  # TODO: rename to just "results"?
+        self.outcol_labels = self._load_output_columns_labels()
+        self.results_df = self._init_results_df()  # TODO: rename to just "results"?
 
     @abstractmethod
     def _set_subcls_spec_props(self):
@@ -29,17 +29,17 @@ class Analyzer(ABC):
 
     # # # state INDEPENDENT methods # # #
 
-    def __load_output_columns_labels(self):
+    def _load_output_columns_labels(self):
         DIR = 'config/output_columns/'  # TODO: improve package/path system
         with open(f'{DIR}/{self.cfg_fname}') as cfg:
             return yaml.load(cfg, Loader=yaml.SafeLoader)
 
-    def __init_results_df(self):
+    def _init_results_df(self):
         index = self.output_index
         columns = self.outcol_labels
         df_tail = pd.DataFrame(np.zeros(shape=(len(index), len(columns))),
                                index=index, columns=columns, dtype=float)
-        return pd.concat({tail: df_tail for tail in self.ds.tails_to_use})
+        return pd.concat({t: df_tail for t in self.ds.tails_to_use}, axis=1)
 
     # # # state DEPENDENT (or aware) methods # # #
 
@@ -48,26 +48,26 @@ class Analyzer(ABC):
         # NOTE: storage posn into results_df (curr_df_pos) also set here
         pass
 
-    # configure given series to chosen return_type
-    def __config_data_by_return_type(self):
-        # TODO: add fullname for return_types, ex. {"log": "Log Returns"}
-        print(f"You opted for the analysis of {self.ds.return_type} returns")
+    # configure given series to chosen returns_type
+    def __config_data_by_returns_type(self):
+        # TODO: add fullname for returns_types, ex. {"log": "Log Returns"}
+        print(f"You opted for the analysis of {self.ds.returns_type} returns")
         # TODO: shove the above into a verbosity level logging
 
+        pt_i = self.curr_input_array[:-self.ds.tau]
         pt_f = self.curr_input_array[self.ds.tau:]
-        pt_i = self.curr_input_array[0: self.ds.len_dates - self.ds.tau]
 
-        if self.ds.return_type == "raw":
+        if self.ds.returns_type == "raw":
             X = pt_f - pt_i
-        elif self.ds.return_type == "relative":
+        elif self.ds.returns_type == "relative":
             X = pt_f / pt_i - 1.0
-        elif self.ds.return_type == "log":
+        elif self.ds.returns_type == "log":
             X = np.log(pt_f/pt_i)
         return X
 
     # TODO: rewrite this better (more modular, more explicit interface, etc.)
     def _preprocess_curr_input_array(self):
-        X = self.__config_data_by_return_type()
+        X = self.__config_data_by_returns_type()
         # TODO: std/abs only applies to static when _target == 'full series'
         if self.ds.standardize is True:
             print("I am standardizing your time series")
@@ -80,21 +80,22 @@ class Analyzer(ABC):
 
     def __get_xmin(self):
         # TODO: calculate clauset xmin value a priori using lookback
-        if self.ds.approach in ("clauset", "manual"):
+        if self.ds.xmin_rule in ("clauset", "manual"):
             xmin = self.ds.xmin_vqty
-        elif self.ds.approach == "percentile":
+        elif self.ds.xmin_rule == "percentile":
             xmin = np.percentile(self.curr_input_array, self.ds.xmin_vqty)
         return xmin
 
     def _set_curr_fit_obj(self, tdir):
         X = self.curr_input_array
         data = X if tdir == 'right' else -X
-        data = np.nonzero(data)  # NOTE: only keep/use non-zero elements
+        data = data[np.nonzero(data)]  # NOTE: only keep/use non-zero elements
         discrete = False if self.ds.data_nature == 'continuous' else False
         xmin = self.__get_xmin()
         self.curr_fit = Fit(data, discrete=discrete, xmin=xmin)
 
-    def __get_curr_tail_stats(self):
+    #  def __get_curr_tail_stats(self):
+    def _get_curr_tail_stats(self):
         alpha, xmin, sigma = (getattr(self.curr_fit.power_law, prop)
                               for prop in ('alpha', 'xmin', 'sigma'))
         abs_len = len(self.curr_input_array[self.curr_input_array >= xmin])
@@ -104,7 +105,8 @@ class Analyzer(ABC):
         return {vn: locs.get(vn) for vn in self.outcol_labels if vn in locs}
 
     # TODO: consider moving under DynamicAnalyzer only
-    def __get_curr_logl_stats(self):
+    #  def __get_curr_logl_stats(self):
+    def _get_curr_logl_stats(self):
         logl_stats = {}
         for key, distro in {'tpl': 'truncated_power_law',
                             'exp': 'exponential',
@@ -143,6 +145,9 @@ class Analyzer(ABC):
                 self._analyze_next()
             except StopIteration:
                 break
+        #  print(self.results_df)
+        #  print(self.results_df.info())
+        #  print(self.results_df.shape)
 
 
 class StaticAnalyzer(Analyzer):
@@ -154,7 +159,7 @@ class StaticAnalyzer(Analyzer):
     def _set_subcls_spec_props(self):
         self.cfg_fname = 'static.yaml'
         self.output_index = self.ds.tickers
-        self.iteration_keys = enumerate(self.ds.tickers)
+        self.iter_id_keys = enumerate(self.ds.tickers)
 
     def _set_curr_input_array(self):
         _, tick = self.curr_iter_id
@@ -164,12 +169,13 @@ class StaticAnalyzer(Analyzer):
     # TODO: set curr_rslt_series in __get_curr_tail_stats
     def _set_curr_rslt_series(self):
         self.curr_rslt_series = pd.Series(self.__get_curr_tail_stats())
+        # FIXME: self.__get_curr_tail_stats above DNE due to name mangling
 
 
 class DynamicAnalyzer(Analyzer):
 
     def __init__(self, ctrl_settings, data_settings):
-        super(StaticAnalyzer, self).__init__(ctrl_settings, data_settings)
+        super(DynamicAnalyzer, self).__init__(ctrl_settings, data_settings)
         assert self.ds.approach in ('rolling', 'increasing')
 
         assert self.ds.lookback is not None
@@ -178,24 +184,28 @@ class DynamicAnalyzer(Analyzer):
     def _set_subcls_spec_props(self):
         self.cfg_fname = 'individual_dynamic.yaml'
         self.output_index = self.ds.anal_dates
-        self.iteration_keys = product(enumerate(self.ds.tickers),
-                                      enumerate(self.ds.anal_dates))
+        self.iter_id_keys = product(enumerate(self.ds.tickers),
+                                    enumerate(self.ds.anal_dates))
+                                    #  start=self.ds.ind_i))
 
-    def __init_results_df(self):
-        df_tick = super(DynamicAnalyzer, self).__init_results_df()
-        return pd.concat({tick: df_tick for tick in self.ds.tickers})
+    #  def __init_results_df(self):
+    def _init_results_df(self):
+        df_tick = super(DynamicAnalyzer, self)._init_results_df()
+        return pd.concat({tick: df_tick for tick in self.ds.tickers}, axis=1)
 
     # TODO: consider vectorizing operations on all tickers
     def _set_curr_input_array(self):
         (_, tick), (d, date) = self.curr_iter_id
         d_ind = self.ds.ind_i + d  # TODO: consider only use labels to slice??
         d_lkb = self.lkb_0 + d if self.ds.approach == 'rolling' else self.lkb_0
+        print(f"analyzing '{tick}' time series: "  # TODO: incl. as verbose log
+              f"{self.ds.full_dates[d_lkb]} --- {date}")
         self.curr_input_array = self.ds.full_dbdf[tick].iloc[d_lkb:d_ind].array
         self.curr_df_pos = date, (tick,)
 
-    # TODO: set curr_rslt_series in __get_curr_tail_stats,
-    #       and call __get_curr_logl_stats here too,
+    # TODO: override _get_curr_tail_stats for DynamicAnalyzer,
+    #       set self.curr_rslt_series & call __get_curr_logl_stats() there,
     #       thus removing the need for this method
     def _set_curr_rslt_series(self):
-        self.curr_rslt_series = pd.Series({**self.__get_curr_tail_stats(),
-                                           **self.__get_curr_logl_stats()})
+        self.curr_rslt_series = pd.Series({**self._get_curr_tail_stats(),
+                                           **self._get_curr_logl_stats()})
