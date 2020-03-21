@@ -26,6 +26,7 @@ data:
   - ind_i
   - ind_f
   - anal_dates
+  - len_anal_dates
   - lookback
   - returns_type
   - tau

@@ -35,6 +35,8 @@ class Settings:
         self.anal_dates = self.full_dates[self.ind_i:
                                           self.ind_f+1:
                                           self.anal_freq]
+        self.len_anal_dates = len(self.anal_dates)
+        # NOTE/CONFIRM: attr above should also be len of each series vec anal'd
 
     def _get_xmin_args(self):
         # TODO: it's possible to compute all xmin_rules except for 'average'
@@ -58,10 +60,12 @@ class Settings:
         self.alpha_qntl = NormalDist().inv_cdf(1 - mult * self.alpha_significance)
 
     def _set_labelstep(self):
-        # FIXME: should be length of spec_dates?
-        n_vec = self.ind_f - self.ind_i + 1
-        labelstep = (22 if n_vec <= 252 else
-                     66 if 252 < n_vec <= 756 else 121)
+        # CONFIRM/FIXME: should be length of spec_dates?
+        #  n_vec = self.ind_f - self.ind_i + 1
+        #  labelstep = (22 if n_vec <= 252 else
+        #               66 if 252 < n_vec <= 756 else 121)
+        labelstep = (22 if self.len_anal_dates <= 252 else
+                     66 if 252 < self.len_anal_dates <= 756 else 121)
         self.labelstep = 22 if self.anal_freq > 1 else labelstep
 
     def _load_settings_config(self):
