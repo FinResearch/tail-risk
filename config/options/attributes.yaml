@@ -39,12 +39,13 @@ date_f:
   metavar: ''
   help: 'the final date of the time series to analyse'
 
-lookback:
+lookback:  # NOTE: only used for non-static approaches
   param_decls:
     # - '-l'
     - '--lookback'
   type: 'int'
   default: 504
+  # callback: 'validate_lookback'  # TODO: set to None for static
   metavar: '<INT (# days)>'
   help: 'lookback (in days) to use for rolling analysis'
 
@@ -55,7 +56,7 @@ returns_type:
     # - '--rtype'
     # - 'returns_type'
   type:  # TODO: consider using Enum types for all Choice values
-    - 'basic'
+    - 'raw'
     - 'relative'
     - 'log'
   default: 'log'

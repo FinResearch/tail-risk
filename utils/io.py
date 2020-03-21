@@ -65,6 +65,7 @@ def _get_csv_metainfo():
 
     return fname, column_headers
 
+# TODO: provide option of writing xlsx file # use ExcelWriter to write multiple sheets
 
 def write_csv_stats(stats_matrix):
 

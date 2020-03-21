@@ -34,7 +34,7 @@ data:
   - approach
   - anal_freq
   - partition
-  - tail_selection
+  - tail_selection  # TODO: remove this setting?
   - use_right
   - use_left
   - tails_to_use

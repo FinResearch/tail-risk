@@ -99,7 +99,7 @@ def gset_full_dbdf(ctx, param, db_file):
 
     full_dates = full_dbdf.index  # TODO: attach to ctx_obj for later access?
     # ASK/CONFIRM: using lookback good method for inferring date_i default?
-    lbv = (ctx.params.get('lookback') or
+    lbv = (ctx.params.get('lookback') or  # FIXME: no lookback for static approach -> how to infer?
            _get_param_from_ctx(ctx, 'lookback').default)  # lbv: LookBack Value
 
     db_extra_opts_map = {'tickers': list(full_dbdf.columns),  # TODO:filter nulls?

@@ -81,6 +81,7 @@ class Settings:
             sett_map[sett] = getattr(self, sett, None)
         return SimpleNamespace(**sett_map)
 
+    # TODO: remove this method, and just pass entire settings object?
     def get_settings_object(self, sett_cls):
         self._valid_settings_cls(sett_cls)
         return getattr(self, f'{sett_cls}_settings')

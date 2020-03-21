@@ -1,6 +1,6 @@
 # TODO: need to add boxplot, plotter using powerlaw's Fit API, barplot
 
-from abc import ABC  # TODO: label @abstracmethod
+from abc import ABC  # TODO: need to label @abstracmethod to work as ABC
 from itertools import product
 from string import Template
 
@@ -44,14 +44,12 @@ def _set_line_style(vec_name):
 # TODO: consider moving plotter state into own class
 # and use this class only for plotting
 class TailRiskPlotter(ABC):
+    #  NOTE on method naming convention: excluding the special dunder methods,
+    #  self-defined methods prepended by double underscores are meant to be
+    #  called only by other private methods, which are themselves prepended by
+    #  a single underscore.
+    #  all __ methods have return values; while _ methods, not neccessarily
     """
-    Note on method name conventions: other than the reserved dunder methods,
-    self-defined methods prepended by a double underscore are meant to be
-    called only by other private methods, which are themselves prepended by
-    a single underscore.
-
-    all __METHOD's also have a return value
-    while _METHOD's do not neccessarily
     """
 
     def __init__(self, ticker, settings, data, plot_type):  # fits_dict, data):

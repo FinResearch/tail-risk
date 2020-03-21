@@ -53,3 +53,5 @@ def get_ui_options(full_dbdf, analyze_group, **yaml_opts):
 # NOTE: cannot run as __main__ in packaged mode
 if __name__ == '__main__':
     ui_opts = get_ui_options.main(standalone_mode=False)
+
+# TODO: log to stdin the progress (ex. 10/100 dates for ticker XYZ analyzed)
