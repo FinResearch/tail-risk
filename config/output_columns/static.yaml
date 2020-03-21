@@ -1,0 +1,19 @@
+---
+
+# columns of the output file for INDIVIDUAL tail analysis w/ a STATIC approach
+
+# label:
+#   - ticker  # NOTE: originally termed "input"
+#
+# data:
+#   - alpha
+#   - xmin
+#   - sigma
+#   - abs_len
+#   - ks_pv
+
+- alpha
+- xmin
+- sigma
+- abs_len
+- ks_pv
