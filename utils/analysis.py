@@ -19,7 +19,7 @@ class Analyzer(ABC):
         self.ds = data_settings
         self._set_subcls_spec_props()
         self.outcol_labels = self._load_output_columns_labels()
-        self.results_df = self._init_results_df()  # TODO: rename to just "results"?
+        self.results_df = self._init_results_df()  # TODO: rename as "results"?
 
     @abstractmethod
     def _set_subcls_spec_props(self):
@@ -49,14 +49,11 @@ class Analyzer(ABC):
         pass
 
     # configure given series to chosen returns_type
-    def __config_data_by_returns_type(self):
-        # TODO: add fullname for returns_types, ex. {"log": "Log Returns"}
+    def __config_data_by_returns_type(self, data_array):
+        # TODO: shove below printing into verbosity logging
         print(f"You opted for the analysis of {self.ds.returns_type} returns")
-        # TODO: shove the above into a verbosity level logging
-
-        pt_i = self.curr_input_array[:-self.ds.tau]
-        pt_f = self.curr_input_array[self.ds.tau:]
-
+        pt_i = data_array[:-self.ds.tau]
+        pt_f = data_array[self.ds.tau:]
         if self.ds.returns_type == "raw":
             X = pt_f - pt_i
         elif self.ds.returns_type == "relative":
@@ -66,8 +63,8 @@ class Analyzer(ABC):
         return X
 
     # TODO: rewrite this better (more modular, more explicit interface, etc.)
-    def _preprocess_curr_input_array(self):
-        X = self.__config_data_by_returns_type()
+    def _preprocess_data_array(self, data_array):
+        X = self.__config_data_by_returns_type(data_array)
         # TODO: std/abs only applies to static when _target == 'full series'
         if self.ds.standardize is True:
             print("I am standardizing your time series")
@@ -75,8 +72,7 @@ class Analyzer(ABC):
         if self.ds.absolutize is True:
             print("I am taking the absolute value of your time series")
             X = X.abs()
-        #  return X
-        self.curr_input_array = X
+        return X
 
     def __get_xmin(self):
         # TODO: calculate clauset xmin value a priori using lookback
@@ -133,7 +129,6 @@ class Analyzer(ABC):
     def _analyze_next(self):  # TODO: pass iter_id to resume from saved
         self.curr_iter_id = next(self.iter_id_keys)
         self._set_curr_input_array()
-        self._preprocess_curr_input_array()  # TODO: group preprocess w/ above?
         for tdir in self.ds.tails_to_use:
             self._set_curr_fit_obj(tdir)
             self._store_partial_results(tdir)
@@ -163,8 +158,9 @@ class StaticAnalyzer(Analyzer):
 
     def _set_curr_input_array(self):
         _, tick = self.curr_iter_id
-        self.curr_input_array = self.ds.dbdf[tick].array
         self.curr_df_pos = tick, ()
+        data_array = self.ds.dbdf[tick].array
+        self.curr_input_array = self._preprocess_data_array(data_array)
 
     # TODO: set curr_rslt_series in __get_curr_tail_stats
     def _set_curr_rslt_series(self):
@@ -196,16 +192,17 @@ class DynamicAnalyzer(Analyzer):
     # TODO: consider vectorizing operations on all tickers
     def _set_curr_input_array(self):
         (_, tick), (d, date) = self.curr_iter_id
+        self.curr_df_pos = date, (tick,)
         d_ind = self.ds.ind_i + d  # TODO: consider only use labels to slice??
         d_lkb = self.lkb_0 + d if self.ds.approach == 'rolling' else self.lkb_0
-        print(f"analyzing '{tick}' time series: "  # TODO: incl. as verbose log
-              f"{self.ds.full_dates[d_lkb]} --- {date}")
-        self.curr_input_array = self.ds.full_dbdf[tick].iloc[d_lkb:d_ind].array
-        self.curr_df_pos = date, (tick,)
+        print(f"analyzing time series for ticker '{tick}' "  # TODO: VerboseLog
+              f"b/w [{self.ds.full_dates[d_lkb]}, {date}]")
+        data_array = self.ds.full_dbdf[tick].iloc[d_lkb:d_ind].array
+        self.curr_input_array = self._preprocess_data_array(data_array)
 
-    # TODO: override _get_curr_tail_stats for DynamicAnalyzer,
+    # TODO: override self._get_curr_tail_stats() for DynamicAnalyzer,
     #       set self.curr_rslt_series & call __get_curr_logl_stats() there,
-    #       thus removing the need for this method
+    #       and call in _store_partial_results(), thus remove need for this mtd
     def _set_curr_rslt_series(self):
         self.curr_rslt_series = pd.Series({**self._get_curr_tail_stats(),
                                            **self._get_curr_logl_stats()})
