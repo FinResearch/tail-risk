@@ -67,11 +67,11 @@ tau:
     - '--tau'
     # - 'delta'  # ASK: is 'delta' more fitting?
   type:
-    - 1
-    - 5
-    - 22
-  default: 1
-  # callback: ''  # TODO: use callback to convert value to int
+    - '1'
+    - '5'
+    - '22'
+  default: '1'
+  callback: 'cast_tau'
   metavar: '[1 (daily) | 5 (weekly) | 22 (monthly)]'
   help: 'specify the time lag (in days) of the input series'
 

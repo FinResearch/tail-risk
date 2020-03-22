@@ -160,6 +160,39 @@ def gset_group_opts(ctx, param, analyze_group):
     return analyze_group  # TODO: return more useful value?
 
 
+# helper for converting choice types (click.Choice OR custom dict choices)
+# w/ numeric str vals to Python's number types (int OR float)
+def _convert_str_to_num(str_val, must_be_int=False, type_errmsg=None,
+                        min_allowed=None, max_allowed=None, range_errmsg=None):
+    assert isinstance(str_val, str),\
+        f"value to convert to number must be of type 'str', given {str_val}"
+    try:
+        float_val = float(str_val)
+        int_val = int(float_val)
+        val_is_integer = int_val == float_val
+        if must_be_int and not val_is_integer:
+            raise TypeError
+        if min_allowed is not None and float_val < min_allowed:
+            comp_cond = f'>= {min_allowed}'
+            raise AssertionError
+        if max_allowed is not None and float_val > max_allowed:
+            comp_cond = f'<= {max_allowed}'
+            raise AssertionError
+        return int_val if val_is_integer else float_val  # prefer return INT
+    except (ValueError, TypeError):
+        type_errmsg = (f"input value must be an INT, given {str_val}"
+                       if type_errmsg is None else type_errmsg)
+        raise TypeError(type_errmsg)
+    except AssertionError:
+        range_errmsg = (f"number must be {comp_cond}, given {str_val}"
+                        if range_errmsg is None else range_errmsg)
+        raise ValueError(range_errmsg)
+
+
+# callback for the --tau option
+def cast_tau(ctx, param, tau_str):
+    # NOTE: the must_be_int flag is unneeded since using click.Choice
+    return _convert_str_to_num(tau_str, must_be_int=True)
 def _gset_vnargs_choice_default(ctx, param, inputs, dflt=None):
 
     dflts_by_chce = param.default  # use default map encoded in YAML config
@@ -200,14 +233,11 @@ def validate_approach_args(ctx, param, approach_args):
         assert freq is None,\
             "approach 'static' does not take extra args"
     elif approach in ('rolling', 'increasing') and isinstance(freq, str):
-        try:
-            freq_float = float(freq)
-            freq_int = int(freq_float)
-            assert freq_int >= 1 and freq_int == freq_float
-            freq = freq_int
-        except (ValueError, AssertionError):
-            raise TypeError(f"frequency arg to approach '{approach}' must be "
-                            f"an INT (# days); given: {freq}")
+        type_errmsg = (f"anal_frequency arg to approach '{approach}' must be "
+                       f"an INT (# days); given: {anal_freq}")
+        anal_freq = _convert_str_to_num(anal_freq, min_allowed=1,
+                                        must_be_int=True,
+                                        type_errmsg=type_errmsg)
     else:  # NOTE/TODO: this branch will never get reached, right? -> remove?
         raise TypeError(f"approach '{approach}' is incompatible "
                         f"with inputs: {freq}")
@@ -227,31 +257,29 @@ def validate_xmin_args(ctx, param, xmin_args):
         if rule == 'clauset':
             assert vqarg is None,\
                 "xmin determination rule 'clauset' does not take extra args"
-        elif rule in ('manual', 'percentile') and isinstance(vqarg, str):
-            # FIXME: need to allow negative number inputs on the CLI
-            vqarg_float = float(vqarg)
-            vqarg_int = int(vqarg_float)
-            vqarg = vqarg_int if vqarg_int == vqarg_float else vqarg_float
-            if rule == 'percentile':  # verify percentile is given a valid %
-                # ASK/TODO: use '<=' OR is '<' is okay??
-                assert 0 < vqarg < 100,\
-                    ("xmin determination rule 'percentile' takes "
-                     "a number between 0 and 100")
+        elif rule == 'manual' and isinstance(vqarg, str):
+            # FIXME: need to allow negative number inputs on CLI for 'manual'
+            vqarg = _convert_str_to_num(vqarg)
+        elif rule == 'percentile' and isinstance(vqarg, str):
+            range_errmsg = ("xmin determination rule 'percentile' takes "
+                            "a number between 0 and 100")
+            # ASK/TODO: use '<=' OR is '<' is okay??
+            vqarg = _convert_str_to_num(vqarg, min_allowed=0, max_allowed=100,
+                                        range_errmsg=range_errmsg)
         elif rule == 'average' and len(vqarg) == 2:  # NOTE: only applies w/ -G
             # TODO: need to account for when only given 1 value for average??
-            vqarg_str = vqarg
-            vqarg_float = tuple(map(float, vqarg))
-            vqarg = tuple(map(int, vqarg_float))
-            assert vqarg == vqarg_float,\
-                {"both args to xmin rule 'average' must be INTs (# days); "
-                 f"given: {', '.join(vqarg_str)}"}
+            type_errmsg = ("both args to xmin rule 'average' must be "
+                           f"INTs (# days); given: {', '.join(vqarg)}")
+            vqarg = [_convert_str_to_num(val, must_be_int=True,
+                                         type_errmsg=type_errmsg,
+                                         min_allowed=0)  # TODO: use diff min_allowed for window vs. lag
+                     for val in vqarg]
             vqarg = tuple(sorted(vqarg, reverse=True))  # always: window > lag
         else:
             raise TypeError(f"xmin determination rule '{rule}' rule is "
                             f"incompatible with inputs: {vqarg}")
-    except ValueError:
-        raise TypeError(f"arg(s) to xmin determination rule '{rule}' must be "
-                        f"number(s); given: {vqarg}")
+    except (TypeError, ValueError, AssertionError):
+        raise
 
     return rule, vqarg   # NOTE: num args are all of str type (incl. defaults)
 
