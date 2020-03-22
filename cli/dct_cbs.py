@@ -10,7 +10,7 @@ OPT_CFG_DIR = f'{ROOT_DIR}/config/options/'  # TODO: use pathlib.Path ??
 # TODO: once ROOT_DIR added to sys.path in project top level, ref from ROOT_DIR
 
 
-# # Decorator
+# # Decorator # #
 
 def __preprocess_special_attrs_(opt_attrs):
     """Helper for correctly translating the data types from the YAML config
@@ -69,7 +69,7 @@ def attach_yaml_opts():
     return decorator
 
 
-# # Callbacks
+# # Callbacks # #
 
 # TODO: optimize using list.index(value)?
 def _get_param_from_ctx(ctx, param_name):
@@ -193,6 +193,18 @@ def _convert_str_to_num(str_val, must_be_int=False, type_errmsg=None,
 def cast_tau(ctx, param, tau_str):
     # NOTE: the must_be_int flag is unneeded since using click.Choice
     return _convert_str_to_num(tau_str, must_be_int=True)
+
+
+# callback for the lookback option
+def gset_lookback(ctx, param, lookback):
+    approach, _ = ctx.params.get('approach_args')
+    # FIXME: no lookback for static -> need new method to infer date_i
+    if approach == 'static':
+        return None
+    return lookback
+
+
+# helper for VnargsOption's
 def _gset_vnargs_choice_default(ctx, param, inputs, dflt=None):
 
     dflts_by_chce = param.default  # use default map encoded in YAML config
@@ -227,12 +239,13 @@ def _gset_vnargs_choice_default(ctx, param, inputs, dflt=None):
 # callback for the approach option
 def validate_approach_args(ctx, param, approach_args):
 
-    approach, freq = _gset_vnargs_choice_default(ctx, param, approach_args)
+    approach, anal_freq = _gset_vnargs_choice_default(ctx, param,
+                                                      approach_args)
 
     if approach == 'static':
-        assert freq is None,\
+        assert anal_freq is None,\
             "approach 'static' does not take extra args"
-    elif approach in ('rolling', 'increasing') and isinstance(freq, str):
+    elif approach in ('rolling', 'increasing') and isinstance(anal_freq, str):
         type_errmsg = (f"anal_frequency arg to approach '{approach}' must be "
                        f"an INT (# days); given: {anal_freq}")
         anal_freq = _convert_str_to_num(anal_freq, min_allowed=1,
@@ -240,11 +253,9 @@ def validate_approach_args(ctx, param, approach_args):
                                         type_errmsg=type_errmsg)
     else:  # NOTE/TODO: this branch will never get reached, right? -> remove?
         raise TypeError(f"approach '{approach}' is incompatible "
-                        f"with inputs: {freq}")
+                        f"with inputs: {anal_freq}")
 
-    # TODO: set anal_freq as an attribute to be returned?
-
-    return approach, freq
+    return approach, anal_freq
 
 
 # callback for the xmin_args (-x, --xmin) option
@@ -254,7 +265,7 @@ def validate_xmin_args(ctx, param, xmin_args):
     rule, vqarg = _gset_vnargs_choice_default(ctx, param, xmin_args, dflt_rule)
 
     try:
-        if rule == 'clauset':
+        if rule == 'clauset':  # TODO: move 'clauset' out of 'try' block?
             assert vqarg is None,\
                 "xmin determination rule 'clauset' does not take extra args"
         elif rule == 'manual' and isinstance(vqarg, str):
@@ -284,7 +295,7 @@ def validate_xmin_args(ctx, param, xmin_args):
     return rule, vqarg   # NOTE: num args are all of str type (incl. defaults)
 
 
-# callback for options unique to -G --group mode (currently only partition)
+# callback for options unique to -G --group mode (curr. only for --partition)
 def confirm_group_flag_set(ctx, param, val):
     if val is not None:
         assert ctx.analyse_group,\

@@ -2,8 +2,7 @@
 
 # options attributes for all forms of tail analysis
 
-# TODO: consider converting --tickers & dates options into arguments?
-tickers:  # TODO: allow passing in a .txt file of tickers
+tickers:  # TODO: allow passing in a .txt file of tickers?
   param_decls:
     - '--tickers'
   cls: 'VnargsOption'
@@ -38,16 +37,6 @@ date_f:
   default: '5/5/2016'
   metavar: ''
   help: 'the final date of the time series to analyse'
-
-lookback:  # NOTE: only used for non-static approaches
-  param_decls:
-    # - '-l'
-    - '--lookback'
-  type: 'int'
-  default: 504
-  # callback: 'validate_lookback'  # TODO: set to None for static
-  metavar: '<INT (# days)>'
-  help: 'lookback (in days) to use for rolling analysis'
 
 returns_type:
   param_decls:
@@ -86,6 +75,7 @@ standardize:
   help: 'standardize/normalize the input data'
 
 # TODO use VnargsOption to allow specify target
+# TODO: OR use feature switches for series/tail // before/after/both
 absolutize:
   param_decls:
     - '--abs/--no-abs'
@@ -99,24 +89,36 @@ approach_args:
   param_decls:
     - '-a'
     - '--approach'
-    - 'approach_args'  # TODO: use 'approach' in errmsgs not 'approach_args'
+    - 'approach_args'  # FIXME: use 'approach' in errmsgs not 'approach_args'
   cls: 'VnargsOption'
   max_nargs: 2
+  is_eager: true
   type: 'tuple'
   default:
     # NOTE: this default map is NOT actually used by the click.Option,
     #       but is instead here for convenient serialization/encoding
     rolling: '1'
-    static: null
     increasing: '1'
+    static: null
   show_default: false
   callback: 'validate_approach_args'
   # metavar:
   help: >
     for 'rolling' or 'increasing', optionally specify <INT (# days)>
     as the analysis frequency, default: 1
-
 # ASK/CONFIRM: anal_freq (in normal) == sliding_window (in group)
+
+# ASK/CONFIRM: lookback is ONLY needed by dynamic approaches
+# TODO add 'lookback' as additional arg to 'approach_args' VnargsOption??
+lookback:  # NOTE: only applies to non-static approaches
+  param_decls:
+    - '-l'
+    - '--lookback'
+  type: 'int'
+  default: 504
+  callback: 'gset_lookback'
+  metavar: '<INT (# days)>'
+  help: 'lookback (in days) to use for rolling or increasing approaches (N/A for static)'
 
 partition:
   param_decls:
