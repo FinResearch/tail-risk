@@ -17,16 +17,15 @@ ctrl:
 
 ## data settings (changes the type and method of data computation)
 data:
-  - full_dbdf
-  - dbdf
   - tickers
-  - full_dates
   - date_i
   - date_f
-  - ind_i
-  - ind_f
+  - date_i_idx
+  - full_dates
   - anal_dates
-  - len_anal_dates
+  - len_dates
+  - dynamic_dbdf
+  - static_dbdf
   - lookback
   - returns_type
   - tau
@@ -34,7 +33,7 @@ data:
   - absolutize
   - approach
   - anal_freq
-  - partition
+  - labelstep
   - tail_selection  # TODO: remove this setting?
   - use_right
   - use_left

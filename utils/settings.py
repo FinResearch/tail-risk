@@ -11,39 +11,26 @@ class Settings:
             setattr(self, opt, val)
 
         # get (extract) & set (compute) specific settings from given opts
-        self._get_anal_freq()
-        self._get_db_objects()
-        self._get_xmin_args()
-        self._set_tails()
-        self._set_labelstep()
+        self._set_approach_analfreq()
+        self._set_xmin_args()
+        self._gset_tail_attrs()
+        self._gset_dbdf_attrs()
+        self._gset_labelstep()  # TODO: call under another method??
 
+        # instantiate the settings SimpleNamespace objects
         self.settings_config = self._load_settings_config()
-        self.ctrl_settings = self.make_settings_object('ctrl')
-        self.data_settings = self.make_settings_object('data')
+        self.ctrl_settings = self._make_settings_object('ctrl')
+        self.data_settings = self._make_settings_object('data')
 
-    def _get_anal_freq(self):
+    def _set_approach_analfreq(self):
         self.approach, self.anal_freq = self.approach_args
 
-    def _get_db_objects(self):
-        #  self.tickers_df = self.full_dbdf[self.tickers]
-        #  self.dbdf = self.full_dbdf.iloc[self.ind_i: self.ind_f + 1]
-        self.dbdf = self.full_dbdf.loc[self.date_i:self.date_f, self.tickers]
-
-        self.full_dates = self.full_dbdf.index
-        self.ind_i = self.full_dates.get_loc(self.date_i)  # TODO:still needed?
-        self.ind_f = self.full_dates.get_loc(self.date_f)
-        self.anal_dates = self.full_dates[self.ind_i:
-                                          self.ind_f+1:
-                                          self.anal_freq]
-        self.len_anal_dates = len(self.anal_dates)
-        # NOTE/CONFIRM: attr above should also be len of each series vec anal'd
-
-    def _get_xmin_args(self):
-        # TODO: it's possible to compute all xmin_rules except for 'average'
-        # for 'percentile', just apply to 'data' knowing the 'lookback', etc.
+    def _set_xmin_args(self):
+        # TODO: should be possible to compute all xmin_rules except 'average';
+        # ex. for 'percentile', as 'lookback' is known, just compute on dbdf
         self.xmin_rule, self.xmin_vqty = self.xmin_args
 
-    def _set_tails(self):
+    def _gset_tail_attrs(self):
         """Return relevant tail selection settings
         """
         self.use_right = True if self.tail_selection in ('right', 'both') else False
@@ -67,6 +54,25 @@ class Settings:
         labelstep = (22 if self.len_anal_dates <= 252 else
                      66 if 252 < self.len_anal_dates <= 756 else 121)
         self.labelstep = 22 if self.anal_freq > 1 else labelstep
+    def _gset_dbdf_attrs(self):
+        # NOTE on dbdf distinctions:
+        # - full_dbdf: unfiltered DataFrame as fully loaded from input DB_FILE
+        # - dynamic_dbdf: filtered by tickers (columns); has all dates (index)
+        # - static_dbdf: filtered above by given range of dates to analyze
+
+        self.full_dates = self.full_dbdf.index
+        self.date_i_idx = self.full_dates.get_loc(self.date_i)
+
+        self.dynamic_dbdf = self.full_dbdf[self.tickers]
+        if self.analyze_group:
+            self.__partition_dbdf()
+            print(self.part_map)
+
+        self.static_dbdf = self.dynamic_dbdf.loc[self.date_i: self.date_f]
+        self.anal_dates = self.static_dbdf.index[::self.anal_freq]
+        self.len_dates = len(self.anal_dates)
+
+    # # methods for creating the settings SimpleNamespace object(s) # #
 
     def _load_settings_config(self):
         SETTINGS_CFG = 'config/settings.yaml'  # TODO: refactor PATH into root
@@ -78,7 +84,7 @@ class Settings:
         assert sett_cls in sett_classes,\
             f"settings class name must be one of: {', '.join(sett_classes)}"
 
-    def make_settings_object(self, sett_cls):
+    def _make_settings_object(self, sett_cls):
         self._valid_settings_cls(sett_cls)
         sett_map = {}
         for sett in self.settings_config[sett_cls]:

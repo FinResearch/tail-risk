@@ -15,7 +15,7 @@ class Analyzer(ABC):
 
     def __init__(self, ctrl_settings, data_settings):
         # TODO: consider structuring settings objs & attrs better
-        self.cs = ctrl_settings
+        self.cs = ctrl_settings  # TODO: needed by this class?
         self.ds = data_settings
         self._set_subcls_spec_props()
         self.outcol_labels = self._load_output_columns_labels()
@@ -49,7 +49,7 @@ class Analyzer(ABC):
         pass
 
     # configure given series to chosen returns_type
-    def __config_data_by_returns_type(self, data_array):
+    def _config_data_by_returns_type(self, data_array):
         # TODO: shove below printing into verbosity logging
         print(f"You opted for the analysis of {self.ds.returns_type} returns")
         pt_i = data_array[:-self.ds.tau]
@@ -64,7 +64,7 @@ class Analyzer(ABC):
 
     # TODO: rewrite this better (more modular, more explicit interface, etc.)
     def _preprocess_data_array(self, data_array):
-        X = self.__config_data_by_returns_type(data_array)
+        X = self._config_data_by_returns_type(data_array)
         # TODO: std/abs only applies to static when _target == 'full series'
         if self.ds.standardize is True:
             print("I am standardizing your time series")
@@ -141,8 +141,13 @@ class StaticAnalyzer(Analyzer):
     def _set_curr_input_array(self):
         _, tick = self.curr_iter_id
         self.curr_df_pos = tick, ()
-        data_array = self.ds.dbdf[tick].array
+        print(f"analyzing time series for ticker '{tick}' "  # TODO: VerboseLog
+              f"b/w [{self.ds.date_i}, {self.ds.date_f}]")
+        data_array = self.ds.static_dbdf[tick].array
         self.curr_input_array = self._preprocess_data_array(data_array)
+
+# TODO: to get Group input array: slice group df, then .to_numpy().flatten()
+#       confirm flattening order does not matter
 
 
 class DynamicAnalyzer(Analyzer):
@@ -159,9 +164,9 @@ class DynamicAnalyzer(Analyzer):
         self.output_index = self.ds.anal_dates
         self.iter_id_keys = product(enumerate(self.ds.tickers),
                                     enumerate(self.ds.anal_dates))
-                                    #  start=self.ds.ind_i))
+        #  start=self.ds.ind_i))  # NOTE: set to use below in full_dbdf.loc
+        #  date_lb = self.ds.full_dates[d-self.ds.lookback+1]
 
-    #  def __init_results_df(self):
     def _init_results_df(self):
         df_tick = super(DynamicAnalyzer, self)._init_results_df()
         return pd.concat({tick: df_tick for tick in self.ds.tickers}, axis=1)
@@ -174,7 +179,7 @@ class DynamicAnalyzer(Analyzer):
         d_lkb = self.lkb_0 + d if self.ds.approach == 'rolling' else self.lkb_0
         print(f"analyzing time series for ticker '{tick}' "  # TODO: VerboseLog
               f"b/w [{self.ds.full_dates[d_lkb]}, {date}]")
-        data_array = self.ds.full_dbdf[tick].iloc[d_lkb:d_ind].array
+        data_array = self.ds.dynamic_dbdf[tick].iloc[d_lkb:d_ind].array
         self.curr_input_array = self._preprocess_data_array(data_array)
 
     def __get_curr_logl_stats(self):

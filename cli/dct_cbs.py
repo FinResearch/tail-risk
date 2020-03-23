@@ -102,8 +102,9 @@ def gset_full_dbdf(ctx, param, db_file):
     lbv = (ctx.params.get('lookback') or  # FIXME: no lookback for static approach -> how to infer?
            _get_param_from_ctx(ctx, 'lookback').default)  # lbv: LookBack Value
 
+    # TODO: under static approach, use 0-th index for inferred date_i?
     db_extra_opts_map = {'tickers': list(full_dbdf.columns),  # TODO:filter nulls?
-                         'date_i': full_dates[lbv],
+                         'date_i': full_dates[lbv-1],  # ASK/TODO: want full lbv# of days b/w date being analyzed OR for that date to be lbv-th date (i.e. lbv-1 # of days)
                          'date_f': full_dates[-1]}
 
     # use inferred defaults when default attr isn't manually set in YAML config
@@ -115,6 +116,10 @@ def gset_full_dbdf(ctx, param, db_file):
     # TODO: consider instead of read file & return DF, just return file handle?
     return full_dbdf
     # FIXME: performance mighe be somewhat reduced due to this IO operation???
+
+
+#  def set_tickers_from_textfile(ctx, param, tickers):
+    #  pass
 
 
 # small mutating utility to correctly set the metavar & help attrs of xmin_args
@@ -300,9 +305,9 @@ def confirm_group_flag_set(ctx, param, val):
     if val is not None:
         assert ctx.analyse_group,\
             (f"option '{param.name}' is only available when using "
-             "group tail analysis mode; set -G to use")
+             "group tail analysis mode; set -G or --group to use")
     else:
         # NOTE: this error should never triger as the default value &
-        #       click.Choice type constaints suppresses it
+        #       click.Choice type constraints suppresses it
         assert not ctx.analyse_group
     return val
