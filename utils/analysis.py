@@ -83,12 +83,11 @@ class Analyzer(ABC):
         return xmin
 
     def _set_curr_fit_obj(self, tdir):
-        X = self.curr_input_array
-        data = X if tdir == 'right' else -X
+        data = self.curr_input_array * {'right': +1, 'left': -1}[tdir]
         data = data[np.nonzero(data)]  # NOTE: only keep/use non-zero elements
         discrete = False if self.ds.data_nature == 'continuous' else False
         xmin = self.__get_xmin()
-        self.curr_fit = Fit(data, discrete=discrete, xmin=xmin)
+        self.curr_fit = Fit(data=data, discrete=discrete, xmin=xmin)
 
     def _get_curr_tail_stats(self):
         alpha, xmin, sigma = (getattr(self.curr_fit.power_law, prop)
@@ -97,7 +96,7 @@ class Analyzer(ABC):
         ks_pv, _ = _plpva(self.curr_input_array, xmin, 'reps',
                           self.ds.plpva_iter, 'silent')
         locs = locals()
-        return {vn: locs.get(vn) for vn in self.outcol_labels if vn in locs}
+        return {vr: locs.get(vr) for vr in self.outcol_labels if vr in locs}
 
     def _store_partial_results(self, tdir):
         curr_rslt_series = pd.Series(self._get_curr_tail_stats())
@@ -110,7 +109,7 @@ class Analyzer(ABC):
     # runs single iteration (corresponds to 1 set of input data) of analysis
     def _analyze_next(self):  # TODO: pass iter_id to resume from saved
         self.curr_iter_id = next(self.iter_id_keys)
-        self._set_curr_input_array()
+        self._set_curr_input_array()  # 'input' as in input to powerlaw.Fit
         for tdir in self.ds.tails_to_use:
             self._set_curr_fit_obj(tdir)
             self._store_partial_results(tdir)
@@ -146,9 +145,6 @@ class StaticAnalyzer(Analyzer):
         data_array = self.ds.static_dbdf[tick].array
         self.curr_input_array = self._preprocess_data_array(data_array)
 
-# TODO: to get Group input array: slice group df, then .to_numpy().flatten()
-#       confirm flattening order does not matter
-
 
 class DynamicAnalyzer(Analyzer):
 
@@ -157,14 +153,15 @@ class DynamicAnalyzer(Analyzer):
         assert self.ds.approach in ('rolling', 'increasing')
 
         assert self.ds.lookback is not None
-        self.lkb_0 = self.ds.ind_i - self.ds.lookback + 1
+        self.lkb_off = self.ds.lookback - 1  # ASK/TODO: offset 0 or 1 day?
+        self.lkb_0 = self.ds.date_i_idx - self.lkb_off
 
     def _set_subcls_spec_props(self):
         self.cfg_fname = 'individual_dynamic.yaml'
         self.output_index = self.ds.anal_dates
         self.iter_id_keys = product(enumerate(self.ds.tickers),
-                                    enumerate(self.ds.anal_dates))
-        #  start=self.ds.ind_i))  # NOTE: set to use below in full_dbdf.loc
+                                    enumerate(self.ds.anal_dates,
+                                              start=self.ds.date_i_idx))
         #  date_lb = self.ds.full_dates[d-self.ds.lookback+1]
 
     def _init_results_df(self):
@@ -175,11 +172,10 @@ class DynamicAnalyzer(Analyzer):
     def _set_curr_input_array(self):
         (_, tick), (d, date) = self.curr_iter_id
         self.curr_df_pos = date, (tick,)
-        d_ind = self.ds.ind_i + d  # TODO: consider only use labels to slice??
-        d_lkb = self.lkb_0 + d if self.ds.approach == 'rolling' else self.lkb_0
+        d0 = d - self.lkb_off if self.ds.approach == 'rolling' else self.lkb_0
         print(f"analyzing time series for ticker '{tick}' "  # TODO: VerboseLog
-              f"b/w [{self.ds.full_dates[d_lkb]}, {date}]")
-        data_array = self.ds.dynamic_dbdf[tick].iloc[d_lkb:d_ind].array
+              f"b/w [{self.ds.full_dates[d0]}, {date}]")
+        data_array = self.ds.dynamic_dbdf[tick].iloc[d0: d].array
         self.curr_input_array = self._preprocess_data_array(data_array)
 
     def __get_curr_logl_stats(self):
@@ -197,3 +193,5 @@ class DynamicAnalyzer(Analyzer):
         tail_stats = super(DynamicAnalyzer, self)._get_curr_tail_stats()
         logl_stats = self.__get_curr_logl_stats()
         return {**tail_stats, **logl_stats}
+# TODO/ASK: to get group input array: slice dbdf, then .to_numpy().flatten()
+#           confirm flattening order does not matter
