@@ -18,6 +18,7 @@ class Settings:
         self._gset_tail_attrs()
         self._gset_dbdf_attrs()
         self._gset_labelstep()  # TODO: call under another method??
+        self._gset_grouping_info()
 
         # instantiate the settings SimpleNamespace objects
         self.settings_config = self._load_settings_config()
@@ -96,7 +97,12 @@ class Settings:
             #  part_map['leftovers'] = [tick for tick in self.tickers if
             #                                all(tick not in group for group
             #                                    in part_map.values())]
-        self.partition_map = part_map
+        self.partition_map = part_map  # TODO: consider not setting as self attr, now that partition_map is no longer needed as a setting
+
+    def _gset_grouping_info(self):
+        self.group_type_label = 'group' if self.analyze_group else 'ticker'
+        self.tickers_grouping = (tuple(self.partition_map.keys())
+                                 if self.analyze_group else self.tickers)
 
     # # methods for creating the settings SimpleNamespace object(s) # #
 
