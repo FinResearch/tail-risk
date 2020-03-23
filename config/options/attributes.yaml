@@ -122,20 +122,20 @@ lookback:  # NOTE: only applies to non-static approaches
   metavar: '<INT (# days)>'
   help: 'lookback (in days) to use for rolling or increasing approaches (N/A for static)'
 
-partition:
+partition:  # NOTE: only applicable w/ -G (group tail analysis) enabled
   param_decls:
     - '-p'
     - '--partition'
   type:
     - 'country'
     - 'maturity'
-    - 'core_vs_peripheral'
+    - 'region'  # i.e. core (DE, FR, BE) vs. periphery (IT, ES, PT, IR, GR)
     - 'all'
-    - 'none'
+    # - 'none'
   default: null
   callback: 'confirm_group_flag_set'
   hidden: true
-  help: 'method for grouping tickers'
+  help: 'method for aggregating tickers for group tail analysis'
 
 # TODO: use VnargsOption for --tail ??
 tail_selection:
