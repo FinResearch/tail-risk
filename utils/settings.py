@@ -1,5 +1,6 @@
 import yaml
 
+from enum import IntEnum
 from types import SimpleNamespace
 from statistics import NormalDist
 
@@ -72,6 +73,15 @@ class Settings:
         self.anal_dates = self.static_dbdf.index[::self.anal_freq]
         self.len_dates = len(self.anal_dates)
 
+    def _gset_labelstep(self):
+        _analyze_nondaily = self.anal_freq is not None and self.anal_freq > 1
+        use_monthly = self.len_dates <= Period.ANNUAL or _analyze_nondaily
+        use_quarterly = Period.ANNUAL < self.len_dates <= 3*Period.ANNUAL
+
+        self.labelstep = (Period.MONTH if use_monthly else
+                          Period.QUARTER if use_quarterly else
+                          Period.BIANNUAL)
+
     # # methods for creating the settings SimpleNamespace object(s) # #
 
     def _load_settings_config(self):
@@ -95,3 +105,10 @@ class Settings:
     def get_settings_object(self, sett_cls):
         self._valid_settings_cls(sett_cls)
         return getattr(self, f'{sett_cls}_settings')
+
+
+class Period(IntEnum):
+    MONTH = 22
+    QUARTER = 66
+    BIANNUAL = 121
+    ANNUAL = 252
