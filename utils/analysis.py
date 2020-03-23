@@ -44,6 +44,7 @@ class Analyzer(ABC):
     # # # state DEPENDENT (or aware) methods # # #
 
     @abstractmethod
+    #  def _slice_dbdf_data(self):
     def _set_curr_input_array(self):
         # NOTE: storage posn into results_df (curr_df_pos) also set here
         pass
@@ -135,7 +136,8 @@ class StaticAnalyzer(Analyzer):
     def _set_subcls_spec_props(self):
         self.cfg_fname = 'static.yaml'
         self.output_index = self.ds.tickers
-        self.iter_id_keys = enumerate(self.ds.tickers)
+        #  self.iter_id_keys = enumerate(self.output_index)
+        self.iter_id_keys = enumerate(self.ds.tickers)  # TODO: need enumerate()?
 
     def _set_curr_input_array(self):
         _, tick = self.curr_iter_id
@@ -158,11 +160,12 @@ class DynamicAnalyzer(Analyzer):
 
     def _set_subcls_spec_props(self):
         self.cfg_fname = 'individual_dynamic.yaml'
+        #  self.outcol_toplvl = self.ds.tickers
         self.output_index = self.ds.anal_dates
         self.iter_id_keys = product(enumerate(self.ds.tickers),
                                     enumerate(self.ds.anal_dates,
                                               start=self.ds.date_i_idx))
-        #  date_lb = self.ds.full_dates[d-self.ds.lookback+1]
+        #  enumerate(self.output_index))  # TODO: use this name instead?
 
     def _init_results_df(self):
         df_tick = super(DynamicAnalyzer, self)._init_results_df()
@@ -193,5 +196,79 @@ class DynamicAnalyzer(Analyzer):
         tail_stats = super(DynamicAnalyzer, self)._get_curr_tail_stats()
         logl_stats = self.__get_curr_logl_stats()
         return {**tail_stats, **logl_stats}
+
+
 # TODO/ASK: to get group input array: slice dbdf, then .to_numpy().flatten()
 #           confirm flattening order does not matter
+class GroupStaticAnalyzer(Analyzer):
+
+    def __init__(self, ctrl_settings, data_settings):
+        assert ctrl_settings.analyze_group
+        super(GroupStaticAnalyzer, self).__init__(ctrl_settings, data_settings)
+        assert self.ds.approach == 'static'
+
+    def _set_subcls_spec_props(self):
+        self.cfg_fname = 'static.yaml'
+        self.output_index = self.ds.partition_map.keys()
+        self.iter_id_keys = enumerate(self.output_index)
+
+    def _set_curr_input_array(self):
+        _, group = self.curr_iter_id
+        self.curr_df_pos = group, ()
+        print(f"analyzing time series for group '{group}' "  # TODO: VerboseLog
+              f"b/w [{self.ds.date_i}, {self.ds.date_f}]")
+        data_array = self.ds.static_dbdf[group].to_numpy().flatten()
+        self.curr_input_array = self._preprocess_data_array(data_array)
+
+
+class GroupDynamicAnalyzer(Analyzer):
+
+    def __init__(self, ctrl_settings, data_settings):
+        assert ctrl_settings.analyze_group
+        super(GroupDynamicAnalyzer, self).__init__(ctrl_settings, data_settings)
+        assert self.ds.approach in ('rolling', 'increasing')
+
+        assert self.ds.lookback is not None
+        self.lkb_off = self.ds.lookback - 1  # ASK/TODO: offset 0 or 1 day?
+        self.lkb_0 = self.ds.date_i_idx - self.lkb_off
+
+    def _set_subcls_spec_props(self):
+        self.cfg_fname = 'group_dynamic.yaml'
+        #  self.outcol_toplvl = self.ds.tickers
+        self.output_index = self.ds.anal_dates
+        self.iter_id_keys = product(enumerate(self.ds.partition_map.keys()),
+                                    enumerate(self.ds.anal_dates,
+                                              start=self.ds.date_i_idx))
+        #  enumerate(self.output_index))  # TODO: use this name instead?
+
+    def _init_results_df(self):
+        df_grp = super(GroupDynamicAnalyzer, self)._init_results_df()
+        return pd.concat({grp: df_grp for grp in self.ds.partition_map.keys()},
+                         axis=1)
+
+    # TODO: consider vectorizing operations on all tickers
+    def _set_curr_input_array(self):
+        (_, group), (d, date) = self.curr_iter_id
+        self.curr_df_pos = date, (group,)
+        d0 = d - self.lkb_off if self.ds.approach == 'rolling' else self.lkb_0
+        print(f"analyzing time series for group '{group}' "  # TODO: VerboseLog
+              f"b/w [{self.ds.full_dates[d0]}, {date}]")
+        data_array = self.ds.dynamic_dbdf[group].iloc[d0: d].to_numpy().flatten()
+        #  data_array = self.ds.static_dbdf[group].to_numpy().flatten()
+        self.curr_input_array = self._preprocess_data_array(data_array)
+
+    def __get_curr_logl_stats(self):
+        logl_stats = {}
+        for key, distro in {'tpl': 'truncated_power_law',
+                            'exp': 'exponential',
+                            'lgn': 'lognormal'}.items():
+            R, p = self.curr_fit.distribution_compare('power_law', distro,
+                                                      normalized_ratio=True)
+            logl_stats[f'R_{key}'] = R
+            logl_stats[f'p_{key}'] = p
+        return logl_stats
+
+    def _get_curr_tail_stats(self):
+        tail_stats = super(GroupDynamicAnalyzer, self)._get_curr_tail_stats()
+        logl_stats = self.__get_curr_logl_stats()
+        return {**tail_stats, **logl_stats}
