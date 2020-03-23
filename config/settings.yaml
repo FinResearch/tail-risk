@@ -34,7 +34,7 @@ data:
   - approach
   - anal_freq
   - labelstep
-  - part_map
+  - partition_map
   - tail_selection  # TODO: remove this setting?
   - use_right
   - use_left

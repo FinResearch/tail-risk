@@ -1,4 +1,5 @@
 import yaml
+import pandas as pd
 
 from enum import IntEnum
 from types import SimpleNamespace
@@ -58,8 +59,12 @@ class Settings:
 
         self.dynamic_dbdf = self.full_dbdf[self.tickers]
         if self.analyze_group:
-            self._partition_dbdf()
-            print(self.part_map)
+            # set partition groups as a higher-level column label
+            self._gset_partition_map()
+            self.dynamic_dbdf = \
+                pd.concat({grp: self.dynamic_dbdf[tickers] for
+                           grp, tickers in self.partition_map.items()},
+                          axis=1)
 
         self.static_dbdf = self.dynamic_dbdf.loc[self.date_i: self.date_f]
         self.anal_dates = self.static_dbdf.index[::self.anal_freq]
@@ -74,27 +79,24 @@ class Settings:
                           Period.QUARTER if use_quarterly else
                           Period.BIANNUAL)
 
-    def __get_partition_map(self):
+    def _gset_partition_map(self):
         if self.partition in ('country', 'maturity'):
             # partition rules where IDs are readily parsed from ticker labels
             a, b = {'country': (0, 2), 'maturity': (3, 6)}[self.partition]
             part_ids = set(tick[a:b] for tick in self.tickers)
-            part_map = {pid: tuple(tck for tck in self.tickers if pid in tck)
+            part_map = {pid: [tick for tick in self.tickers if pid in tick]
                         for pid in part_ids}
         elif self.partition == 'region':
-            regions_map = {'core': ('DE', 'FR', 'BE'),
-                           'periphery': ('IT', 'ES', 'PT', 'IR', 'GR')}
-            part_map = {region: tuple(tck for tck in self.tickers if
-                                      any(cid in tck for cid in countries))
+            regions_map = {'Core': ('DE', 'FR', 'BE'),
+                           'Periphery': ('IT', 'ES', 'PT', 'IR', 'GR')}
+            part_map = {region: [tick for tick in self.tickers if
+                                 any(cid in tick for cid in countries)]
                         for region, countries in regions_map.items()}
             #  if self.partition_group_leftovers:  # TODO: opt not yet usable
-            #  part_map['leftovers'] = tuple(tck for tck in self.tickers if
-            #                                all(tck not in group for group
-            #                                    in part_map.values()))
-        return part_map
-
-    def _partition_dbdf(self):
-        self.part_map = self.__get_partition_map()
+            #  part_map['leftovers'] = [tick for tick in self.tickers if
+            #                                all(tick not in group for group
+            #                                    in part_map.values())]
+        self.partition_map = part_map
 
     # # methods for creating the settings SimpleNamespace object(s) # #
 
