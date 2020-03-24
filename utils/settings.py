@@ -60,12 +60,7 @@ class Settings:
 
         self.dynamic_dbdf = self.full_dbdf[self.tickers]
         if self.analyze_group:
-            # set partition groups as a higher-level column label
-            self._gset_partition_map()
-            self.dynamic_dbdf = \
-                pd.concat({grp: self.dynamic_dbdf[tickers] for
-                           grp, tickers in self.partition_map.items()},
-                          axis=1)
+            self._partition_dynamic_dbdf()
 
         self.static_dbdf = self.dynamic_dbdf.loc[self.date_i: self.date_f]
         self.anal_dates = self.static_dbdf.index[::self.anal_freq]
@@ -80,7 +75,7 @@ class Settings:
                           Period.QUARTER if use_quarterly else
                           Period.BIANNUAL)
 
-    def _gset_partition_map(self):
+    def _partition_dynamic_dbdf(self):
         if self.partition in ('country', 'maturity'):
             # partition rules where IDs are readily parsed from ticker labels
             a, b = {'country': (0, 2), 'maturity': (3, 6)}[self.partition]
@@ -97,12 +92,16 @@ class Settings:
             #  part_map['leftovers'] = [tick for tick in self.tickers if
             #                                all(tick not in group for group
             #                                    in part_map.values())]
-        self.partition_map = part_map  # TODO: consider not setting as self attr, now that partition_map is no longer needed as a setting
+
+        # set partition groups as the top-level column label
+        self.dynamic_dbdf = pd.concat({grp: self.dynamic_dbdf[tickers] for
+                                       grp, tickers in part_map.items()},
+                                      axis=1)
 
     def _gset_grouping_info(self):
         self.group_type_label = 'group' if self.analyze_group else 'ticker'
-        self.tickers_grouping = (tuple(self.partition_map.keys())
-                                 if self.analyze_group else self.tickers)
+        cix = self.dynamic_dbdf.columns  # cix: column index
+        self.tickers_grouping = cix.levels[0] if self.analyze_group else cix
 
     # # methods for creating the settings SimpleNamespace object(s) # #
 
