@@ -135,11 +135,10 @@ class StaticAnalyzer(Analyzer):
     def _set_subcls_spec_props(self):
         self.output_cfgbn = 'static.yaml'
         self.output_index = self.ds.tickers_grouping
-        # TODO: since index never used, need enumerate() OR just iter()?
-        self.iter_id_keys = enumerate(self.ds.tickers_grouping)  # TODO: use output_index?
+        self.iter_id_keys = iter(self.ds.tickers_grouping)
 
     def _set_curr_input_array(self):
-        _, lab = self.curr_iter_id
+        lab = self.curr_iter_id
         self.curr_df_pos = lab, ()
         # TODO: move logging of label out of this repeatedly called method
         print(f"analyzing time series for {self.ds.group_type_label} '{lab}' "
@@ -161,7 +160,7 @@ class DynamicAnalyzer(Analyzer):
     def _set_subcls_spec_props(self):
         self.output_cfgbn = 'dynamic.yaml'  # TODO: -G dynamic differs slightly
         self.output_index = self.ds.anal_dates
-        self.iter_id_keys = product(enumerate(self.ds.tickers_grouping),
+        self.iter_id_keys = product(iter(self.ds.tickers_grouping),
                                     enumerate(self.ds.anal_dates,
                                               start=self.ds.date_i_idx))
 
@@ -172,7 +171,7 @@ class DynamicAnalyzer(Analyzer):
 
     # TODO: consider vectorizing operations on all tickers
     def _set_curr_input_array(self):
-        (_, sub), (d, date) = self.curr_iter_id
+        sub, (d, date) = self.curr_iter_id
         self.curr_df_pos = date, (sub,)
         d0 = d - self.lkb_off if self.ds.approach == 'rolling' else self.lkb_0
         print(f"analyzing time series for {self.ds.group_type_label} '{sub}' "
