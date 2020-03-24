@@ -124,9 +124,6 @@ class Analyzer(ABC):
                 self._analyze_next()
             except StopIteration:
                 break
-        #  print(self.results_df)
-        #  print(self.results_df.info())
-        #  print(self.results_df.shape)
 
 
 class StaticAnalyzer(Analyzer):
@@ -203,5 +200,10 @@ class DynamicAnalyzer(Analyzer):
         return {**tail_stats, **logl_stats}
 
 
-def tail_analyzer():
-    pass
+# wrapper func: instantiate correct Analyzer type and run tail analysis
+def analyze_tail(ctrl_settings, data_settings):
+    cs, ds = ctrl_settings, data_settings
+    Analyzer = StaticAnalyzer if ds.approach == 'static' else DynamicAnalyzer
+    analyzer = Analyzer(cs, ds)
+    analyzer.analyze()
+    print(analyzer.results)
