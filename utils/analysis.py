@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from itertools import product
 
 import yaml
-from powerlaw import Fit
+from powerlaw import Fit  # TODO: consider import entire module?
 from ._plpva import plpva as _plpva
 
 
@@ -18,6 +18,10 @@ class Analyzer(ABC):
         self._set_subcls_spec_props()
         self.outcol_labels = self._load_output_columns_labels()
         self.results = self._init_results_df()
+
+        self._distros_to_compare = {'tpl': 'truncated_power_law',
+                                    'exp': 'exponential',
+                                    'lgn': 'lognormal'}
 
     @abstractmethod
     def _set_subcls_spec_props(self):
@@ -94,9 +98,10 @@ class Analyzer(ABC):
         alpha, xmin, sigma = (getattr(self.curr_fit.power_law, prop)
                               for prop in ('alpha', 'xmin', 'sigma'))
         abs_len = len(self.curr_input_array[self.curr_input_array >= xmin])
-        # TODO: try compute ks_pv using MATLAB engine & module, and time
+        # TODO: add option to skip computing ks_pv (& logl_stats)
         ks_pv, _ = _plpva(self.curr_input_array, xmin, 'reps',
                           self.ds.plpva_iter, 'silent')
+        # TODO: try compute ks_pv using MATLAB engine & module, and time
         locs = locals()
         return {vr: locs.get(vr) for vr in self.outcol_labels if vr in locs}
 
@@ -183,12 +188,10 @@ class DynamicAnalyzer(Analyzer):
 
     def _get_curr_logl_stats(self):
         logl_stats = {}
-        for key, distro in {'tpl': 'truncated_power_law',
-                            'exp': 'exponential',
-                            'lgn': 'lognormal'}.items():
+        for key, distro in self._distros_to_compare.items():
             R, p = self.curr_fit.distribution_compare('power_law', distro,
                                                       normalized_ratio=True)
-            logl_stats[f'R_{key}'] = R
+            logl_stats[f'R_{key}'] = R  # TODO: store R, p together as (R, p)?
             logl_stats[f'p_{key}'] = p
         return logl_stats
 

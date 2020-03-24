@@ -12,5 +12,6 @@ if ui_opts == 0:  # for catching the --help option
 s = Settings(ui_opts)
 ctrl_settings = s.get_settings_object('ctrl')
 data_settings = s.get_settings_object('data')
+# TODO: apply black styling to all modules (i.e. ' --> ")
 
 analyze_tail(ctrl_settings, data_settings)

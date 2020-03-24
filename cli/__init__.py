@@ -30,7 +30,7 @@ from .dct_cbs import attach_yaml_opts, gset_full_dbdf, gset_group_opts
                 type=click.File(mode='r'), callback=gset_full_dbdf,
                 default=f'{ROOT_DIR}/dbMSTR_test.csv')
 # TODO: accept optional 2nd positional argument as options config file?
-@click.option('-G', '--group/--no-group', 'analyze_group',
+@click.option('-G', '--group/--individual', 'analyze_group',
               is_eager=True, callback=gset_group_opts,
               default=False, show_default=True,
               help=('set flag to run in group analysis mode; use with --help '
@@ -51,7 +51,7 @@ def get_ui_options(full_dbdf, analyze_group, **yaml_opts):
 # TODO: add subcommands: plot & resume_calculation (given full/partial data)
 
 
-# NOTE: cannot run as __main__ in packaged mode
+# NOTE: cannot run as __main__ in packaged mode --> remove??
 if __name__ == '__main__':
     ui_opts = get_ui_options.main(standalone_mode=False)
 
