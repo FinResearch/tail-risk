@@ -48,6 +48,7 @@ def get_ui_options(full_dbdf, analyze_group, **yaml_opts):
                 analyze_group=analyze_group,
                 **yaml_opts)
 # TODO: consider removing kv-pairs w/ None vals (ex. partition when no -G)?
+# TODO: add subcommands: plot & resume_calculation (given full/partial data)
 
 
 # NOTE: cannot run as __main__ in packaged mode

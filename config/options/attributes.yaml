@@ -185,7 +185,7 @@ xmin_args:
 alpha_signif:
   param_decls:
     - '--alpha'
-    - 'alpha_significance'
+    - 'alpha_signif'
   type: 'float'
   default: 0.05
   metavar: '<FLOAT: [0, 1]>'

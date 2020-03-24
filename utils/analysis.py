@@ -9,8 +9,6 @@ from powerlaw import Fit
 from ._plpva import plpva as _plpva
 
 
-# TODO: remove needless assertions after code is tested
-
 class Analyzer(ABC):
 
     def __init__(self, ctrl_settings, data_settings):
@@ -19,7 +17,7 @@ class Analyzer(ABC):
         self.ds = data_settings
         self._set_subcls_spec_props()
         self.outcol_labels = self._load_output_columns_labels()
-        self.results_df = self._init_results_df()  # TODO: rename as "results"?
+        self.results = self._init_results_df()
 
     @abstractmethod
     def _set_subcls_spec_props(self):
@@ -45,12 +43,13 @@ class Analyzer(ABC):
     # # # state DEPENDENT (or aware) methods # # #
 
     @abstractmethod
-    #  def _slice_dbdf_data(self):
+    # TODO --> def _slice_dbdf_data(self):
     def _set_curr_input_array(self):
         # NOTE: storage posn into results_df (curr_df_pos) also set here
         pass
 
     # configure given series to chosen returns_type
+    # TODO: can do this all at once on entire dbdf
     def _config_data_by_returns_type(self, data_array):
         # TODO: shove below printing into verbosity logging
         print(f"You opted for the analysis of {self.ds.returns_type} returns")
@@ -95,16 +94,18 @@ class Analyzer(ABC):
         alpha, xmin, sigma = (getattr(self.curr_fit.power_law, prop)
                               for prop in ('alpha', 'xmin', 'sigma'))
         abs_len = len(self.curr_input_array[self.curr_input_array >= xmin])
+        # TODO: try compute ks_pv using MATLAB engine & module, and time
         ks_pv, _ = _plpva(self.curr_input_array, xmin, 'reps',
                           self.ds.plpva_iter, 'silent')
         locs = locals()
         return {vr: locs.get(vr) for vr in self.outcol_labels if vr in locs}
 
     def _store_partial_results(self, tdir):
-        curr_rslt_series = pd.Series(self._get_curr_tail_stats())
-        assert len(curr_rslt_series) == len(self.outcol_labels)
+        curr_tstat_series = pd.Series(self._get_curr_tail_stats())
+        # TODO: remove needless assertion stmt(s) after code is well-tested
+        assert len(curr_tstat_series) == len(self.outcol_labels)
         idx, col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
-        self.results_df.loc[idx, col + (tdir,)].update(curr_rslt_series)
+        self.results.loc[idx, col + (tdir,)].update(curr_tstat_series)
 
     # # # orchestration / driver methods # # #
 
@@ -137,8 +138,8 @@ class StaticAnalyzer(Analyzer):
     def _set_subcls_spec_props(self):
         self.output_cfgbn = 'static.yaml'
         self.output_index = self.ds.tickers_grouping
-        # TODO: since index never used, need to enumerate tickers_grouping??
-        self.iter_id_keys = enumerate(self.ds.tickers_grouping)
+        # TODO: since index never used, need enumerate() OR just iter()?
+        self.iter_id_keys = enumerate(self.ds.tickers_grouping)  # TODO: use output_index?
 
     def _set_curr_input_array(self):
         _, lab = self.curr_iter_id
@@ -146,7 +147,7 @@ class StaticAnalyzer(Analyzer):
         # TODO: move logging of label out of this repeatedly called method
         print(f"analyzing time series for {self.ds.group_type_label} '{lab}' "
               f"b/w [{self.ds.date_i}, {self.ds.date_f}]")  # TODO: VerboseLog
-        # TODO: consider using try-except w/ .array first for below?
+        # TODO optimize below: when slice is pd.Series, no need to .flatten()
         data_array = self.ds.static_dbdf[lab].to_numpy().flatten()
         # TODO: factor below _preprocess_data_array call into ABC??
         self.curr_input_array = self._preprocess_data_array(data_array)
@@ -157,8 +158,6 @@ class DynamicAnalyzer(Analyzer):
     def __init__(self, ctrl_settings, data_settings):
         super(DynamicAnalyzer, self).__init__(ctrl_settings, data_settings)
         assert self.ds.approach in ('rolling', 'increasing')
-
-        assert self.ds.lookback is not None
         self.lkb_off = self.ds.lookback - 1  # ASK/TODO: offset 0 or 1 day?
         self.lkb_0 = self.ds.date_i_idx - self.lkb_off
 

@@ -12,13 +12,13 @@ class Settings:
         for opt, val in ui_options.items():
             setattr(self, opt, val)
 
-        # get (extract) & set (compute) specific settings from given opts
+        # get (compute/calc) & set (extract) specific settings from given opts
         self._set_approach_analfreq()
         self._set_xmin_args()
         self._gset_tail_attrs()
         self._gset_dbdf_attrs()
-        self._gset_labelstep()  # TODO: call under another method??
-        self._gset_grouping_info()
+        self._gset_labelstep()  # TODO: call from other method? --> need anal_freq & len_dates
+        self._gset_grouping_info()  # must be called after _gset_dbdf_attrs()
 
         # instantiate the settings SimpleNamespace objects
         self.settings_config = self._load_settings_config()
@@ -47,7 +47,7 @@ class Settings:
         self.tails_to_use = tuple(tails_to_use)
 
         mult = 0.5 if self.tail_selection == 'both' else 1
-        self.alpha_qntl = NormalDist().inv_cdf(1 - mult * self.alpha_significance)
+        self.alpha_qntl = NormalDist().inv_cdf(1 - mult * self.alpha_signif)
 
     def _gset_dbdf_attrs(self):
         # NOTE on dbdf distinctions:
