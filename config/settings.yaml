@@ -12,6 +12,7 @@ ctrl:
   - partial_saves
   - verbosity
   - analyze_group
+  - ks_flag
   - num_cores
   - show_plots
   - save_plots
@@ -45,5 +46,5 @@ data:
   - xmin_rule
   - xmin_vqty
   - alpha_qntl
-  - plpva_iter
+  - ks_iter
   - outcol_labels

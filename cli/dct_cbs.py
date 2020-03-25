@@ -142,8 +142,9 @@ def _set_vnargs_choice_metahelp_(ctx):
 # callback for -G, --group
 def gset_group_opts(ctx, param, analyze_group):
 
-    # add custom top-level flag attr to Context for convenience of others
-    ctx.analyse_group = False  # NOTE spelling: analySe NOT analyZe
+    _customize_boolflag_show_default(param, analyze_group,
+                                     ('group', 'individual'))
+
     # private toplevel group flag-val on Context for convenience of other cbs
     ctx._analyze_group = False  # NOTE spelling: analySe NOT analyZe
 
@@ -315,3 +316,21 @@ def confirm_group_flag_set(ctx, param, val):
         #       click.Choice type constraints suppresses it
         assert not ctx._analyze_group
     return val
+
+
+# helper for customizing str displayed in help msg when show_default is True
+def _customize_boolflag_show_default(param, flag_val, dflt_str_2tup):
+    if param.show_default:
+        param.show_default = False  # turn off built-in show_default
+        true_dflt, false_dflt = dflt_str_2tup
+        help_dflt = true_dflt if flag_val else false_dflt
+        param.help += f'  [default: {help_dflt}]'
+# TODO: create and send this feature as PR to pallets/click ??
+
+
+# TODO: reorder callback definitions in this file
+# callback for --ks-test / --ks-skip
+def customize_ksflag_show_default(ctx, param, ks_flag):
+    _customize_boolflag_show_default(param, ks_flag,
+                                     ('Run', 'Skip',))
+    return ks_flag

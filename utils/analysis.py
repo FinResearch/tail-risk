@@ -91,10 +91,10 @@ class Analyzer(ABC):
         alpha, xmin, sigma = (getattr(self.curr_fit.power_law, prop)
                               for prop in ('alpha', 'xmin', 'sigma'))
         abs_len = len(self.curr_input_array[self.curr_input_array >= xmin])
-        # TODO: add option to skip computing ks_pv (& logl_stats)
-        ks_pv, _ = _plpva(self.curr_input_array, xmin, 'reps',
-                          self.ds.plpva_iter, 'silent')
-        # TODO: try compute ks_pv using MATLAB engine & module, and time
+        if self.cs.ks_flag is True:  # TODO:add simlar skip opt for logl_stats?
+            ks_pv, _ = _plpva(self.curr_input_array, xmin, 'reps',
+                              self.ds.ks_iter, 'silent')
+            # TODO: try compute ks_pv using MATLAB engine & module, and time
         locs = locals()
         return {vr: locs.get(vr) for vr in self.ds.outcol_labels if vr in locs}
 

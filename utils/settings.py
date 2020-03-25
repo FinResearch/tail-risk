@@ -104,6 +104,17 @@ class Settings:
         cix = self.dynamic_dbdf.columns  # cix: column index
         self.tickers_grouping = cix.levels[0] if self.analyze_group else cix
 
+    def _load_set_output_columns_labels(self):
+        # TODO/NOTE: -G, --group dynamic cols differs slightly (xmin_today)
+        output_cfgbn = 'static' if self.approach == 'static' else 'dynamic'
+        DIR = 'config/output_columns/'  # TODO: improve package/path system
+        with open(f'{DIR}/{output_cfgbn}.yaml') as cfg:
+            self.outcol_labels = yaml.load(cfg, Loader=yaml.SafeLoader)
+
+        self.ks_flag = False if self.ks_iter <= 0 else self.ks_flag
+        if self.ks_flag is False:
+            self.outcol_labels.remove('ks_pv')
+
     # # methods for creating the settings SimpleNamespace object(s) # #
 
     def _load_set_settings_config(self):

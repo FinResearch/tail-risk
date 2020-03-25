@@ -21,4 +21,6 @@ xmin_args:
   #   -manual: float value, default: 0
   #   -percentile: 0-100, default: 90
 
-plpva_iter: 2
+ks_flag: false
+
+ks_iter: 2

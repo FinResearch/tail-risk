@@ -191,15 +191,23 @@ alpha_signif:
   metavar: '<FLOAT: [0, 1]>'
   help: 'significance of the confidence interval: 1-α'
 
-plpva_iter:
+ks_flag:
   param_decls:
-    - '--plpva-iter'
-    # - '--piter'
-    # - 'plpva_iter'
+    - '--ks-run/--ks-skip'
+    - 'ks_flag'
+  is_eager: true  # NOTE: is_eager needed to correctly customize show_default in help via cb
+  default: true
+  metavar: '(Run/Skip KS-Test)'  # FIXME: get metavarto work w/ flags (not shown currently)
+  callback: 'customize_ksflag_show_default'
+  help: '--ks-skip overrides value from --ks-iter'
+
+ks_iter:
+  param_decls:
+    - '--ks-iter'
   type: 'int'
   default: 100
   metavar: '<INT (# iterations)>'
-  help: 'Clauset p-value algorithm number of iterations'
+  help: 'specify number of iterations used for KS-testing'
 
 show_plots:
   param_decls:

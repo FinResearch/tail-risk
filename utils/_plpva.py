@@ -85,7 +85,7 @@ def plpva(x, xmin, vec=numpy.arange(1.50, 3.51, 0.01),
         nz = float(len(z))
         y = x[x < xmin]
         ny = float(len(y))
-        alpha = 1 + nz / sum(numpy.log(z / xmin))  # always positive
+        alpha = 1 + nz / sum(numpy.log(z / xmin))  # always positive  # FIXME: handle ZeroDivisionError on some input data & xmin
         cz = numpy.arange(nz) / nz
         cf = 1 - (xmin / numpy.sort(z)) ** (alpha - 1)
         gof = max(abs(cz - cf))
@@ -141,7 +141,7 @@ def plpva(x, xmin, vec=numpy.arange(1.50, 3.51, 0.01),
                     a = nq / sum(logvec)
                 cq = numpy.arange(nq) / nq
                 cf = 1 - (qmin / zq) ** a
-                dat = numpy.r_[dat, max(abs(cq - cf))]
+                dat = numpy.r_[dat, max(abs(cq - cf))]  # FIXME: handle ZeroDivisionError on some input data & xmin
             # store distribution of estimated gof values
             nof = numpy.r_[nof, min(dat)]
             if not quiet:
