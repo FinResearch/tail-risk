@@ -7,6 +7,10 @@ from itertools import product
 from powerlaw import Fit  # TODO: consider import entire module?
 from ._plpva import plpva as _plpva
 
+from multiprocessing import Process, Pool
+#  import atexit
+from os import getpid
+
 
 class Analyzer(ABC):
 
@@ -103,7 +107,7 @@ class Analyzer(ABC):
 
     # # # orchestration / driver methods # # #
 
-    # runs single iteration (corresponds to 1 set of input data) of analysis
+    # runs analysis on data ID'd by the next iteration of the stateful iterator
     def _analyze_next(self):  # TODO: pass iter_id to resume from saved
         self.curr_iter_id = next(self.iter_id_keys)
         self._set_curr_input_array()  # 'input' as in input to powerlaw.Fit
@@ -111,13 +115,44 @@ class Analyzer(ABC):
             self._set_curr_fit_obj(tdir)
             self._store_partial_results(tdir)
 
-    # publicly exposed method to be called by the user
-    def analyze(self):
+    # runs analysis from start to finish, in 1-process + single-threaded mode
+    def analyze_sequential(self):
         while True:
             try:
                 self._analyze_next()
             except StopIteration:
                 break
+
+    # runs analysis for one iteration of analysis given arbitrary iter_id
+    def _analyze_iter(self, iter_id):
+        print(f'running PID: {getpid()}')
+        print(f'computing iter: {iter_id}')
+
+        self.curr_iter_id = iter_id
+        self._set_curr_input_array()  # 'input' as in input to powerlaw.Fit
+        for tdir in self.ds.tails_to_use:
+            self._set_curr_fit_obj(tdir)
+            self._store_partial_results(tdir)
+
+    # runs analysis in multiprocessing mode
+    def analyze_multiproc(self):
+        iter_id_keys = tuple(self.iter_id_keys)
+
+        # TODO: checkout .apply_async, .imap, .map_async, etc. & chunksize
+        with Pool() as pool:
+            # TODO: look into Queue & Pipe for sharing data
+            results = pool.map(self._analyze_iter, iter_id_keys)
+        print(results)
+
+        #  # NOTE: using Process is a shit method b/c new procs spawned each iter
+        #  for i, iter_id in enumerate(iter_id_keys):
+        #      procs = [Process(target=self._analyze_iter, args=(iter_id,)) for p in range(4)]
+        #      [p.start() for p in procs]
+        #      [p.join() for p in procs]
+
+    # top-level convenience method that autodetects how to run tail analysis
+    def analyze(self):
+        pass
 
 
 class StaticAnalyzer(Analyzer):
@@ -199,5 +234,7 @@ def analyze_tail(ctrl_settings, data_settings):
     cs, ds = ctrl_settings, data_settings
     Analyzer = StaticAnalyzer if ds.approach == 'static' else DynamicAnalyzer
     analyzer = Analyzer(cs, ds)
-    analyzer.analyze()
+    #  analyzer.analyze_sequential()
+    #  print(analyzer.results)
+    analyzer.analyze_multiproc()
     print(analyzer.results)
