@@ -17,10 +17,6 @@ class Analyzer(ABC):
         self._set_subcls_spec_props()
         self.results = self._init_results_df()
 
-        self._distros_to_compare = {'tpl': 'truncated_power_law',
-                                    'exp': 'exponential',
-                                    'lgn': 'lognormal'}
-
     @abstractmethod  # TODO: rename method to be more reflective of its purpose
     def _set_subcls_spec_props(self):
         # properties initialized below are used by methods defined in this ABC
@@ -153,6 +149,10 @@ class DynamicAnalyzer(Analyzer):
         assert self.ds.approach in ('rolling', 'increasing')
         self.lkb_off = self.ds.lookback - 1  # ASK/TODO: offset 0 or 1 day?
         self.lkb_0 = self.ds.date_i_idx - self.lkb_off
+
+        self._distros_to_compare = {'tpl': 'truncated_power_law',
+                                    'exp': 'exponential',
+                                    'lgn': 'lognormal'}
 
     def _set_subcls_spec_props(self):
         self.output_index = self.ds.anal_dates
