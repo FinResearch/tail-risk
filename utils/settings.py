@@ -19,9 +19,10 @@ class Settings:
         self._gset_dbdf_attrs()
         self._gset_labelstep()  # TODO: call from other method? --> need anal_freq & len_dates
         self._gset_grouping_info()  # must be called after _gset_dbdf_attrs()
+        self._load_set_output_columns_labels()
 
         # instantiate the settings SimpleNamespace objects
-        self.settings_config = self._load_settings_config()
+        self._load_set_settings_config()
         self.ctrl_settings = self._make_settings_object('ctrl')
         self.data_settings = self._make_settings_object('data')
 
@@ -105,10 +106,10 @@ class Settings:
 
     # # methods for creating the settings SimpleNamespace object(s) # #
 
-    def _load_settings_config(self):
+    def _load_set_settings_config(self):
         SETTINGS_CFG = 'config/settings.yaml'  # TODO: refactor PATH into root
         with open(SETTINGS_CFG) as cfg:
-            return yaml.load(cfg, Loader=yaml.SafeLoader)
+            self.settings_config = yaml.load(cfg, Loader=yaml.SafeLoader)
 
     def _valid_settings_cls(self, sett_cls):
         sett_classes = self.settings_config.keys()

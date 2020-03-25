@@ -1,5 +1,6 @@
 ---
 
+# TODO: reorder (and reorg?) settings
 # all settings to be used in the scripts
 
 ## control settings (changes the way the scripts are executed)
@@ -45,3 +46,4 @@ data:
   - xmin_vqty
   - alpha_qntl
   - plpva_iter
+  - outcol_labels

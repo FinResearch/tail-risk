@@ -4,7 +4,6 @@ import pandas as pd
 from abc import ABC, abstractmethod
 from itertools import product
 
-import yaml
 from powerlaw import Fit  # TODO: consider import entire module?
 from ._plpva import plpva as _plpva
 
@@ -16,30 +15,23 @@ class Analyzer(ABC):
         self.cs = ctrl_settings  # TODO: needed by this class?
         self.ds = data_settings
         self._set_subcls_spec_props()
-        self.outcol_labels = self._load_output_columns_labels()
         self.results = self._init_results_df()
 
         self._distros_to_compare = {'tpl': 'truncated_power_law',
                                     'exp': 'exponential',
                                     'lgn': 'lognormal'}
 
-    @abstractmethod
+    @abstractmethod  # TODO: rename method to be more reflective of its purpose
     def _set_subcls_spec_props(self):
         # properties initialized below are used by methods defined in this ABC
-        self.output_cfgbn = None    # str (output config file basename)
         self.output_index = None    # list/tuple (prop from data_settings)
         self.iter_id_keys = None    # iterator
 
     # # # state INDEPENDENT methods # # #
 
-    def _load_output_columns_labels(self):
-        DIR = 'config/output_columns/'  # TODO: improve package/path system
-        with open(f'{DIR}/{self.output_cfgbn}') as cfg:
-            return yaml.load(cfg, Loader=yaml.SafeLoader)
-
     def _init_results_df(self):
         index = self.output_index
-        columns = self.outcol_labels
+        columns = self.ds.outcol_labels
         df_tail = pd.DataFrame(np.zeros(shape=(len(index), len(columns))),
                                index=index, columns=columns, dtype=float)
         return pd.concat({t: df_tail for t in self.ds.tails_to_use}, axis=1)
@@ -104,12 +96,12 @@ class Analyzer(ABC):
                           self.ds.plpva_iter, 'silent')
         # TODO: try compute ks_pv using MATLAB engine & module, and time
         locs = locals()
-        return {vr: locs.get(vr) for vr in self.outcol_labels if vr in locs}
+        return {vr: locs.get(vr) for vr in self.ds.outcol_labels if vr in locs}
 
     def _store_partial_results(self, tdir):
         curr_tstat_series = pd.Series(self._get_curr_tail_stats())
         # TODO: remove needless assertion stmt(s) after code is well-tested
-        assert len(curr_tstat_series) == len(self.outcol_labels)
+        assert len(curr_tstat_series) == len(self.ds.outcol_labels)
         idx, col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
         self.results.loc[idx, col + (tdir,)].update(curr_tstat_series)
 
@@ -139,7 +131,6 @@ class StaticAnalyzer(Analyzer):
         assert self.ds.approach == 'static'
 
     def _set_subcls_spec_props(self):
-        self.output_cfgbn = 'static.yaml'
         self.output_index = self.ds.tickers_grouping
         self.iter_id_keys = iter(self.ds.tickers_grouping)
 
@@ -164,7 +155,6 @@ class DynamicAnalyzer(Analyzer):
         self.lkb_0 = self.ds.date_i_idx - self.lkb_off
 
     def _set_subcls_spec_props(self):
-        self.output_cfgbn = 'dynamic.yaml'  # TODO: -G dynamic differs slightly
         self.output_index = self.ds.anal_dates
         self.iter_id_keys = product(iter(self.ds.tickers_grouping),
                                     enumerate(self.ds.anal_dates,
