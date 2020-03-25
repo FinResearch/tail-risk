@@ -43,6 +43,7 @@ class Analyzer(ABC):
         df_tail = pd.DataFrame(np.zeros(shape=(len(index), len(columns))),
                                index=index, columns=columns, dtype=float)
         return pd.concat({t: df_tail for t in self.ds.tails_to_use}, axis=1)
+        # TODO: set index (both columns & row-index) names property
 
     # # # state DEPENDENT (or aware) methods # # #
 
@@ -145,7 +146,7 @@ class StaticAnalyzer(Analyzer):
     def _set_curr_input_array(self):
         lab = self.curr_iter_id
         self.curr_df_pos = lab, ()
-        # TODO: move logging of label out of this repeatedly called method
+        # TODO: move logging of DATE RANGE out of this repeatedly called method
         print(f"analyzing time series for {self.ds.group_type_label} '{lab}' "
               f"b/w [{self.ds.date_i}, {self.ds.date_f}]")  # TODO: VerboseLog
         # TODO optimize below: when slice is pd.Series, no need to .flatten()
@@ -172,13 +173,14 @@ class DynamicAnalyzer(Analyzer):
     def _init_results_df(self):
         df_sub = super(DynamicAnalyzer, self)._init_results_df()
         return pd.concat({sub: df_sub for sub in self.ds.tickers_grouping},
-                         axis=1)
+                         axis=1)  # TODO: set column index level names
 
     # TODO: consider vectorizing operations on all tickers
     def _set_curr_input_array(self):
         sub, (d, date) = self.curr_iter_id
         self.curr_df_pos = date, (sub,)
         d0 = d - self.lkb_off if self.ds.approach == 'rolling' else self.lkb_0
+        # TODO: move logging of LABEL out of this repeatedly called method
         print(f"analyzing time series for {self.ds.group_type_label} '{sub}' "
               f"b/w [{self.ds.full_dates[d0]}, {date}]")
         data_array = self.ds.dynamic_dbdf[sub].iloc[d0: d].to_numpy().flatten()
@@ -186,12 +188,12 @@ class DynamicAnalyzer(Analyzer):
         #           confirm flattening order does not matter
         self.curr_input_array = self._preprocess_data_array(data_array)
 
-    def _get_curr_logl_stats(self):
+    def _get_curr_logl_stats(self):  # ASK/TODO: logl_stats unneeded in static?
         logl_stats = {}
         for key, distro in self._distros_to_compare.items():
             R, p = self.curr_fit.distribution_compare('power_law', distro,
                                                       normalized_ratio=True)
-            logl_stats[f'R_{key}'] = R  # TODO: store R, p together as (R, p)?
+            logl_stats[f'R_{key}'] = R  # TODO: store R, p together as (R, p)? --> even better: store as 2-leveled sub-DataFrame
             logl_stats[f'p_{key}'] = p
         return logl_stats
 

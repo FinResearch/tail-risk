@@ -4,7 +4,8 @@ from click.core import ParameterSource
 import yaml
 import pandas as pd
 
-from ._vnargs import VnargsOption  # NOTE: linter detect as unused; reified by eval() call
+# NOTE: import below is reified by eval() call, NOT unused as implied by linter
+from ._vnargs import VnargsOption
 from . import ROOT_DIR
 OPT_CFG_DIR = f'{ROOT_DIR}/config/options/'  # TODO: use pathlib.Path ??
 # TODO: once ROOT_DIR added to sys.path in project top level, ref from ROOT_DIR
@@ -93,18 +94,18 @@ def gset_full_dbdf(ctx, param, db_file):
     NOTE: the function mutates the ctx state to add the above inferred vals
     """
 
-    # TODO: checkout Pandas' DatetimeIndex
-    full_dbdf = pd.read_csv(db_file, index_col='Date')  # TODO: index_col case-i?
+    # TODO: make index_col case-insensitive? i.e. 'Date' or 'date'
+    full_dbdf = pd.read_csv(db_file, index_col='Date')  # TODO:pd.DatetimeIndex
     # TODO: attach computed objects such as {df, tickers, dates} onto ctx??
 
     full_dates = full_dbdf.index  # TODO: attach to ctx_obj for later access?
-    # ASK/CONFIRM: using lookback good method for inferring date_i default?
-    lbv = (ctx.params.get('lookback') or  # FIXME: no lookback for static approach -> how to infer?
+    # FIXME: determine how to infer date_i w/ lookback None under 'static' appr
+    lbv = (ctx.params.get('lookback') or
            _get_param_from_ctx(ctx, 'lookback').default)  # lbv: LookBack Value
 
     # TODO: under static approach, use 0-th index for inferred date_i?
-    db_extra_opts_map = {'tickers': list(full_dbdf.columns),  # TODO:filter nulls?
-                         'date_i': full_dates[lbv-1],  # ASK/TODO: want full lbv# of days b/w date being analyzed OR for that date to be lbv-th date (i.e. lbv-1 # of days)
+    db_extra_opts_map = {'tickers': list(full_dbdf.columns),  # TODO: rm nulls?
+                         'date_i': full_dates[lbv-1],
                          'date_f': full_dates[-1]}
 
     # use inferred defaults when default attr isn't manually set in YAML config
@@ -125,7 +126,7 @@ def gset_full_dbdf(ctx, param, db_file):
 # small mutating utility to correctly set the metavar & help attrs of xmin_args
 def _set_vnargs_choice_metahelp_(ctx):
     xmin_extra_help = ('-average: 2 INTs (# days) as window & lag, '
-                       'default: 66, 0\n') if ctx.analyse_group else ''
+                       'default: 66, 0\n') if ctx._analyze_group else ''
 
     vnargs_choice_opts = ('approach_args', 'xmin_args',)
 
@@ -143,9 +144,11 @@ def gset_group_opts(ctx, param, analyze_group):
 
     # add custom top-level flag attr to Context for convenience of others
     ctx.analyse_group = False  # NOTE spelling: analySe NOT analyZe
+    # private toplevel group flag-val on Context for convenience of other cbs
+    ctx._analyze_group = False  # NOTE spelling: analySe NOT analyZe
 
     if analyze_group:
-        ctx.analyse_group = True
+        ctx._analyze_group = True
 
         param.hidden = True  # NOTE: when -G set, hide its help
 
@@ -266,7 +269,7 @@ def validate_approach_args(ctx, param, approach_args):
 # callback for the xmin_args (-x, --xmin) option
 def validate_xmin_args(ctx, param, xmin_args):
 
-    dflt_rule = 'average' if ctx.analyse_group else 'clauset'
+    dflt_rule = 'average' if ctx._analyze_group else 'clauset'
     rule, vqarg = _gset_vnargs_choice_default(ctx, param, xmin_args, dflt_rule)
 
     try:
@@ -288,7 +291,8 @@ def validate_xmin_args(ctx, param, xmin_args):
                            f"INTs (# days); given: {', '.join(vqarg)}")
             vqarg = [_convert_str_to_num(val, must_be_int=True,
                                          type_errmsg=type_errmsg,
-                                         min_allowed=0)  # TODO: use diff min_allowed for window vs. lag
+                                         min_allowed=0)
+                     # TODO: enable diff min_allowed for window & lag args
                      for val in vqarg]
             vqarg = tuple(sorted(vqarg, reverse=True))  # always: window > lag
         else:
@@ -303,11 +307,11 @@ def validate_xmin_args(ctx, param, xmin_args):
 # callback for options unique to -G --group mode (curr. only for --partition)
 def confirm_group_flag_set(ctx, param, val):
     if val is not None:
-        assert ctx.analyse_group,\
+        assert ctx._analyze_group,\
             (f"option '{param.name}' is only available when using "
              "group tail analysis mode; set -G or --group to use")
     else:
         # NOTE: this error should never triger as the default value &
         #       click.Choice type constraints suppresses it
-        assert not ctx.analyse_group
+        assert not ctx._analyze_group
     return val
