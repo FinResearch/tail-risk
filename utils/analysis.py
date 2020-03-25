@@ -42,7 +42,7 @@ class Analyzer(ABC):
         pass
 
     # configure given series to chosen returns_type
-    # TODO: can do this all at once on entire dbdf
+    # TODO: can do this all beforehand on entire dbdf, instead of on each iter
     def _config_data_by_returns_type(self, data_array):
         # TODO: shove below printing into verbosity logging
         print(f"You opted for the analysis of {self.ds.returns_type} returns")
@@ -130,7 +130,7 @@ class StaticAnalyzer(Analyzer):
         self.output_index = self.ds.tickers_grouping
         self.iter_id_keys = iter(self.ds.tickers_grouping)
 
-    def _set_curr_input_array(self):
+    def _set_curr_input_array(self):  # TODO:consider pass curr_iter_id as arg?
         lab = self.curr_iter_id
         self.curr_df_pos = lab, ()
         # TODO: move logging of DATE RANGE out of this repeatedly called method
@@ -166,7 +166,7 @@ class DynamicAnalyzer(Analyzer):
                          axis=1)  # TODO: set column index level names
 
     # TODO: consider vectorizing operations on all tickers
-    def _set_curr_input_array(self):
+    def _set_curr_input_array(self):  # TODO:consider pass curr_iter_id as arg?
         sub, (d, date) = self.curr_iter_id
         self.curr_df_pos = date, (sub,)
         d0 = d - self.lkb_off if self.ds.approach == 'rolling' else self.lkb_0
