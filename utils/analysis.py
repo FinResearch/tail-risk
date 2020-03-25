@@ -14,16 +14,16 @@ class Analyzer(ABC):
         # TODO: consider structuring settings objs & attrs better
         self.cs = ctrl_settings  # TODO: needed by this class?
         self.ds = data_settings
-        self._set_subcls_spec_props()
+        self._set_subcls_iter_props()
         self.results = self._init_results_df()
 
-    @abstractmethod  # TODO: rename method to be more reflective of its purpose
-    def _set_subcls_spec_props(self):
+    # # # state INDEPENDENT methods # # #
+
+    @abstractmethod
+    def _set_subcls_iter_props(self):
         # properties initialized below are used by methods defined in this ABC
         self.output_index = None    # list/tuple (prop from data_settings)
         self.iter_id_keys = None    # iterator
-
-    # # # state INDEPENDENT methods # # #
 
     def _init_results_df(self):
         index = self.output_index
@@ -126,7 +126,7 @@ class StaticAnalyzer(Analyzer):
         super(StaticAnalyzer, self).__init__(ctrl_settings, data_settings)
         assert self.ds.approach == 'static'
 
-    def _set_subcls_spec_props(self):
+    def _set_subcls_iter_props(self):
         self.output_index = self.ds.tickers_grouping
         self.iter_id_keys = iter(self.ds.tickers_grouping)
 
@@ -154,7 +154,7 @@ class DynamicAnalyzer(Analyzer):
                                     'exp': 'exponential',
                                     'lgn': 'lognormal'}
 
-    def _set_subcls_spec_props(self):
+    def _set_subcls_iter_props(self):
         self.output_index = self.ds.anal_dates
         self.iter_id_keys = product(iter(self.ds.tickers_grouping),
                                     enumerate(self.ds.anal_dates,
