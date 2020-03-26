@@ -2,6 +2,16 @@
 
 # options attributes for all forms of tail analysis
 
+analyze_group:
+  param_decls:
+    - '-G'
+    - '--group/--individual'
+    - 'analyze_group'
+  is_eager: true
+  default: false
+  callback: 'gset_group_opts'
+  help: 'set flag to run in group analysis mode; use with --help to also see options specific to group analysis'
+
 tickers:  # TODO: allow passing in a .txt file of tickers?
   param_decls:
     - '--tickers'
@@ -201,6 +211,7 @@ ks_flag:
   callback: 'customize_ksflag_show_default'
   help: '--ks-skip overrides value from --ks-iter'
 
+# TODO: make VnargsOption work with flags, then combine ks-iter & --ks-run
 ks_iter:
   param_decls:
     - '--ks-iter'

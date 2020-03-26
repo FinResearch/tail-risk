@@ -119,6 +119,13 @@ def gset_full_dbdf(ctx, param, db_file):
     # FIXME: performance mighe be somewhat reduced due to this IO operation???
 
 
+# TODO: present possible DB_FILE options if not passed & no defaults set
+#  def _get_db_choices():
+#      db_pat = re.compile(r'db.*\.(csv|xlsx)')  # TODO: confirm db name schema
+#      file_matches = [db_pat.match(f) for f in os.listdir()]
+#      return ', '.join([m.group() for m in file_matches if m is not None])
+
+
 #  def set_tickers_from_textfile(ctx, param, tickers):
     #  pass
 
