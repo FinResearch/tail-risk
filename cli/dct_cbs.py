@@ -158,17 +158,21 @@ def gset_group_opts(ctx, param, analyze_group):
     if analyze_group:
         ctx._analyze_group = True
 
-        param.hidden = True  # NOTE: when -G set, hide its help
-
+        opt_names = [p.name for p in ctx.command.params
+                     if isinstance(p, click.Option)]
         grp_defs_fpath = OPT_CFG_DIR + 'group_defaults.yaml'
         with open(grp_defs_fpath) as cfg:
-            grp_defs = yaml.load(cfg, Loader=yaml.SafeLoader)
+            grp_dflts = yaml.load(cfg, Loader=yaml.SafeLoader)
 
-        for opt, dflt in grp_defs.items():
-            grp_opt = _get_param_from_ctx(ctx, opt)
-            grp_opt.default = dflt  # NOTE: update to group specific defaults
-            if grp_opt.hidden:  # NOTE: show opts hidden in non-group mode
-                grp_opt.hidden = False
+        for opt in opt_names:
+            opt_obj = _get_param_from_ctx(ctx, opt)
+            if opt in grp_dflts:  # update group specific default val
+                opt_obj.default = grp_dflts[opt]
+            # show opts hidden in individual mode, & hide opts common to both
+            opt_obj.hidden = False if opt in grp_dflts else True
+
+        param.hidden = False  # undoes the opt_obj.hidden toggle above
+        param.help = 'see below for help specific to group analysis'
 
     # NOTE: this hacky piggybacking only works b/c -G is an eager option
     _set_vnargs_choice_metahelp_(ctx)

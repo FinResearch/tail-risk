@@ -10,7 +10,7 @@ analyze_group:
   is_eager: true
   default: false
   callback: 'gset_group_opts'
-  help: 'set flag to run in group analysis mode; use with --help to also see options specific to group analysis'
+  help: 'set flag to run in group analysis mode; -Gh to see help specific to group analysis'
 
 tickers:  # TODO: allow passing in a .txt file of tickers?
   param_decls:
