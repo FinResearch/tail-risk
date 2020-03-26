@@ -19,8 +19,54 @@ import numpy as np
 
 class Structures:
 
-    def __init__(self, data_settings):
+    def __init__(self, ctrl_settings, data_settings):
+        self.cs = ctrl_settings
         self.ds = data_settings
+
+        self.results_storage = self._init_results_storage()
+        self.temp_array = self._init_temp_array()
+
+    def _init_results_storage(self):
+        #  t = 2 if self.ds.tail_selection == 'both' else 1
+        t = len(self.ds.tails_to_use)
+
+        if self.cs.analyze_group:
+            pass
+        else:
+            N = len(self.ds.tickers)
+
+        if self.ds.approach == "static":
+            M = t * 11  # TODO: get 11 or equiv. from some config
+        #  elif self.ds.approach in ("rolling", "increasing"):
+        else:
+            N = t * N
+            M = self.ds.len_dates
+        return np.zeros((N, M))
+
+    def _init_temp_array(self):  # TODO: fold this into somewhere somwhow
+        if self.ds.approach == "static":
+            return None
+        else:
+            N = self.ds.n_spdt
+            M = 22 if self.ds.tail_selected == 'both' else 11
+            return np.zeros((N, M))
+
+    #  # TODO: use a defaultdict to initialize the data storage container???
+    # NOTE: len of each list is len(spec_dates) == n_spdt -> use np.ndarray?
+    def init_csv_array(self, N=None, M=None):
+        # TODO: add build-in Pandas DataFrame support (use labels below)
+        #  tail_stats_labs = ('α', 'xmin', 'σ', 'abs_len', 'ks_pv')
+        #  loglR_labs = tuple(f'loglR_{distro}' for distro in pl_distro_map)
+        #  loglp_labs = tuple(f'loglp_{distro}' for distro in pl_distro_map)
+        #  m = len(tail_stats_labs + loglR_labs + loglp_labs)
+        #  M = 2*m if self.ds.tail_selected == 'both' else m
+        #  # TODO: consider using deque module for fast appending?
+        #  return{lab: [] for lab in tail_stats_labs + loglR_labs + loglp_labs}
+        if N is None:
+            N = self.ds.n_spdt
+        if M is None:  # TODO: M differs by approach & script type
+            M = 22 if self.ds.tail_selected == 'both' else 11
+        return np.zeros((N, M))
 
     # TODO: combine the two init_ 2D matrix functions?
     def init_alpha_bpmat(self, N=None, M=None):  # bpm: boxplot matrix
@@ -30,27 +76,6 @@ class Structures:
             N = n * len(self.ds.tickers)
         if M is None:
             M = self.ds.n_spdt
-
-        return np.zeros((N, M))
-
-    #  # TODO: use a defaultdict to initialize the data storage container???
-    # NOTE: len of each list is len(spec_dates) == n_spdt -> use np.ndarray?
-    def init_csv_array(self, N=None, M=None):
-
-        # TODO: add build-in Pandas DataFrame support (use labels below)
-        #  tail_stats_labs = ('α', 'xmin', 'σ', 'abs_len', 'ks_pv')
-        #  loglR_labs = tuple(f'loglR_{distro}' for distro in pl_distro_map)
-        #  loglp_labs = tuple(f'loglp_{distro}' for distro in pl_distro_map)
-        #  m = len(tail_stats_labs + loglR_labs + loglp_labs)
-        #  M = 2*m if self.ds.tail_selected == 'both' else m
-        #  # TODO: consider using deque module for fast appending?
-        #  return{lab: [] for lab in tail_stats_labs + loglR_labs + loglp_labs}
-
-        if N is None:
-            N = self.ds.n_spdt
-        if M is None:  # TODO: M differs by approach & script type
-            M = 22 if self.ds.tail_selected == 'both' else 11
-
         return np.zeros((N, M))
 
 #  def add_stats_to_array_(results, csv_array, n_row):

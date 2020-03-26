@@ -45,6 +45,7 @@ class Calculator:
         xmin = self.__get_xmin(xmin=xmin, data=data)
         return Fit(data, discrete=discrete, xmin=xmin)
 
+    #  def _normalize_tail(self):
     def _std_abs_tail(self, data, fit):
         # TODO: need to test standardization function
         # TODO: consider passing in fit.power_law.xmin directly, instead of fit
@@ -155,3 +156,9 @@ class Calculator:
 
         # TODO: consider doing the zip/convolution here?
         return alphas, up_bounds, low_bounds, abs_lens, rel_lens, ks_pvs
+
+
+class GroupCalculator(Calculator):
+
+    def __init__(self):
+        pass

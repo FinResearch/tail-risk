@@ -30,26 +30,25 @@ import plpva as plpva
 #####################################
 
 
-def Extractor(filename, tickers):
-    object = pd.read_csv(filename)
-    output = [(object["Date"].values).tolist()]
-    for i in range(0, len(tickers), 1):
-        try:
-            output.append((object[tickers[i]].values).tolist())
-        except KeyError:
-            print("Ticker " + tickers[i] + " not found in " + filename)
-
-    return output
+#  def Extractor(filename, tickers):
+#      object = pd.read_csv(filename)
+#      output = [(object["Date"].values).tolist()]
+#      for i in range(0, len(tickers), 1):
+#          try:
+#              output.append((object[tickers[i]].values).tolist())
+#          except KeyError:
+#              print("Ticker " + tickers[i] + " not found in " + filename)
+#      return output
 
 
 #####################################
 # Script begins                     #
 #####################################
 
-#  question       = "What is the name of the database?"
-#  database_name = eg.enterbox(question, title="DB name", default="dbMSTR_test.csv")
-database_name = "dbMSTR_test.csv"
-#  database_name = "dbMarkitTest.xlsx"
+#  #  question       = "What is the name of the database?"
+#  #  database_name = eg.enterbox(question, title="DB name", default="dbMSTR_test.csv")
+#  database_name = "dbMSTR_test.csv"
+#  #  database_name = "dbMarkitTest.xlsx"
 
 
 #  question       = "How many entries would you like to analyze?"
@@ -91,59 +90,57 @@ fieldValues = [
 #  labels        = eg.multenterbox(question, title, fieldNames, fieldValues)
 labels = fieldValues
 
-database = Extractor(database_name, labels)
-
-
-#  question      = "Please specify the initial date, the final date and the lookback for rolling analysis?"
-#  fieldNames    = ["Initial Date", "Final Date", "Lookback"]
-#  fieldValues   = ["17-07-03", "5/5/2016", "252"]
-#  title         = "Dates input"
-#  input         = eg.multenterbox(question, title, fieldNames, fieldValues)
-#  initial_date  = input[0]
-#  final_date    = input[1]
-#  lookback      = int(input[2])
-#  initial_date = "1/1/2016"
-initial_date = "31-03-16"
-final_date = "5/5/2016"
-lookback = 252
-
-
-#  question      = "Please specify which type of series you want to study"
-#  choices       = ['Returns', 'Relative Returns','Log-Returns']
-#  input_type    = eg.choicebox(question, 'Input type', choices)
-input_type = "Log-Returns"
-
-#  msg           = "Please specify the time lag of the input series: 1 = daily, 5 = weekly, 22 = monthly"
-#  tau           = int(eg.enterbox(msg, title="delta", default="1"))
-tau = 1
-
-#  question      = "Do you want to normalize each investigated time series?"
-#  choices       = ['Yes', 'No']
-#  standardize   = eg.buttonbox(question, 'Normalization', choices)
-standardize = "No"
-
-#  if standardize == "Yes":
-#      question = "When do you want to standardize your series with respect to the grouping procedure?"
-#      choices = ["Before", "After", "Both"]
-#      title = "Normalization timing"
-#      norm_timing = eg.choicebox(question, title, choices)
-
-#  question      = "Do you want to take the absolute value of your series (after any eventual normalization)?"
-#  choices       = ['Yes', 'No']
-#  abs_value     = eg.buttonbox(question, 'Absolute value', choices)
-abs_value = "No"
-
-#  if abs_value == "Yes":
-#      question = "When do you want to take the absolute value of your series with respect to the grouping procedure?"
-#      choices = ["Before", "After", "Both"]
-#      title = "Absolute value timing"
-#      abs_timing = eg.choicebox(question, title, choices)
-
-#  question      = "Please specify which approach you would like to use"
-#  choices       = ['Static', 'Rolling', 'Increasing']
-#  approach      = eg.choicebox(question, 'Approach', choices)
-approach = "Rolling"
-#  an_freq = 1
+#  database = Extractor(database_name, labels)
+#  #  question      = "Please specify the initial date, the final date and the lookback for rolling analysis?"
+#  #  fieldNames    = ["Initial Date", "Final Date", "Lookback"]
+#  #  fieldValues   = ["17-07-03", "5/5/2016", "252"]
+#  #  title         = "Dates input"
+#  #  input         = eg.multenterbox(question, title, fieldNames, fieldValues)
+#  #  initial_date  = input[0]
+#  #  final_date    = input[1]
+#  #  lookback      = int(input[2])
+#  #  initial_date = "1/1/2016"
+#  initial_date = "31-03-16"
+#  final_date = "5/5/2016"
+#  lookback = 252
+#
+#
+#  #  question      = "Please specify which type of series you want to study"
+#  #  choices       = ['Returns', 'Relative Returns','Log-Returns']
+#  #  input_type    = eg.choicebox(question, 'Input type', choices)
+#  input_type = "Log-Returns"
+#
+#  #  msg           = "Please specify the time lag of the input series: 1 = daily, 5 = weekly, 22 = monthly"
+#  #  tau           = int(eg.enterbox(msg, title="delta", default="1"))
+#  tau = 1
+#
+#  #  question      = "Do you want to normalize each investigated time series?"
+#  #  choices       = ['Yes', 'No']
+#  #  standardize   = eg.buttonbox(question, 'Normalization', choices)
+#  standardize = "No"
+#
+#  #  if standardize == "Yes":
+#  #      question = "When do you want to standardize your series with respect to the grouping procedure?"
+#  #      choices = ["Before", "After", "Both"]
+#  #      title = "Normalization timing"
+#  #      norm_timing = eg.choicebox(question, title, choices)
+#
+#  #  question      = "Do you want to take the absolute value of your series (after any eventual normalization)?"
+#  #  choices       = ['Yes', 'No']
+#  #  abs_value     = eg.buttonbox(question, 'Absolute value', choices)
+#  abs_value = "No"
+#
+#  #  if abs_value == "Yes":
+#  #      question = "When do you want to take the absolute value of your series with respect to the grouping procedure?"
+#  #      choices = ["Before", "After", "Both"]
+#  #      title = "Absolute value timing"
+#  #      abs_timing = eg.choicebox(question, title, choices)
+#
+#  #  question      = "Please specify which approach you would like to use"
+#  #  choices       = ['Static', 'Rolling', 'Increasing']
+#  #  approach      = eg.choicebox(question, 'Approach', choices)
+#  approach = "Rolling"
+#  #  an_freq = 1
 
 #  question       = "How do you want to group the inputs?"
 #  choices       = ['Country', 'Maturity', 'Core vs Peripheral', 'All', 'Rating', 'High Yield', 'Investment Grade']
@@ -156,20 +153,11 @@ if partition == "Country":
     for lab in labels:
         country = lab[0:2]
         identifiers.append(country)
-    print(
-        "You have decided to group your data according to the following criteria: "
-        + partition
-    )
-
 #  elif partition == "Maturity":
 #      identifiers = []
 #      for lab in labels:
 #          maturity = lab[3:6]
 #          identifiers.append(maturity)
-#      print(
-#          "You have decided to group your data according to the following criteria: "
-#          + partition
-#      )
 #  elif partition == "Core vs Peripheral":
 #      clusters = [["DE", "FR", "BE"], ["IT", "ES", "PT", "IR", "GR"]]
 #      identifiers = []
@@ -186,36 +174,30 @@ if partition == "Country":
 #                  + ") is not listed among core or peripheral groups"
 #              )
 #              exit
-#      print(
-#          "You have decided to group your data according to the following criteria: "
-#          + partition
-#      )
 #  elif partition == "All":
 #      identifiers = []
 #      for lab in labels:
 #          identifiers.append("All Countries")
-#      print(
-#          "You have decided to group your data according to the following criteria: "
-#          + partition
-#      )
 #  else:
 #      "Nada"
+print(f"You have decided to group your data by {partition}")
 
 #  if approach != 'Static':
 #  question        = "Please specify the amplitude of the sliding window (days) in the non static analysis"
 #  sliding_window  = int(eg.enterbox(question, title="block length", default="1"))
 sliding_window = 1
+# ASK/NOTE: the above same as an_freq in TailAnalysis??
 
 
-#  question      = "Please specify which tail you want to plot in the alpha timeline"
-#  choices       = ['Left', 'Right', 'Both']
-#  tail_selected = eg.choicebox(question, 'Select a tail', choices)
-tail_selected = "Both"
-
-#  question      = "What is the nature of your data?"
-#  choices       = ['Discrete', 'Continuous']
-#  data_nature   = eg.choicebox(question, 'Data type', choices)
-data_nature = "Continuous"
+#  #  question      = "Please specify which tail you want to plot in the alpha timeline"
+#  #  choices       = ['Left', 'Right', 'Both']
+#  #  tail_selected = eg.choicebox(question, 'Select a tail', choices)
+#  tail_selected = "Both"
+#
+#  #  question      = "What is the nature of your data?"
+#  #  choices       = ['Discrete', 'Continuous']
+#  #  data_nature   = eg.choicebox(question, 'Data type', choices)
+#  data_nature = "Continuous"
 
 #  question      = "What is the criteria for picking xmin"
 #  choices       = ['Clauset', 'Rolling', 'Manual', 'Percentile']
@@ -238,18 +220,18 @@ if xmin_rule == "Percentile":
     question = "What is the value of the significance for xmin?"
     xmin_sign = float(eg.enterbox(question, title="xmin percentile", default="91.41"))
 
-if tail_selected == "Both":
-    multiplier = 0.5
-else:
-    multiplier = 1.0
-
-#  msg           = "Please specify the significance of the confidence interval (1 - a) for the alpha parameter "
-#  significance  = float(eg.enterbox(msg, title="alpha", default="0.05"))
-significance = 0.05
-
-#  question      = "What is the number of iterations for the Clauset p-value algorithm?"
-#  c_iter        = int(eg.enterbox(question, title="iterations", default='2'))
-c_iter = 2
+#  if tail_selected == "Both":
+#      multiplier = 0.5
+#  else:
+#      multiplier = 1.0
+#
+#  #  msg           = "Please specify the significance of the confidence interval (1 - a) for the alpha parameter "
+#  #  significance  = float(eg.enterbox(msg, title="alpha", default="0.05"))
+#  significance = 0.05
+#
+#  #  question      = "What is the number of iterations for the Clauset p-value algorithm?"
+#  #  c_iter        = int(eg.enterbox(question, title="iterations", default='2'))
+#  c_iter = 2
 
 
 # NOTE: these lists appear to only be used for plotting

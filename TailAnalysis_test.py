@@ -1,6 +1,4 @@
-from utils.settings import settings as s
-
-from utils import io, ui, structs, calc
+from utils import io, structs, calc
 
 import plot_funcs.tail_risk_plotter as trp
 #  import plot_funcs.boxplot as pfbx
@@ -699,12 +697,13 @@ if s.approach == "rolling" or s.approach == "increasing":
         for i, dt in enumerate(s.spec_dates):
 
             ll = s.ind_i + i
-            # ASK: is the none "rolling" approach, "increasing"?
             lbk = (ll if s.approach == "rolling" else s.ind_i) - s.lookback + 1
 
             # NOTE: must convert Series to PandasArray to remove Index,
             # otherwise all operations will be aligned on their indexes
             series = s.db_df[tck].iloc[lbk: ll + 1].array
+            #  series_0 = s.full_dbdf.iloc[lbk:ll+1, t].array
+            #  assert series == series_0
 
             begin_date = s.db_dates[lbk]
             end_date = dt
