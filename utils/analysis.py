@@ -15,7 +15,7 @@ class Analyzer(ABC):
 
     def __init__(self, ctrl_settings, data_settings):
         # TODO: consider structuring settings objs & attrs better
-        self.cs = ctrl_settings  # TODO: needed by this class?
+        self.cs = ctrl_settings
         self.ds = data_settings
         self._set_subcls_iter_props()
         self.results = self._init_results_df()
@@ -149,7 +149,7 @@ class Analyzer(ABC):
         iter_id_keys = tuple(self.iter_id_keys)
 
         # TODO: look into Queue & Pipe for sharing data
-        with Pool(processes=4) as pool:  # TODO: make # processes a CLI opt
+        with Pool(processes=self.cs.nproc) as pool:
             # TODO checkout .map alternatives: .imap, .map_async, etc.
             restup_ls = [restup for iter_restups in  # TODO: optimize chunksize
                          pool.map(self._analyze_iter, iter_id_keys)
@@ -164,7 +164,14 @@ class Analyzer(ABC):
 
     # top-level convenience method that autodetects how to run tail analysis
     def analyze(self):
-        pass
+        nproc = self.cs.nproc
+        # TODO: add other OR conds for analyze_sequential anal (ex. -a static)
+        if nproc == 1:
+            self.analyze_sequential()
+        elif nproc > 1:
+            self.analyze_multiproc()
+        else:
+            raise TypeError(f'Cannot perform analysis with {nproc} processes')
 
 
 class StaticAnalyzer(Analyzer):
@@ -246,7 +253,5 @@ def analyze_tail(ctrl_settings, data_settings):
     cs, ds = ctrl_settings, data_settings
     Analyzer = StaticAnalyzer if ds.approach == 'static' else DynamicAnalyzer
     analyzer = Analyzer(cs, ds)
-    #  analyzer.analyze_sequential()
-    #  print(analyzer.results)
-    analyzer.analyze_multiproc()
+    analyzer.analyze()
     print(analyzer.results)
