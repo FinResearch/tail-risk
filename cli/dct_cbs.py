@@ -3,6 +3,7 @@ from click.core import ParameterSource
 
 import yaml
 import pandas as pd
+import os
 
 # NOTE: import below is reified by eval() call, NOT unused as implied by linter
 from ._vnargs import VnargsOption
@@ -345,3 +346,11 @@ def customize_ksflag_show_default(ctx, param, ks_flag):
     _customize_boolflag_show_default(param, ks_flag,
                                      ('Run', 'Skip',))
     return ks_flag
+
+
+def get_nproc_set_show_default(ctx, param, nproc):
+    conf_help = f'{nproc} (Config File)'
+    none_help = f'{os.cpu_count()} (# CPUs)'
+    # --nproc is not BOOL flag, but its truthiness is used to customize help
+    _customize_boolflag_show_default(param, nproc, (conf_help, none_help))
+    return os.cpu_count() if nproc is None else nproc

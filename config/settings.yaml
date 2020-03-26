@@ -13,7 +13,7 @@ ctrl:
   - verbosity
   - analyze_group
   - ks_flag
-  - num_cores
+  - nproc
   - show_plots
   - save_plots
 

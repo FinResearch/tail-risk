@@ -207,8 +207,8 @@ ks_flag:
     - 'ks_flag'
   is_eager: true  # NOTE: is_eager needed to correctly customize show_default in help via cb
   default: true
-  metavar: '(Run/Skip KS-Test)'  # FIXME: get metavarto work w/ flags (not shown currently)
   callback: 'customize_ksflag_show_default'
+  metavar: '(Run/Skip KS-Test)'  # FIXME: get metavarto work w/ flags (not shown currently)
   help: '--ks-skip overrides value from --ks-iter'
 
 # TODO: make VnargsOption work with flags, then combine ks-iter & --ks-run
@@ -219,6 +219,17 @@ ks_iter:
   default: 100
   metavar: '<INT (# iterations)>'
   help: 'specify number of iterations used for KS-testing'
+
+nproc:
+  param_decls:
+    - '-np'
+    - '--nproc'
+  type: 'int'
+  is_eager: true  # NOTE: is_eager needed to correctly customize show_default in help via cb
+  # default: 1  # NOTE: set attribute to override default behavior of getting value from os.cpu_count()
+  callback: 'get_nproc_set_show_default'
+  metavar: '<INT (# processes)>'
+  help: "number of concurrent processes used for analysis"
 
 show_plots:
   param_decls:
