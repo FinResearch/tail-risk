@@ -128,7 +128,7 @@ def gset_full_dbdf(ctx, param, db_file):
 
 
 #  def set_tickers_from_textfile(ctx, param, tickers):
-    #  pass
+#      pass
 
 
 # small mutating utility to correctly set the metavar & help attrs of xmin_args
@@ -150,7 +150,7 @@ def _set_vnargs_choice_metahelp_(ctx):
 # callback for -G, --group
 def gset_group_opts(ctx, param, analyze_group):
 
-    _customize_boolflag_show_default(param, analyze_group,
+    _customize_show_default_boolcond(param, analyze_group,
                                      ('group', 'individual'))
 
     # private toplevel group flag-val on Context for convenience of other cbs
@@ -331,11 +331,11 @@ def confirm_group_flag_set(ctx, param, val):
 
 
 # helper for customizing str displayed in help msg when show_default is True
-def _customize_boolflag_show_default(param, flag_val, dflt_str_2tup):
+def _customize_show_default_boolcond(param, boolcond, dflt_str_2tup):
     if param.show_default:
         param.show_default = False  # turn off built-in show_default
         true_dflt, false_dflt = dflt_str_2tup
-        help_dflt = true_dflt if flag_val else false_dflt
+        help_dflt = true_dflt if boolcond else false_dflt
         param.help += f'  [default: {help_dflt}]'
 # TODO: create and send this feature as PR to pallets/click ??
 
@@ -343,14 +343,14 @@ def _customize_boolflag_show_default(param, flag_val, dflt_str_2tup):
 # TODO: reorder callback definitions in this file
 # callback for --ks-test / --ks-skip
 def customize_ksflag_show_default(ctx, param, ks_flag):
-    _customize_boolflag_show_default(param, ks_flag,
+    _customize_show_default_boolcond(param, ks_flag,
                                      ('Run', 'Skip',))
     return ks_flag
 
 
 def get_nproc_set_show_default(ctx, param, nproc):
-    conf_help = f'{nproc} (Config File)'
+    conf_dflt = _get_param_from_ctx(ctx, param.name).default
+    conf_help = f'{conf_dflt} (Config File)'
     none_help = f'{os.cpu_count()} (# CPUs)'
-    # --nproc is not BOOL flag, but its truthiness is used to customize help
-    _customize_boolflag_show_default(param, nproc, (conf_help, none_help))
+    _customize_show_default_boolcond(param, conf_dflt, (conf_help, none_help))
     return os.cpu_count() if nproc is None else nproc
