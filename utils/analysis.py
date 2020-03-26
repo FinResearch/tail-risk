@@ -7,9 +7,8 @@ from itertools import product
 from powerlaw import Fit  # TODO: consider import entire module?
 from ._plpva import plpva as _plpva
 
-from multiprocessing import Process, Pool
-#  import atexit
-from os import getpid
+from os import getpid  # TODO: remove after debugging uses done
+from multiprocessing import Pool
 
 
 class Analyzer(ABC):
@@ -104,6 +103,14 @@ class Analyzer(ABC):
         assert len(curr_tstat_series) == len(self.ds.outcol_labels)
         idx, col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
         self.results.loc[idx, col + (tdir,)].update(curr_tstat_series)
+        # TODO: consider using pd.DataFrame.replace(, inplace=True) instead
+
+    def __get_tdir_iter_restup(self, tdir):  # retrn results tuple for one tail
+        # TODO: use np.ndarray instead of pd.Series (wasteful) --> order later
+        curr_tstat_series = pd.Series(self._get_curr_tail_stats())
+        assert len(curr_tstat_series) == len(self.ds.outcol_labels)
+        idx, col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
+        return (idx, col + (tdir,)), curr_tstat_series
 
     # # # orchestration / driver methods # # #
 
@@ -125,30 +132,35 @@ class Analyzer(ABC):
 
     # runs analysis for one iteration of analysis given arbitrary iter_id
     def _analyze_iter(self, iter_id):
-        print(f'running PID: {getpid()}')
-        print(f'computing iter: {iter_id}')
+        print(f"### DEBUG: PID {getpid()} analyzing iter '{iter_id}'")
 
         self.curr_iter_id = iter_id
         self._set_curr_input_array()  # 'input' as in input to powerlaw.Fit
+
+        iter_restups = []  # results tuple(s) for single iteration of input
         for tdir in self.ds.tails_to_use:
             self._set_curr_fit_obj(tdir)
-            self._store_partial_results(tdir)
+            iter_restups.append(self.__get_tdir_iter_restup(tdir))
+        return iter_restups
 
     # runs analysis in multiprocessing mode
     def analyze_multiproc(self):
+        # TODO: https://stackoverflow.com/a/52596590/5437918 (use shared DBDFs)
         iter_id_keys = tuple(self.iter_id_keys)
 
-        # TODO: checkout .apply_async, .imap, .map_async, etc. & chunksize
-        with Pool() as pool:
-            # TODO: look into Queue & Pipe for sharing data
-            results = pool.map(self._analyze_iter, iter_id_keys)
-        print(results)
+        # TODO: look into Queue & Pipe for sharing data
+        with Pool(processes=4) as pool:  # TODO: make # processes a CLI opt
+            # TODO checkout .map alternatives: .imap, .map_async, etc.
+            restup_ls = [restup for iter_restups in  # TODO: optimize chunksize
+                         pool.map(self._analyze_iter, iter_id_keys)
+                         for restup in iter_restups]
+        assert len(restup_ls) == len(iter_id_keys)*len(self.ds.tails_to_use)
 
-        #  # NOTE: using Process is a shit method b/c new procs spawned each iter
-        #  for i, iter_id in enumerate(iter_id_keys):
-        #      procs = [Process(target=self._analyze_iter, args=(iter_id,)) for p in range(4)]
-        #      [p.start() for p in procs]
-        #      [p.join() for p in procs]
+        # TODO: update results_df more efficiently, ex. pd.DataFrame.replace(),
+        #       np.ndarray, etc.; see TODO note under __get_tdir_iter_restup)
+        for restup in restup_ls:
+            (idx, col), res = restup
+            self.results.loc[idx, col].update(res)
 
     # top-level convenience method that autodetects how to run tail analysis
     def analyze(self):
