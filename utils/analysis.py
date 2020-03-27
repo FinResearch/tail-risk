@@ -29,10 +29,11 @@ class Analyzer(ABC):
         self.iter_id_keys = None    # iterator
 
     def _init_results_df(self):
-        index = self.output_index
         columns = self.ds.outcol_labels
+        index = self.output_index
         df_tail = pd.DataFrame(np.zeros(shape=(len(index), len(columns))),
-                               index=index, columns=columns, dtype=float)
+                               columns=pd.MultiIndex.from_tuples(columns),
+                               index=index, dtype=float)
         return pd.concat({t: df_tail for t in self.ds.tails_to_use}, axis=1)
         # TODO: set index (both columns & row-index) names property
 

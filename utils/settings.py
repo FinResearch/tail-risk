@@ -106,6 +106,16 @@ class Settings:
         cix = self.dynamic_dbdf.columns  # cix: column index
         self.tickers_grouping = cix.levels[0] if self.analyze_group else cix
 
+    # helper func called in _load_set_output_columns_labels
+    def _make_loglikelihood_collabs(self):
+        ll_labs = [(i, lab) for i, lab in enumerate(self.outcol_labels)
+                   if lab.startswith('ll_')]
+        for i, lab in reversed(ll_labs):
+            # insert and pop in reverse order to preserve validity of index i
+            self.outcol_labels.insert(i + 1, (lab, 'p'))
+            self.outcol_labels.insert(i + 1, (lab, 'R'))
+            self.outcol_labels.pop(i)
+
     def _load_set_output_columns_labels(self):
         # TODO/NOTE: -G, --group dynamic cols differs slightly (xmin_today)
         output_cfgbn = 'static' if self.approach == 'static' else 'dynamic'
@@ -116,6 +126,10 @@ class Settings:
         self.ks_flag = False if self.ks_iter <= 0 else self.ks_flag
         if self.ks_flag is False:
             self.outcol_labels.remove('ks_pv')
+
+        self._make_loglikelihood_collabs()
+        self.outcol_labels = [(lab, '') if isinstance(lab, str) else lab
+                              for lab in self.outcol_labels]
 
     # # methods for creating the settings SimpleNamespace object(s) # #
 
