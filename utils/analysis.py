@@ -96,7 +96,8 @@ class Analyzer(ABC):
                               self.ds.ks_iter, 'silent')
             # TODO: try compute ks_pv using MATLAB engine & module, and time
         locs = locals()
-        return {vr: locs.get(vr) for vr in self.ds.outcol_labels if vr in locs}
+        return {(stat, ''): locs.get(stat) for stat, _ in
+                self.ds.outcol_labels if stat in locs}
 
     def _store_partial_results(self, tdir):
         curr_tstat_series = pd.Series(self._get_curr_tail_stats())
@@ -205,9 +206,9 @@ class DynamicAnalyzer(Analyzer):
         self.lkb_off = self.ds.lookback - 1  # ASK/TODO: offset 0 or 1 day?
         self.lkb_0 = self.ds.date_i_idx - self.lkb_off
 
-        self._distros_to_compare = {'tpl': 'truncated_power_law',
-                                    'exp': 'exponential',
-                                    'lgn': 'lognormal'}
+        self._distros_to_compare = {'ll_tpl': 'truncated_power_law',
+                                    'll_exp': 'exponential',
+                                    'll_lgn': 'lognormal'}
 
     def _set_subcls_iter_props(self):
         self.output_index = self.ds.anal_dates
@@ -234,13 +235,18 @@ class DynamicAnalyzer(Analyzer):
         self.curr_input_array = self._preprocess_data_array(data_array)
 
     def _get_curr_logl_stats(self):  # ASK/TODO: logl_stats unneeded in static?
-        logl_stats = {}
-        for key, distro in self._distros_to_compare.items():
-            R, p = self.curr_fit.distribution_compare('power_law', distro,
-                                                      normalized_ratio=True)
-            logl_stats[f'R_{key}'] = R  # TODO: store R, p together as (R, p)?
-            logl_stats[f'p_{key}'] = p  # even better: store as 2-lvl'd sub-DF
-        return logl_stats
+        # compute (R, p) using powerlaw.Fit.distribution_compare
+        logl_stats = {key: {stat: val for stat, val in
+                            zip(('R', 'p'),
+                                self.curr_fit.distribution_compare(
+                                    'power_law',
+                                    distro,
+                                    normalized_ratio=True))
+                            }
+                      for key, distro in self._distros_to_compare.items()}
+
+        return {(key, stat): logl_stats.get(key, {}).get(stat) for
+                key, stat in self.ds.outcol_labels if key.startswith('ll_')}
 
     # TODO: add getting xmin_today data when doing group tail analysis
     def _get_curr_tail_stats(self):
@@ -256,3 +262,4 @@ def analyze_tail(ctrl_settings, data_settings):
     analyzer = Analyzer(cs, ds)
     analyzer.analyze()
     print(analyzer.results)
+    print(analyzer.results.info())
