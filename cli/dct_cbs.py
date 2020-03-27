@@ -266,7 +266,7 @@ def validate_approach_args(ctx, param, approach_args):
     if approach == 'static':
         assert anal_freq is None,\
             "approach 'static' does not take extra args"
-    elif approach in ('rolling', 'increasing') and isinstance(anal_freq, str):
+    elif approach in {'rolling', 'increasing'} and isinstance(anal_freq, str):
         type_errmsg = (f"anal_frequency arg to approach '{approach}' must be "
                        f"an INT (# days); given: {anal_freq}")
         anal_freq = _convert_str_to_num(anal_freq, min_allowed=1,

@@ -73,7 +73,7 @@ class Analyzer(ABC):
 
     def __get_xmin(self):
         # TODO: calculate clauset xmin value a priori using lookback
-        if self.ds.xmin_rule in ("clauset", "manual"):
+        if self.ds.xmin_rule in {"clauset", "manual"}:
             xmin = self.ds.xmin_vqty
         elif self.ds.xmin_rule == "percentile":
             xmin = np.percentile(self.curr_input_array, self.ds.xmin_vqty)
@@ -200,7 +200,7 @@ class DynamicAnalyzer(Analyzer):
 
     def __init__(self, ctrl_settings, data_settings):
         super(DynamicAnalyzer, self).__init__(ctrl_settings, data_settings)
-        assert self.ds.approach in ('rolling', 'increasing')
+        assert self.ds.approach in {'rolling', 'increasing'}
         self.lkb_off = self.ds.lookback - 1  # ASK/TODO: offset 0 or 1 day?
         self.lkb_0 = self.ds.date_i_idx - self.lkb_off
 
@@ -237,8 +237,8 @@ class DynamicAnalyzer(Analyzer):
         for key, distro in self._distros_to_compare.items():
             R, p = self.curr_fit.distribution_compare('power_law', distro,
                                                       normalized_ratio=True)
-            logl_stats[f'R_{key}'] = R  # TODO: store R, p together as (R, p)? --> even better: store as 2-leveled sub-DataFrame
-            logl_stats[f'p_{key}'] = p
+            logl_stats[f'R_{key}'] = R  # TODO: store R, p together as (R, p)?
+            logl_stats[f'p_{key}'] = p  # even better: store as 2-lvl'd sub-DF
         return logl_stats
 
     # TODO: add getting xmin_today data when doing group tail analysis

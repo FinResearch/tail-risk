@@ -15,9 +15,9 @@ class Settings:
         # get (compute/calc) & set (extract) specific settings from given opts
         self._set_approach_analfreq()
         self._set_xmin_args()
-        self._gset_tail_attrs()
+        self._gset_tail_settings()
         self._gset_dbdf_attrs()
-        self._gset_labelstep()  # TODO: call from other method? --> need anal_freq & len_dates
+        self._gset_labelstep()  # TODO:call in other mtd w/ anal_freq & len_dts
         self._gset_grouping_info()  # must be called after _gset_dbdf_attrs()
         self._load_set_output_columns_labels()
 
@@ -34,11 +34,13 @@ class Settings:
         # ex. for 'percentile', as 'lookback' is known, just compute on dbdf
         self.xmin_rule, self.xmin_vqty = self.xmin_args
 
-    def _gset_tail_attrs(self):
-        """Return relevant tail selection settings
+    def _gset_tail_settings(self):
+        """Compute settings relevant to tail selection
         """
-        self.use_right = True if self.tail_selection in ('right', 'both') else False
-        self.use_left = True if self.tail_selection in ('left', 'both') else False
+        tsel = self.tail_selection
+
+        self.use_right = True if tsel in {'right', 'both'} else False
+        self.use_left = True if tsel in {'left', 'both'} else False
 
         tails_to_use = []
         if self.use_right:
@@ -47,7 +49,7 @@ class Settings:
             tails_to_use.append('left')
         self.tails_to_use = tuple(tails_to_use)
 
-        mult = 0.5 if self.tail_selection == 'both' else 1
+        mult = 0.5 if tsel == 'both' else 1
         self.alpha_qntl = NormalDist().inv_cdf(1 - mult * self.alpha_signif)
 
     def _gset_dbdf_attrs(self):
@@ -77,7 +79,7 @@ class Settings:
                           Period.BIANNUAL)
 
     def _partition_dynamic_dbdf(self):
-        if self.partition in ('country', 'maturity'):
+        if self.partition in {'country', 'maturity'}:
             # partition rules where IDs are readily parsed from ticker labels
             a, b = {'country': (0, 2), 'maturity': (3, 6)}[self.partition]
             part_ids = set(tick[a:b] for tick in self.tickers)
