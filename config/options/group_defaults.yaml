@@ -3,10 +3,10 @@
 # defaults values specific to group tail analysis
 # TODO: allow modding additional attrs besides just defaults?
 
-lookback: 252
-
 partition: 'country'
   # hidden: false
+
+lookback: 252
 
 xmin_args:
   # default:

@@ -1,50 +1,52 @@
 ---
 
-# TODO: reorder (and reorg?) settings
-# all settings to be used in the scripts
+# all settings available to the main analysis.py module
 
-## control settings (changes the way the scripts are executed)
+## control settings: meta control flow of the program
 ctrl:
   - interactive
   - gui
-  - load_opts
-  - save_opts
-  - partial_saves
   - verbosity
-  - analyze_group
-  - ks_flag
-  - nproc
+  - load_options
+  - save_options
+  - partial_save_data
   - show_plots
   - save_plots
 
-## data settings (changes the type and method of data computation)
+## data settings: input data and useful metadata
 data:
   - tickers
   - date_i
   - date_f
-  - date_i_idx
   - full_dates
-  - anal_dates
-  - len_dates
+  - date_i_idx
   - dynamic_dbdf
   - static_dbdf
-  - lookback
+  - anal_dates
+  - labelstep
+  - grouping_type
+  - grouping_labs
+  - stats_colname
+  - stats_collabs
+
+## analysis settings: determines how the data is analyzed
+anal:
+  - analyze_group
+  - approach
+  - use_static  # TODO: use better name???
+  - anal_freq
+  - partition
   - returns_type
+  - lookback
   - tau
   - standardize
   - absolutize
-  - approach
-  - anal_freq
-  - labelstep
-  - group_type_label
-  - tickers_grouping
-  - tail_selection  # TODO: remove this setting?
-  - use_right
-  - use_left
-  - tails_to_use
+  - tails_to_use  # TODO: rename this setting
+  - n_tails
+  - alpha_qntl
   - data_nature
   - xmin_rule
   - xmin_vqty
-  - alpha_qntl
+  - ks_flag
   - ks_iter
-  - outcol_labels
+  - nproc

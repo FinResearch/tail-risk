@@ -50,6 +50,44 @@ date_f:
   metavar: ''
   help: 'the final date of the time series to analyse'
 
+approach_args:
+  param_decls:
+    - '-a'
+    - '--approach'
+    - 'approach_args'  # FIXME: use 'approach' in errmsgs not 'approach_args'
+  cls: 'VnargsOption'
+  max_nargs: 2
+  is_eager: true
+  type: 'tuple'
+  default:
+    # NOTE: this default map is NOT actually used by the click.Option,
+    #       but is instead here for convenient serialization/encoding
+    rolling: '1'
+    increasing: '1'
+    static: null  # TODO: default it to 1 as well for convenience?
+  show_default: false
+  callback: 'validate_approach_args'
+  # metavar:
+  help: >
+    for 'rolling' or 'increasing', optionally specify <INT (# days)>
+    as the analysis frequency, default: 1
+# ASK/CONFIRM: anal_freq (in normal) == sliding_window (in group)
+
+partition:  # NOTE: only applicable w/ -G (group tail analysis) enabled
+  param_decls:
+    - '-p'
+    - '--partition'
+  type:
+    - 'country'
+    - 'maturity'
+    - 'region'  # i.e. core (DE, FR, BE) vs. periphery (IT, ES, PT, IR, GR)
+    - 'all'
+    # - 'none'
+  default: null
+  callback: 'confirm_group_flag_set'
+  hidden: true
+  help: 'method for aggregating tickers for group tail analysis'
+
 returns_type:
   param_decls:
     - '-r'
@@ -62,6 +100,18 @@ returns_type:
     - 'log'
   default: 'log'
   help: 'specify the type of returns to analyse'
+
+# ASK/CONFIRM: lookback is ONLY needed by dynamic approaches
+# TODO add 'lookback' as additional arg to 'approach_args' VnargsOption??
+lookback:  # NOTE: only applies to non-static approaches
+  param_decls:
+    - '-l'
+    - '--lookback'
+  type: 'int'
+  default: 504
+  callback: 'gset_lookback'
+  metavar: '<INT (# days)>'
+  help: 'lookback (in days) to use for rolling or increasing approaches (N/A for static)'
 
 tau:
   param_decls:
@@ -97,56 +147,6 @@ absolutize:
   default: false
   help: 'take the absolute value of the input data'
 
-approach_args:
-  param_decls:
-    - '-a'
-    - '--approach'
-    - 'approach_args'  # FIXME: use 'approach' in errmsgs not 'approach_args'
-  cls: 'VnargsOption'
-  max_nargs: 2
-  is_eager: true
-  type: 'tuple'
-  default:
-    # NOTE: this default map is NOT actually used by the click.Option,
-    #       but is instead here for convenient serialization/encoding
-    rolling: '1'
-    increasing: '1'
-    static: null  # TODO: default it to 1 as well for convenience?
-  show_default: false
-  callback: 'validate_approach_args'
-  # metavar:
-  help: >
-    for 'rolling' or 'increasing', optionally specify <INT (# days)>
-    as the analysis frequency, default: 1
-# ASK/CONFIRM: anal_freq (in normal) == sliding_window (in group)
-
-# ASK/CONFIRM: lookback is ONLY needed by dynamic approaches
-# TODO add 'lookback' as additional arg to 'approach_args' VnargsOption??
-lookback:  # NOTE: only applies to non-static approaches
-  param_decls:
-    - '-l'
-    - '--lookback'
-  type: 'int'
-  default: 504
-  callback: 'gset_lookback'
-  metavar: '<INT (# days)>'
-  help: 'lookback (in days) to use for rolling or increasing approaches (N/A for static)'
-
-partition:  # NOTE: only applicable w/ -G (group tail analysis) enabled
-  param_decls:
-    - '-p'
-    - '--partition'
-  type:
-    - 'country'
-    - 'maturity'
-    - 'region'  # i.e. core (DE, FR, BE) vs. periphery (IT, ES, PT, IR, GR)
-    - 'all'
-    # - 'none'
-  default: null
-  callback: 'confirm_group_flag_set'
-  hidden: true
-  help: 'method for aggregating tickers for group tail analysis'
-
 # TODO: use VnargsOption for --tail ??
 tail_selection:
   param_decls:
@@ -160,6 +160,15 @@ tail_selection:
     # TODO: allow specifying as mult-val: ex. '--tails left right'
   default: 'both'
   help: 'choose the tail(s) to analyse'
+
+alpha_signif:
+  param_decls:
+    - '--alpha'
+    - 'alpha_signif'
+  type: 'float'
+  default: 0.05
+  metavar: '<FLOAT: [0, 1]>'
+  help: 'significance of the confidence interval: 1-α'
 
 data_nature:
   param_decls:
@@ -192,16 +201,7 @@ xmin_args:
     -manual: float value, default: 0
     -percentile: 0-100, default: 90
 
-alpha_signif:
-  param_decls:
-    - '--alpha'
-    - 'alpha_signif'
-  type: 'float'
-  default: 0.05
-  metavar: '<FLOAT: [0, 1]>'
-  help: 'significance of the confidence interval: 1-α'
-
-ks_flag:
+ks_flag:  # TODO/FIXME: change name to 'run_ks_test'
   param_decls:
     - '--ks-run/--ks-skip'
     - 'ks_flag'
@@ -210,6 +210,7 @@ ks_flag:
   callback: 'customize_ksflag_show_default'
   metavar: '(Run/Skip KS-Test)'  # FIXME: get metavarto work w/ flags (not shown currently)
   help: '--ks-skip overrides value from --ks-iter'
+# TODO: add similar skip option for logl_stats (powerlaw.Fit.distribution_compare)
 
 # TODO: make VnargsOption work with flags, then combine ks-iter & --ks-run
 ks_iter:

@@ -8,10 +8,10 @@ ui_opts = cli.get_ui_options.main(standalone_mode=False)
 
 if ui_opts == 0:  # for catching the --help option
     sys.exit()
+else:
+    print(ui_opts)
 
-s = Settings(ui_opts)
-ctrl_settings = s.get_settings_object('ctrl')
-data_settings = s.get_settings_object('data')
+settings = Settings(ui_opts).settings
 # TODO: apply black styling to all modules (i.e. ' --> ")
 
-analyze_tail(ctrl_settings, data_settings)
+analyze_tail(settings)
