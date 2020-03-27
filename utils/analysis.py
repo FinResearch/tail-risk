@@ -20,6 +20,9 @@ class _Analyzer(ABC):
         self.data = settings.data
         self.anal = settings.anal
 
+        # TODO: move to more apt location/module
+        self.logging_label = (self.anal.partition or 'ticker').title()
+
         self.results = ResultsDataFrame(settings).initialize()
 
     # # # state DEPENDENT (or aware) methods # # #
@@ -174,7 +177,7 @@ class StaticAnalyzer(_Analyzer):
         lab = self.curr_iter_id
         self.curr_df_pos = lab, ()
         # TODO: move logging of DATE RANGE out of this repeatedly called method
-        print(f"analyzing time series for {self.anal.partition} '{lab}' b/w "
+        print(f"Analyzing time series for {self.logging_label} '{lab}' b/w "
               f"[{self.data.date_i}, {self.data.date_f}]")  # TODO: VerboseLog
         # TODO optimize below: when slice is pd.Series, no need to .flatten()
         data_array = self.data.static_dbdf[lab].to_numpy().flatten()
@@ -186,7 +189,7 @@ class DynamicAnalyzer(_Analyzer):
 
     def __init__(self, settings):
         super(DynamicAnalyzer, self).__init__(settings)
-        assert not self.anal.approach  # i.e. one of {'rolling', 'increasing'}
+        assert not self.anal.use_static  # i.e. 1 of ('rolling', 'increasing')
         self.iter_id_keys = product(iter(self.data.grouping_labs),
                                     enumerate(self.data.anal_dates,
                                               start=self.data.date_i_idx))
@@ -197,11 +200,6 @@ class DynamicAnalyzer(_Analyzer):
                                     'll_exp': 'exponential',
                                     'll_lgn': 'lognormal'}
 
-    #  def _init_results_df(self):
-    #      df_sub = super(DynamicAnalyzer, self)._init_results_df()
-    #      return pd.concat({sub: df_sub for sub in self.data.grouping_labs},
-    #                       axis=1)  # TODO: set column index level names
-
     # TODO: consider vectorizing operations on all tickers
     def _set_curr_input_array(self):  # TODO:consider pass curr_iter_id as arg?
         sub, (d, date) = self.curr_iter_id
@@ -209,7 +207,7 @@ class DynamicAnalyzer(_Analyzer):
         d0 = (d - self.lkb_off if self.anal.approach == 'rolling'
               else self.lkb_0)  # TODO: calc all needed dates in settings.py??
         # TODO: move logging of LABEL out of this repeatedly called method
-        print(f"analyzing time series for {self.anal.partition} '{sub}' "
+        print(f"Analyzing time series for {self.logging_label} '{sub}' "
               f"b/w [{self.data.full_dates[d0]}, {date}]")
         data_array = self.data.dynamic_dbdf[sub].iloc[d0: d].\
             to_numpy().flatten()

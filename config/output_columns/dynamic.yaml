@@ -1,20 +1,18 @@
 ---
 
-# columns of the output file for GROUP tail analysis
-# with a dynamic (ROLLING/INCREASING) approach
+# columns of the output file for analysis using a dynamic (ROLLING/INCREASING) approach
 
 # label:
 #   - date
-#
-# data:
 
-- alpha
-- xmin
-# - xmin_used
-# - xmin_today
-- sigma
-- abs_len
-- ks_pv
-- ll_tpl
-- ll_exp
-- ll_lgn
+Statistics:
+  - alpha
+  - xmin
+  # - xmin_used
+  # - xmin_today
+  - sigma
+  - abs_len
+  - ks_pv
+  - ll_tpl
+  - ll_exp
+  - ll_lgn

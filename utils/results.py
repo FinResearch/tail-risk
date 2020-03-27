@@ -9,24 +9,21 @@ class ResultsDataFrame:
         self.data = settings.data
         self.anal = settings.anal
 
-    def __get_row_idxname(self):
-        idxname_map = {None: 'Tickers',
-                       'country': 'Countries',
-                       'maturity': 'Maturities',
-                       'region': 'Regions'}
-        return idxname_map[self.anal.partition]
+        self.gidx_name = self.__get_grouping_idx_name()  # gidx: grouping index
 
-    def _init_results_df_dynamic(self):
-        #  df_sub = super(DynamicAnalyzer, self)._init_results_df()
-        #  return pd.concat({sub: df_sub for sub in self.data.grouping_labs},
-        #                   axis=1)  # TODO: set column index level names
-        pass
+    def __get_grouping_idx_name(self):
+        # TODO: make singular version of mapping as well?
+        idx_name_map = {None: 'Tickers',
+                        'country': 'Countries',
+                        'maturity': 'Maturities',
+                        'region': 'Regions'}
+        return idx_name_map[self.anal.partition]
 
-    def initialize(self):
-        ridx_labs = (self.data.grouping_labs if self.anal.use_static
-                     else self.data.anal_dates)
-        ridx_name = (self.__get_row_idxname() if self.anal.use_static
-                     else self.data.anal_dates.name)
+    def _init_static(self):
+        ridx_labs = (self.data.grouping_labs if self.anal.use_static else
+                     self.data.anal_dates)
+        ridx_name = (self.gidx_name if self.anal.use_static else
+                     self.data.anal_dates.name)
         ridx = pd.Index(ridx_labs, name=ridx_name)
         # ridx: ROW index above, & cidx: COLUMN index below
         cidx = pd.MultiIndex.from_tuples(self.data.stats_collabs,
@@ -38,5 +35,15 @@ class ResultsDataFrame:
         tail_cidx_name = 'Tails' if self.anal.n_tails == 2 else 'Tail'
         return pd.concat({t: df_tail for t in self.anal.tails_to_use},
                          axis=1, names=(tail_cidx_name,))
+
         # TODO look into pd.concat alternatives
         # https://pandas.pydata.org/pandas-docs/stable/user_guide/merging.html
+
+    def _init_dynamic(self):
+        df_sub = self._init_static()
+        return pd.concat({sub: df_sub for sub in self.data.grouping_labs},
+                         axis=1, names=(self.gidx_name,))
+
+    def initialize(self):
+        return (self._init_static() if self.anal.use_static else
+                self._init_dynamic())
