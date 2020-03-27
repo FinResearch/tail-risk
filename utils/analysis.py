@@ -31,7 +31,7 @@ class Analyzer(ABC):
     def _init_results_df(self):
         columns = self.ds.outcol_labels
         index = self.output_index
-        df_tail = pd.DataFrame(np.zeros(shape=(len(index), len(columns))),
+        df_tail = pd.DataFrame(np.full((len(index), len(columns)), np.nan),
                                columns=pd.MultiIndex.from_tuples(columns),
                                index=index, dtype=float)
         return pd.concat({t: df_tail for t in self.ds.tails_to_use}, axis=1)
