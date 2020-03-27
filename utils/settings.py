@@ -16,7 +16,6 @@ class Settings:
         self._postprocess_specific_options()
         self._gset_tail_settings()
         self._gset_dbdf_attrs()
-        self._gset_labelstep()  # TODO:call in other mtd w/ anal_freq & len_dts
         self._gset_grouping_info()  # must be called after _gset_dbdf_attrs()
         self._load_set_stats_columns_labels()
 
@@ -25,18 +24,30 @@ class Settings:
         self.settings = SimpleNamespace(**{ss: self._make_settings_object(ss)
                                            for ss in ('ctrl', 'data', 'anal')})
 
-    # TODO: test & improve (also maybe add __str__?)
-    def __repr__(self, sub_sett=None):
-        sub_settings = {'ctrl', 'data', 'anal'}
+    # TODO: test & improve (also maybe add __repr__?)
+    def __str__(self, sub_sett=None):  # TODO: make part of --verbose logging??
+        ss_tup = ('ctrl', 'data', 'anal')
         if sub_sett is None:
-            print(self)
-        elif sub_sett in sub_settings:
-            print(getattr(self, sub_sett))
+            for ss in ss_tup:
+                print('\n' * 3 + '#' * 20)
+                print(f'{ss} Settings:')
+                print('#' * 20)
+                for attr, val in vars(getattr(self.settings, ss)).items():
+                    print('-' * 40)
+                    if isinstance(val, pd.DataFrame):
+                        print(f'Pandas DataFrame: {attr}')
+                        print(val.info())
+                    else:
+                        print(f'{attr}: {val}')
+                print('-' * 40)
+        elif sub_sett in ss_tup:
+            print(getattr(self.settings, sub_sett))
         else:
             raise AttributeError(
-                f"sub-setting must be one of {', '.join(sub_settings)}"
+                f"sub-setting must be one of {', '.join(ss_tup)}"
                 f"given: '{sub_sett}'"
             )
+        return ''  # FIXME: instead of just print, should return proper str val
 
     def _postprocess_specific_options(self):
         self.approach, self.anal_freq = self.approach_args
@@ -81,12 +92,13 @@ class Settings:
 
         self.static_dbdf = self.dynamic_dbdf.loc[self.date_i: self.date_f]
         self.anal_dates = self.static_dbdf.index[::self.anal_freq]
-        self.len_dates = len(self.anal_dates)  # used by _gset_labelstep
+        self._gset_labelstep()  # this setting is used in plotting
 
     def _gset_labelstep(self):
+        len_dates = len(self.anal_dates)
         _analyze_nondaily = self.anal_freq is not None and self.anal_freq > 1
-        use_monthly = self.len_dates <= Period.ANNUAL or _analyze_nondaily
-        use_quarterly = Period.ANNUAL < self.len_dates <= 3*Period.ANNUAL
+        use_monthly = len_dates <= Period.ANNUAL or _analyze_nondaily
+        use_quarterly = Period.ANNUAL < len_dates <= 3*Period.ANNUAL
 
         self.labelstep = (Period.MONTH if use_monthly else
                           Period.QUARTER if use_quarterly else
