@@ -22,13 +22,8 @@ class Settings:
 
         # instantiate the settings SimpleNamespace objects
         self._load_set_settings_config()
-        # TODO: make the below 3 calls more concise
-        ctrl_settings = self._make_settings_object('ctrl')
-        data_settings = self._make_settings_object('data')
-        anal_settings = self._make_settings_object('anal')
-        self.settings = SimpleNamespace(ctrl=ctrl_settings,
-                                        data=data_settings,
-                                        anal=anal_settings)
+        self.settings = SimpleNamespace(**{ss: self._make_settings_object(ss)
+                                           for ss in ('ctrl', 'data', 'anal')})
 
     # TODO: test & improve (also maybe add __str__?)
     def __repr__(self, sub_sett=None):
