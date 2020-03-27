@@ -120,7 +120,6 @@ class _Analyzer(ABC):
                 self._analyze_next()
             except StopIteration:
                 break
-        # TODO: use df.columns = df.columns.droplevel() to clean up unused lvls
 
     # runs analysis for one iteration of analysis given arbitrary iter_id
     def _analyze_iter(self, iter_id):  # NOTE: use this to resume computation
@@ -164,6 +163,9 @@ class _Analyzer(ABC):
             self.analyze_multiproc()
         else:
             raise TypeError(f'Cannot perform analysis with {nproc} processes')
+        # TODO: final clean ups of DF for presentation:
+        #       - use df.columns = df.columns.droplevel() to remove unused lvls
+        #       - use .title() on all index labels
 
 
 class StaticAnalyzer(_Analyzer):
@@ -217,13 +219,14 @@ class DynamicAnalyzer(_Analyzer):
 
     def _get_curr_logl_stats(self):  # ASK/TODO: logl_stats unneeded in static?
         # compute (R, p) using powerlaw.Fit.distribution_compare
-        logl_stats = {key: {stat: val for stat, val in
-                            zip(('R', 'p'),
-                                self.curr_fit.distribution_compare(
-                                    'power_law',
-                                    distro,
-                                    normalized_ratio=True))
-                            }
+        logl_stats = {key:
+                      {stat: val for stat, val in
+                       zip(('R', 'p'),
+                           self.curr_fit.distribution_compare(
+                               'power_law',
+                               distro,
+                               normalized_ratio=True))
+                       }
                       for key, distro in self._distros_to_compare.items()}
 
         return {(key, stat): logl_stats.get(key, {}).get(stat) for

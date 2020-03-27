@@ -105,17 +105,20 @@ class Settings:
             part_map = {pid: [tick for tick in self.tickers if pid in tick]
                         for pid in part_ids}
         elif self.partition == 'region':
-            regions_map = {'Core': ('DE', 'FR', 'BE'),  # FIXME: keys used as iter_id's atm
+            regions_map = {'Core': ('DE', 'FR', 'BE'),
                            'Periphery': ('IT', 'ES', 'PT', 'IR', 'GR')}
-            part_map = {region: [tick for tick in self.tickers if
-                                 any(cid in tick for cid in countries)]
-                        for region, countries in regions_map.items()}
+            part_map = {region: ticks for region, ticks in
+                        {region: [tick for tick in self.tickers if
+                                  any(cid in tick for cid in countries)]
+                         for region, countries in regions_map.items()}.items()
+                        if ticks}  # the outter dict-comp filters out [] region
             #  if self.partition_group_leftovers:  # TODO: opt not yet usable
             #  part_map['leftovers'] = [tick for tick in self.tickers if
             #                                all(tick not in group for group
             #                                    in part_map.values())]
 
         # set partition groups as the top-level column label
+        # TODO: use slice+loc to org ticks then set toplvl-idx to rm pd depend
         self.dynamic_dbdf = pd.concat({grp: self.dynamic_dbdf[tickers] for
                                        grp, tickers in part_map.items()},
                                       axis=1)  # , names=(self.partition,))
