@@ -162,7 +162,7 @@ class _Analyzer(ABC):
             raise TypeError(f'Cannot perform analysis with {nproc} processes')
         # TODO: final clean ups of DF for presentation:
         #       - use df.columns = df.columns.droplevel() to remove unused lvls
-        #       - use .title() on all index labels
+        #       - use .title() on all index labels, then write to file
 
 
 class StaticAnalyzer(_Analyzer):

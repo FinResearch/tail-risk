@@ -24,7 +24,8 @@ class ResultsDataFrame:
         df_tail = pd.DataFrame(np.full((len(ridx), len(cidx)), np.nan),
                                index=ridx, columns=cidx, dtype=float)
 
-        tail_cidx_name = 'Tails' if self.anal.n_tails == 2 else 'Tail'
+        # TODO: use the special str subclass w/ .pluralize for name below?
+        tail_cidx_name = 'tails' if self.anal.n_tails == 2 else 'tail'
         return pd.concat({t: df_tail for t in self.anal.tails_to_use},
                          axis=1, names=(tail_cidx_name,))
 

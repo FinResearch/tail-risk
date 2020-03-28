@@ -5,7 +5,7 @@
 # label:
 #   - ticker  # NOTE: originally termed "input"
 
-Statistics:  # NOTE: this is the name used for the Index of the column headings
+statistics:  # NOTE: this is the name used for the Index of the column headings
   - alpha
   - xmin
   - sigma

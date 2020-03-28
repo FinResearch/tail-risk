@@ -5,7 +5,7 @@
 # label:
 #   - date
 
-Statistics:
+statistics:
   - alpha
   - xmin
   # - xmin_used
