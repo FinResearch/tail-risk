@@ -64,14 +64,17 @@ class _Analyzer(ABC):
             xmin = self.anal.xmin_vqty
         elif self.anal.xmin_rule == "percentile":
             xmin = np.percentile(self.curr_input_array, self.anal.xmin_vqty)
+        else:
+            raise AttributeError(f"invalid xmin-rule: {self.anal.xmin_rule}")
         return xmin
 
     def _set_curr_fit_obj(self, tdir):
         data = self.curr_input_array * {'right': +1, 'left': -1}[tdir]
-        data = data[np.nonzero(data)]  # NOTE: only keep/use non-zero elements
-        discrete = False if self.anal.data_nature == 'continuous' else False
-        xmin = self.__get_xmin()
-        self.curr_fit = Fit(data=data, discrete=discrete, xmin=xmin)
+        # TODO: can filter for nonzeros before doing above multiplication
+        data = data[np.nonzero(data)]  # only keep/use non-zero elements
+        xmin = self.__get_xmin()  # outsource this to settings.py
+        self.curr_fit = Fit(data=data, xmin=xmin,  # xmin=self.anal.xmin,
+                            discrete=self.anal.fit_discretely)
 
     def _get_curr_tail_stats(self):
         alpha, xmin, sigma = (getattr(self.curr_fit.power_law, prop)

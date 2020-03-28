@@ -40,7 +40,8 @@ anal:
   - absolutize
   - tails_to_use  # TODO: rename this setting
   - n_tails
-  - data_nature
+  - fit_discretely
+  # - xmin  # get rid of the 2 xmin settings below once this complete
   - xmin_rule
   - xmin_vqty
   - ks_flag

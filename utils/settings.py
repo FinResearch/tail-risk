@@ -55,10 +55,12 @@ class Settings:
     def _postprocess_specific_options(self):
         self.approach, self.anal_freq = self.approach_args
         self.use_static = True if self.approach == 'static' else False
-        self.xmin_rule, self.xmin_vqty = self.xmin_args
-        if self.xmin_rule == 'average':
+        self.fit_discretely = True if self.data_nature == 'discrete' else False
+        self.xmin_rule, self.xmin_vqty = self.xmin_args  # TODO: rm once below complete
+        self._xmin_rule, self._xmin_vqty = self.xmin_args
+        if self._xmin_rule == 'average':
             assert not self.use_static,\
-                (f"xmin-rule '{self.xmin_rule}' is not compatible with "
+                (f"xmin-rule '{self._xmin_rule}' is not compatible with "
                  f"the '{self.approach}' approach")
         self.ks_flag = False if self.ks_iter <= 0 else self.ks_flag
 
