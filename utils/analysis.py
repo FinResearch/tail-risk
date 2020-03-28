@@ -20,9 +20,6 @@ class _Analyzer(ABC):
         self.data = settings.data
         self.anal = settings.anal
 
-        # TODO: move to more apt location/module
-        self.logging_label = (self.anal.partition or 'ticker').title()
-
         self.results = ResultsDataFrame(settings).initialize()
 
     # # # state DEPENDENT (or aware) methods # # #
@@ -150,7 +147,7 @@ class _Analyzer(ABC):
         # TODO: update results_df more efficiently, ex. pd.DataFrame.replace(),
         #       np.ndarray, etc.; see TODO note under __get_tdir_iter_restup)
         for restup in restup_ls:
-            (idx, col), res = restup
+            (idx, col), res = restup  # if use '+' NOTE that DFs init'd w/ NaNs
             self.results.loc[idx, col].update(res)
 
     # top-level convenience method that autodetects how to run tail analysis
@@ -179,8 +176,8 @@ class StaticAnalyzer(_Analyzer):
         lab = self.curr_iter_id
         self.curr_df_pos = lab, ()
         # TODO: move logging of DATE RANGE out of this repeatedly called method
-        print(f"Analyzing time series for {self.logging_label} '{lab}' b/w "
-              f"[{self.data.date_i}, {self.data.date_f}]")  # TODO: VerboseLog
+        print(f"Analyzing time series for {self.data.grouping_type.title()} "
+              f"'{lab}' b/w [{self.data.date_i}, {self.data.date_f}]")
         # TODO optimize below: when slice is pd.Series, no need to .flatten()
         data_array = self.data.static_dbdf[lab].to_numpy().flatten()
         # TODO: factor below _preprocess_data_array call into ABC??
@@ -209,8 +206,8 @@ class DynamicAnalyzer(_Analyzer):
         d0 = (d - self.lkb_off if self.anal.approach == 'rolling'
               else self.lkb_0)  # TODO: calc all needed dates in settings.py??
         # TODO: move logging of LABEL out of this repeatedly called method
-        print(f"Analyzing time series for {self.logging_label} '{sub}' "
-              f"b/w [{self.data.full_dates[d0]}, {date}]")
+        print(f"Analyzing time series for {self.data.grouping_type.title()} "
+              f"'{sub}' b/w [{self.data.full_dates[d0]}, {date}]")  # TODO:-VVV
         data_array = self.data.dynamic_dbdf[sub].iloc[d0: d].\
             to_numpy().flatten()
         # TODO/ASK: for group input array: slice dbdf --> .to_numpy().flatten()

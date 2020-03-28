@@ -9,21 +9,13 @@ class ResultsDataFrame:
         self.data = settings.data
         self.anal = settings.anal
 
-        self.gidx_name = self.__get_grouping_idx_name()  # gidx: grouping index
-
-    def __get_grouping_idx_name(self):
-        # TODO: make singular version of mapping as well?
-        idx_name_map = {None: 'Tickers',
-                        'country': 'Countries',
-                        'maturity': 'Maturities',
-                        'region': 'Regions'}
-        return idx_name_map[self.anal.partition]
-
     def _init_static(self):
+        gidx_name = self.data.grouping_type
+        n_groupings = len(self.data.grouping_labs)
+        ridx_name = (gidx_name if n_groupings == 1 else gidx_name.pluralize()
+                     if self.anal.use_static else self.data.anal_dates.name)
         ridx_labs = (self.data.grouping_labs if self.anal.use_static else
                      self.data.anal_dates)
-        ridx_name = (self.gidx_name if self.anal.use_static else
-                     self.data.anal_dates.name)
         ridx = pd.Index(ridx_labs, name=ridx_name)
         # ridx: ROW index above, & cidx: COLUMN index below
         cidx = pd.MultiIndex.from_tuples(self.data.stats_collabs,
