@@ -13,7 +13,7 @@ ctrl:
 
 ## data settings: input data and useful metadata
 data:
-  - tickers
+  # - tickers  # NOTE: doesn't appear to be used
   - date_i
   - date_f
   - full_dates
@@ -30,9 +30,9 @@ data:
 anal:
   - analyze_group
   - approach
-  - use_static  # TODO: use better name???
   - anal_freq
-  - partition
+  - use_static  # TODO: use better name???
+  # - partition  # NOTE: doesn't appear to be used
   - returns_type
   - lookback
   - tau
@@ -56,3 +56,5 @@ plot:
   - returns_label
   - alpha_qntl
   # - alpha_signif (used in figure title of time_rolling plots)
+
+# TODO: consider adding a sub-setting section for verbosity logging?
