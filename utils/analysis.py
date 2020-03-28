@@ -242,4 +242,5 @@ def analyze_tail(settings):
     analyzer = Analyzer(settings)
     analyzer.analyze()
     print(analyzer.results)
+    print('-' * 100)
     print(analyzer.results.info())

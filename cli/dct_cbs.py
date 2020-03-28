@@ -70,6 +70,9 @@ def attach_yaml_opts():
         return cmd
     return decorator
 
+# TODO: consider creating func to add Click runtime ctx obj as attr to passed
+# ui_opts obj. Ex-usecase: allow settings.py access to custom dflts on VNargOpt
+
 
 # # Callbacks # #
 

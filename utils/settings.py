@@ -39,7 +39,7 @@ class Settings:
                     print('-' * 40)
                     if isinstance(val, pd.DataFrame):
                         print(f'Pandas DataFrame: {attr}')
-                        print(val.info())
+                        print(val.info())  # TODO: use try-except on df.info?
                     else:
                         print(f'{attr}: {val}')
                 print('-' * 40)
@@ -61,6 +61,11 @@ class Settings:
     # TODO: should be possible to get all xmin_val for all xmin_rule except
     # 'average'; for percentile, use lookback to slice all input arrays
     def __compute_percentile_xmin(self):
+        pass
+
+    # TODO: consider applying multiprocessing to such tasks
+    def __compute_average_xmin(self):
+        assert self.analyze_group
         pass
 
     def _gset_tail_settings(self):

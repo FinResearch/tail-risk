@@ -32,7 +32,8 @@ def get_ui_options(full_dbdf, **yaml_opts):
     # TODO: consider removing kv-pairs w/ None vals (ex. partition when no -G)?
     return dict(full_dbdf=full_dbdf, **yaml_opts)
 # TODO add subcommands: plot & resume_calculation (given full/partial data),
-#                       calibrate multiprocessing chunksize, etc.
+#                       calibrate multiprocessing chunksize,
+#                       autoupdate README opts help section based on attrs.yaml
 
 
 # NOTE: cannot run as __main__ in packaged mode --> remove??
