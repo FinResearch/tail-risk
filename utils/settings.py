@@ -21,6 +21,7 @@ class Settings:
         # domain-, functionality- & usecase- specific settings
         self._gset_grouping_info()  # must be called after _gset_dbdf_attrs()
         self._load_set_stats_columns_labels()
+        self._gset_plot_settings()
 
         # instantiate the settings SimpleNamespace objects
         self._load_set_settings_config()
@@ -95,13 +96,6 @@ class Settings:
 
         self.static_dbdf = self.dynamic_dbdf.loc[self.date_i: self.date_f]
         self.anal_dates = self.static_dbdf.index[::self.anal_freq]
-        self._gset_labelstep()  # this setting is used in plotting
-
-    def _gset_labelstep(self):
-        len_dates = len(self.anal_dates)
-        _analyze_nondaily = self.anal_freq is not None and self.anal_freq > 1
-        use_monthly = len_dates <= Period.ANNUAL or _analyze_nondaily
-        use_quarterly = Period.ANNUAL < len_dates <= 3*Period.ANNUAL
 
     # # methods relevant to group tail analysis behaviors # #
 
@@ -177,6 +171,37 @@ class Settings:
             labels.insert(i + 1, (lab, 'R'))
             labels.pop(i)
         return labels
+
+    # # methods relevant to settings needed by plotter # #
+
+    def _gset_plot_settings(self):
+        self.title_timestamp = f"Time Period: {self.date_i} - {self.date_f}"
+        self.labelstep = self.__get_labelstep()
+        self.returns_label = self.__get_returns_label()
+
+    def __get_returns_label(self):
+        pt_i = "P(t)"
+        pt_f = f"P(t+{self.tau})"
+
+        if self.returns_type == "raw":
+            label = f"{pt_f} - {pt_i}"
+        elif self.returns_type == "relative":
+            label = f"{pt_f}/{pt_i} - 1.0"
+        elif self.returns_type == "log":
+            label = rf"$\log$({pt_f}/{pt_i})"
+
+        if self.absolutize:
+            label = f"|{label}|"
+
+        return label
+
+    def __get_labelstep(self):
+        len_dates = len(self.anal_dates)
+        _analyze_nondaily = self.anal_freq is not None and self.anal_freq > 1
+        use_monthly = len_dates <= Period.ANNUAL or _analyze_nondaily
+        use_quarterly = Period.ANNUAL < len_dates <= 3*Period.ANNUAL
+        return (Period.MONTH if use_monthly else
+                Period.QUARTER if use_quarterly else Period.BIANNUAL)
 
     # # methods for creating the settings SimpleNamespace object(s) # #
 

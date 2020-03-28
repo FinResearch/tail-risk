@@ -10,8 +10,6 @@ ctrl:
   - load_options
   - save_options
   - partial_save_data
-  - show_plots
-  - save_plots
 
 ## data settings: input data and useful metadata
 data:
@@ -23,7 +21,6 @@ data:
   - dynamic_dbdf
   - static_dbdf
   - anal_dates
-  - labelstep
   - grouping_type
   - grouping_labs
   - stats_colname
@@ -43,10 +40,19 @@ anal:
   - absolutize
   - tails_to_use  # TODO: rename this setting
   - n_tails
-  - alpha_qntl
   - data_nature
   - xmin_rule
   - xmin_vqty
   - ks_flag
   - ks_iter
   - nproc
+
+plot:
+  - show_plots
+  - save_plots
+  - title_timestamp
+  # - n_vector (used in histogram, and to set xlim)
+  - labelstep
+  - returns_label
+  - alpha_qntl
+  # - alpha_signif (used in figure title of time_rolling plots)
