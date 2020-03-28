@@ -56,6 +56,10 @@ class Settings:
         self.approach, self.anal_freq = self.approach_args
         self.use_static = True if self.approach == 'static' else False
         self.xmin_rule, self.xmin_vqty = self.xmin_args
+        if self.xmin_rule == 'average':
+            assert not self.use_static,\
+                (f"xmin-rule '{self.xmin_rule}' is not compatible with "
+                 f"the '{self.approach}' approach")
         self.ks_flag = False if self.ks_iter <= 0 else self.ks_flag
 
     # TODO: should be possible to get all xmin_val for all xmin_rule except

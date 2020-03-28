@@ -31,7 +31,7 @@ anal:
   - analyze_group
   - approach
   - anal_freq
-  - use_static  # TODO: use better name???
+  - use_static  # TODO: use better name; maybe use inverse --> use_dynamic?
   # - partition  # NOTE: doesn't appear to be used
   - returns_type
   - lookback

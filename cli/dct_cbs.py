@@ -229,7 +229,8 @@ def gset_lookback(ctx, param, lookback):
 
 
 # helper for VnargsOption's
-def _gset_vnargs_choice_default(ctx, param, inputs, dflt=None):
+def _gset_vnargs_choice_default(ctx, param, inputs, dflt=None,
+                                errmsg_name=None, errmsg_extra=None):
 
     dflts_by_chce = param.default  # use default map encoded in YAML config
     choices = tuple(dflts_by_chce.keys())
@@ -238,8 +239,9 @@ def _gset_vnargs_choice_default(ctx, param, inputs, dflt=None):
 
     # ensure selected choice is in the set of possible values
     if chce not in choices:
-        raise ValueError(f"'{param.name}' must be one of: "
-                         f"{', '.join(choices)}; given: {chce}")
+        opt_name = errmsg_name if errmsg_name else param.name
+        raise ValueError(f"'{opt_name}' {errmsg_extra if errmsg_extra else ''}"
+                         f"must be one of: {', '.join(choices)}; got: {chce}")
 
     # set the default to the 1st entry of the choice list when dflt not given
     if dflt is None:
@@ -263,8 +265,8 @@ def _gset_vnargs_choice_default(ctx, param, inputs, dflt=None):
 # callback for the approach option
 def validate_approach_args(ctx, param, approach_args):
 
-    approach, anal_freq = _gset_vnargs_choice_default(ctx, param,
-                                                      approach_args)
+    approach, anal_freq = _gset_vnargs_choice_default(
+        ctx, param, approach_args, errmsg_name='approach')
 
     if approach == 'static':
         assert anal_freq is None,\
@@ -286,7 +288,10 @@ def validate_approach_args(ctx, param, approach_args):
 def validate_xmin_args(ctx, param, xmin_args):
 
     dflt_rule = 'average' if ctx._analyze_group else 'clauset'
-    rule, vqarg = _gset_vnargs_choice_default(ctx, param, xmin_args, dflt_rule)
+    rule, vqarg = _gset_vnargs_choice_default(
+        ctx, param, xmin_args, dflt=dflt_rule, errmsg_name='xmin-rule',
+        errmsg_extra=(f"for {'group' if ctx._analyze_group else 'individual'}"
+                      " tail analysis "))
 
     try:
         if rule == 'clauset':  # TODO: move 'clauset' out of 'try' block?
