@@ -128,22 +128,10 @@ class Settings:
         # https://pandas.pydata.org/pandas-docs/stable/user_guide/merging.html
 
     def _gset_grouping_info(self):
-        self.grouping_type = self.__get_grouping_type()
+        self.grouping_type = GroupingName(self.partition if self.analyze_group
+                                          else 'ticker')
         cix = self.dynamic_dbdf.columns  # cix: column index
         self.grouping_labs = cix.levels[0] if self.analyze_group else cix
-
-    def __get_grouping_type(self):
-        if self.partition is None:
-            assert not self.analyze_group
-            gidx_name = 'ticker'
-        else:
-            assert self.analyze_group
-            gidx_name = self.partition
-
-        return GroupingStr(gidx_name,
-                           {'ticker', 'country', 'maturity', 'region'})
-        # TODO: get partition_choices tup above from attribute.yaml:
-        # Consider creating a func to pass on the Click runtime ctx object?
 
     # # methods configuring the output results DataFrame # #
 
@@ -224,16 +212,18 @@ class Settings:
         return SimpleNamespace(**sett_map)
 
 
-# FIXME: got error below when running w/ multiprocessing but not w/ single proc --> try collections.UserString
-# TypeError: __new__() missing 1 required positional argument: 'partition_choices'
-class GroupingStr(str):
+class GroupingName(str):  # TODO: add allowed values constraint when have time
     """special string instance used to represent the grouping type name
     """
-
-    def __new__(cls, content, partition_choices):
-        assert content in partition_choices,\
-            f"GroupingStr obj must be one of: {', '.join(partition_choices)}"
-        return str.__new__(cls, content)
+    # FIXME: got error below when running w/ multiprocessing but not w/ single
+    #        proc --> try collections.UserString? And also not w/ __new__ rm'd
+    #        TypeError: __new__() missing 1 required positional argument:
+    #                   'partition_choices'
+    #  def __new__(cls, content, partition_choices):
+    #      assert content in partition_choices,\
+    #      f"GroupingStr obj must be one of: {', '.join(partition_choices)}"
+    #      return str.__new__(cls, content)
+    # NOTE: Assertion chk above isn't req'd, as gidx_name already constrained
 
     def pluralize(self):
         if self.endswith('y'):
