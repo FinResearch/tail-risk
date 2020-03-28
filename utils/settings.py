@@ -11,24 +11,26 @@ class Settings:
     def __init__(self, ui_options):
         for opt, val in ui_options.items():
             setattr(self, opt, val)
+            # TODO: coord. w/ attrs.yaml to mark some opts private w/ _-prefix
 
-        # get (compute/calc) & set (extract) specific settings from given opts
+        # core general settings
         self._postprocess_specific_options()
         self._gset_tail_settings()
         self._gset_dbdf_attrs()
+
+        # domain-, functionality- & usecase- specific settings
         self._gset_grouping_info()  # must be called after _gset_dbdf_attrs()
         self._load_set_stats_columns_labels()
 
         # instantiate the settings SimpleNamespace objects
         self._load_set_settings_config()
         self.settings = SimpleNamespace(**{ss: self._make_settings_object(ss)
-                                           for ss in ('ctrl', 'data', 'anal')})
+                                           for ss in self._subsettings})
 
     # TODO: test & improve (also maybe add __repr__?)
-    def __str__(self, sub_sett=None):  # TODO: make part of --verbose logging??
-        ss_tup = ('ctrl', 'data', 'anal')
-        if sub_sett is None:
-            for ss in ss_tup:
+    def __str__(self, subsett=None):  # TODO: make part of --verbose logging??
+        if subsett is None:
+            for ss in self._subsettings:
                 print('\n' * 3 + '#' * 20)
                 print(f'{ss} Settings:')
                 print('#' * 20)
@@ -40,14 +42,14 @@ class Settings:
                     else:
                         print(f'{attr}: {val}')
                 print('-' * 40)
-        elif sub_sett in ss_tup:
-            print(getattr(self.settings, sub_sett))
+        elif subsett in self._subsettings:
+            print(getattr(self.settings, subsett))
         else:
-            raise AttributeError(
-                f"sub-setting must be one of {', '.join(ss_tup)}"
-                f"given: '{sub_sett}'"
-            )
+            self._validate_subsetting(subsett)
+
         return ''  # FIXME: instead of just print, should return proper str val
+
+    # # methods needed for the core general settings # #
 
     def _postprocess_specific_options(self):
         self.approach, self.anal_freq = self.approach_args
@@ -83,6 +85,7 @@ class Settings:
         # - dynamic_dbdf: filtered by tickers (columns); has all dates (index)
         # - static_dbdf: filtered above by given range of dates to analyze
 
+        # TODO: mark unexported options/settings w/ _-prefix? ex. _full_dates
         self.full_dates = self.full_dbdf.index
         self.date_i_idx = self.full_dates.get_loc(self.date_i)
 
@@ -100,9 +103,7 @@ class Settings:
         use_monthly = len_dates <= Period.ANNUAL or _analyze_nondaily
         use_quarterly = Period.ANNUAL < len_dates <= 3*Period.ANNUAL
 
-        self.labelstep = (Period.MONTH if use_monthly else
-                          Period.QUARTER if use_quarterly else
-                          Period.BIANNUAL)
+    # # methods relevant to group tail analysis behaviors # #
 
     def _partition_dynamic_dbdf(self):
         if self.partition in {'country', 'maturity'}:
@@ -144,10 +145,13 @@ class Settings:
         else:
             assert self.analyze_group
             gidx_name = self.partition
+
         return GroupingStr(gidx_name,
                            {'ticker', 'country', 'maturity', 'region'})
         # TODO: get partition_choices tup above from attribute.yaml:
         # Consider creating a func to pass on the Click runtime ctx object?
+
+    # # methods configuring the output results DataFrame # #
 
     def _load_set_stats_columns_labels(self):
         # TODO/NOTE: -G, --group dynamic cols differs slightly (xmin_today)
@@ -179,23 +183,23 @@ class Settings:
     def _load_set_settings_config(self):
         SETTINGS_CFG = 'config/settings.yaml'  # TODO: refactor PATH into root
         with open(SETTINGS_CFG) as cfg:
-            self.settings_config = yaml.load(cfg, Loader=yaml.SafeLoader)
+            self._settings_config = yaml.load(cfg, Loader=yaml.SafeLoader)
+        self._subsettings = tuple(self._settings_config.keys())
 
-    def _valid_settings_cls(self, sub_sett):
-        sub_settings = set(self.settings_config.keys())
+    def _validate_subsetting(self, subsett):
         # FIXME: find more potential membership testing cases like the below
-        assert sub_sett in sub_settings,\
-            f"settings class name must be one of: {', '.join(sub_settings)}"
+        assert subsett in self._subsettings,\
+            f"subsetting must be one of: {', '.join(self._subsettings)}"
 
-    def _make_settings_object(self, sub_sett):
-        self._valid_settings_cls(sub_sett)
+    def _make_settings_object(self, subsett):
+        self._validate_subsetting(subsett)
         sett_map = {}
-        for sett in self.settings_config[sub_sett]:
+        for sett in self._settings_config[subsett]:
             sett_map[sett] = getattr(self, sett, None)
         return SimpleNamespace(**sett_map)
 
 
-# FIXME: got error below when running w/ multiprocessing but not single proc
+# FIXME: got error below when running w/ multiprocessing but not w/ single proc --> try collections.UserString
 # TypeError: __new__() missing 1 required positional argument: 'partition_choices'
 class GroupingStr(str):
     """special string instance used to represent the grouping type name
