@@ -1,16 +1,13 @@
 ---
 
 # defaults values specific to group tail analysis
-# TODO: allow modding additional attrs besides just defaults?
 
 partition: 'country'
-  # hidden: false
 
 lookback: 252
 
 xmin_args:
-  # default:
-  average:
+  average:  # NOTE: only available in dynamic (rolling & increasing) approaches 
     - '66'
     - '0'
   clauset: null
@@ -24,3 +21,5 @@ xmin_args:
 ks_flag: false
 
 ks_iter: 2
+
+# TODO: allow modding other attrs besides 'default' in this config?

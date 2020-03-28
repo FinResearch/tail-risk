@@ -14,6 +14,7 @@ analyze_group:
 
 tickers:  # TODO: allow passing in a .txt file of tickers?
   param_decls:
+    - '-T'
     - '--tickers'
   cls: 'VnargsOption'
   separator: ','
@@ -23,21 +24,21 @@ tickers:  # TODO: allow passing in a .txt file of tickers?
     - 'DE 03Y'
     - 'DE 05Y'
     - 'DE 10Y'
-      # metavar: '[ <csv on CLI> | <.csv> | <.txt> ]'  # TODO: file options
+  # metavar: '[ <csv on CLI> | <.csv> | <.txt> ]'  # TODO: file options
   # callback: 'set_tickers_from_textfile'
   metavar: '<csv on CLI>'
   help: 'specify the list of tickers from the database to analyse'
 
-# TODO: use callback to validate dates?
+# TODO: use specialized Date type (ex. pd.DatetimeIndex) for correct metavar
+# and/or alternatively, use callback to validate (likely more cumbersome)
 date_i:
   param_decls:
     - '-di'
     - '--date-initial'
     - 'date_i'
-  type: 'str'  # TODO: use dedicated Date type
-  # default: '31-03-16'
-  default: '1/1/2016'
-  metavar: ''
+  type: 'str'
+  default: '1/4/2016'
+  metavar: ''  # NOTE: metavar set to '' here so it doesn't show up as 'TEXT'
   help: 'the starting date of the time series to analyse'
 
 date_f:
@@ -45,16 +46,16 @@ date_f:
     - '-df'
     - '--date-final'
     - 'date_f'
-  type: 'str'  # TODO: use dedicated Date type
+  type: 'str'
   default: '5/5/2016'
-  metavar: ''
+  metavar: ''  # NOTE: metavar set to '' here so it doesn't show up as 'TEXT'
   help: 'the final date of the time series to analyse'
 
 approach_args:
   param_decls:
     - '-a'
     - '--approach'
-    - 'approach_args'  # FIXME: use 'approach' in errmsgs not 'approach_args'
+    - 'approach_args'
   cls: 'VnargsOption'
   max_nargs: 2
   is_eager: true
@@ -64,16 +65,16 @@ approach_args:
     #       but is instead here for convenient serialization/encoding
     rolling: '1'
     increasing: '1'
-    static: null  # TODO: default it to 1 as well for convenience?
+    static: null  # TODO: default it to '1' as well for validational convenience?
   show_default: false
   callback: 'validate_approach_args'
-  # metavar:
+  # metavar:  # NOTE: this attr is set by _set_vnargs_choice_metahelp_()
   help: >
     for 'rolling' or 'increasing', optionally specify <INT (# days)>
     as the analysis frequency, default: 1
 # ASK/CONFIRM: anal_freq (in normal) == sliding_window (in group)
 
-partition:  # NOTE: only applicable w/ -G (group tail analysis) enabled
+partition:  # NOTE: opt only available in group tail analysis mode
   param_decls:
     - '-p'
     - '--partition'
@@ -82,18 +83,15 @@ partition:  # NOTE: only applicable w/ -G (group tail analysis) enabled
     - 'maturity'
     - 'region'  # i.e. core (DE, FR, BE) vs. periphery (IT, ES, PT, IR, GR)
     - 'all'
-    # - 'none'
   default: null
   callback: 'confirm_group_flag_set'
-  hidden: true
+  hidden: true  # hide option when using individual tail analysis mode
   help: 'method for aggregating tickers for group tail analysis'
 
 returns_type:
   param_decls:
-    - '-r'
+    - '-rt'
     - '--returns-type'
-    # - '--rtype'
-    # - 'returns_type'
   type:  # TODO: consider using Enum types for all Choice values
     - 'raw'
     - 'relative'
@@ -101,11 +99,11 @@ returns_type:
   default: 'log'
   help: 'specify the type of returns to analyse'
 
-# ASK/CONFIRM: lookback is ONLY needed by dynamic approaches
-# TODO add 'lookback' as additional arg to 'approach_args' VnargsOption??
-lookback:  # NOTE: only applies to non-static approaches
+# TODO: add 'lookback' as additional arg to 'approach_args' VnargsOption??
+# If above done, then should validate static approach receives no lookback input
+lookback:  # NOTE: only available in dynamic (rolling & increasing) approaches
   param_decls:
-    - '-l'
+    - '-lb'
     - '--lookback'
   type: 'int'
   default: 504
@@ -116,7 +114,7 @@ lookback:  # NOTE: only applies to non-static approaches
 tau:
   param_decls:
     - '--tau'
-    # - 'delta'  # ASK: is 'delta' more fitting?
+    # - 'delta'  # ASK/TODO: isn't 'delta' more fitting varname?
   type:
     - '1'
     - '5'
@@ -126,42 +124,42 @@ tau:
   metavar: '[1 (daily) | 5 (weekly) | 22 (monthly)]'
   help: 'specify the time lag (in days) of the input series'
 
-# ASK: need to specify std/abs targets if approach is static?
+# TODO: implement system for specifying std/abs targets when approach is not static
+#       use VnargsOption and/or feature switches (--before, --after, etc.)
 standardize: 
   param_decls:
     - '--std/--no-std'
     - 'standardize'
   is_flag: true
-  # type: 'bool'  # TODO: cast to proper click.BOOL type
   default: false
   help: 'standardize/normalize the input data'
 
-# TODO use VnargsOption to allow specify target
-# TODO: OR use feature switches for series/tail // before/after/both
 absolutize:
   param_decls:
     - '--abs/--no-abs'
     - 'absolutize'
   is_flag: true
-  # type: 'bool'
   default: false
   help: 'take the absolute value of the input data'
 
-# TODO: use VnargsOption for --tail ??
+# TODO: use bool or feature switches for --tail ??
+#       OR VnargsOption, ex. '--tails left right'
 tail_selection:
   param_decls:
     - '-t'
     - '--tail'
     - 'tail_selection'
-  type:  # TODO: consider using feature switch(es)?
+    # - '-R'
+    # - '-L'
+  type:
     - 'left'
     - 'right'
     - 'both'
-    # TODO: allow specifying as mult-val: ex. '--tails left right'
   default: 'both'
+  # callback: ''  # TODO: use cb(?) (or maybe in settings.py) to configure desired short-opts behavior
   help: 'choose the tail(s) to analyse'
 
-alpha_signif:
+alpha_signif:  # TODO: use full name for var, i.e. alpha_significance?
   param_decls:
     - '--alpha'
     - 'alpha_signif'
@@ -170,21 +168,22 @@ alpha_signif:
   metavar: '<FLOAT: [0, 1]>'
   help: 'significance of the confidence interval: 1-α'
 
+# TODO/ASK: remove below option? since nature of data can be inferred from database
+#           also confirm result of using discrete-fit on continous data; vice versa
 data_nature:
   param_decls:
-    - '-n'
     - '--data-nature'
   type:
     - 'discrete'
     - 'continuous'
   default: 'continuous'
-  help: ''
+  help: 'discrete: integer data; continuous: real data'
 
 xmin_args:
   param_decls:
     - '-x'
     - '--xmin'
-    - 'xmin_args'  # TODO: use 'xmin' in errmsgs not 'xmin_args'
+    - 'xmin_args'
   cls: 'VnargsOption'
   max_nargs: 3
   type: 'tuple'
@@ -196,23 +195,25 @@ xmin_args:
     percentile: '90'
   show_default: false
   callback: 'validate_xmin_args'
-  # metavar: NOTE: this attr is set by the _set_xmin_metavar_help call
+  # metavar:  # NOTE: this attr is set by _set_vnargs_choice_metahelp_()
   help: |  # FIXME: newline below not preserved in --help
-    -manual: float value, default: 0
-    -percentile: 0-100, default: 90
+    'manual' & 'percentile' rules accept an optional numeric arg:
+    {manual: ℝ, [default: 0]}, {percentile: 0-100, [default: 90]}
+    # TODO: improve help message above & for similar opts (i.e. approach_args)
 
-ks_flag:  # TODO/FIXME: change name to 'run_ks_test'
+ks_flag:  # TODO/FIXME: change name to 'run_ks_test'??
   param_decls:
     - '--ks-run/--ks-skip'
     - 'ks_flag'
-  is_eager: true  # NOTE: is_eager needed to correctly customize show_default in help via cb
+  is_eager: true  # is_eager flag needed to customize --help show_default via cb
   default: true
   callback: 'customize_ksflag_show_default'
   metavar: '(Run/Skip KS-Test)'  # FIXME: get metavarto work w/ flags (not shown currently)
   help: '--ks-skip overrides value from --ks-iter'
-# TODO: add similar skip option for logl_stats (powerlaw.Fit.distribution_compare)
 
-# TODO: make VnargsOption work with flags, then combine ks-iter & --ks-run
+# TODO: consider add similar skip option as above for logl_stats??
+
+# TODO: make VnargsOption work with flags, then combine --ks-iter & --ks-run?
 ks_iter:
   param_decls:
     - '--ks-iter'
@@ -223,11 +224,11 @@ ks_iter:
 
 nproc:
   param_decls:
-    - '-np'
+    - '-N'
     - '--nproc'
   type: 'int'
-  is_eager: true  # NOTE: is_eager needed to correctly customize show_default in help via cb
-  # default: 1  # NOTE: set attribute to override default behavior of getting value from os.cpu_count()
+  is_eager: true  # is_eager flag needed to customize --help show_default via cb
+  # default: 1  # NOTE: set 'default' here to override current behavior of using os.cpu_count()
   callback: 'get_nproc_set_show_default'
   metavar: '<INT (# processes)>'
   help: "number of concurrent processes used for analysis"
@@ -237,7 +238,7 @@ show_plots:
     - '--show-plots/--no-show-plots'
     # - 'show_plots'
   is_flag: true
-  # type: 'bool'
+  # type: 'bool'  # TODO: cast this (& others) to proper click.BOOL type?
   default: true
   help: ''
 
@@ -246,6 +247,5 @@ save_plots:
     - '--save-plots/--no-save-plots'
     # - 'save_plots'
   is_flag: true
-  # type: 'bool'
   default: false
   help: ''
