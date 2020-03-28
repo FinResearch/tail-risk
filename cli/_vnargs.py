@@ -25,7 +25,7 @@ class VnargsOption(click.Option):
         nargs = attrs.pop('nargs', -1)
         assert nargs == -1, f'nargs, if set, must be -1 not {nargs}'
 
-        super(VnargsOption, self).__init__(*param_decls, **attrs)
+        super().__init__(*param_decls, **attrs)
 
     # Override click.Option's default add_to_parser method
     def add_to_parser(self, parser, ctx):

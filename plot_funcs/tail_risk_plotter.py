@@ -283,8 +283,7 @@ class TabledFigurePlotter(TailRiskPlotter):
     def __init__(self, ticker, settings, data, plot_type):  # fits_dict, data):
 
         # NOTE: maybe call super() after assigning self.fits_dict ??
-        super(TabledFigurePlotter, self).__init__(ticker, settings,
-                                                  data, plot_type)
+        super().__init__(ticker, settings, data, plot_type)
 
         self.use_hist = True if self.ptyp == "hg" else False
         # FIXME: currently fits_dict below is a module global
@@ -369,7 +368,7 @@ class TabledFigurePlotter(TailRiskPlotter):
             self.__histogram()
             self.__plot_extra_hist_line()
         else:
-            super(TabledFigurePlotter, self)._plot_vectors()
+            super()._plot_vectors()
 
     def _config_axes(self):
 
@@ -380,7 +379,7 @@ class TabledFigurePlotter(TailRiskPlotter):
             self.ax.legend()  # TODO: make legend & grid DRY
             self.ax.grid()
         else:
-            super(TabledFigurePlotter, self)._config_axes()
+            super()._config_axes()
 
         self._add_table()
 
@@ -389,8 +388,7 @@ class TimeRollingPlotter(TailRiskPlotter):
 
     def __init__(self, ticker, settings, data, plot_type):  # fits_dict, data):
 
-        super(TimeRollingPlotter, self).__init__(ticker, settings,
-                                                 data, plot_type)
+        super().__init__(ticker, settings, data, plot_type)
         # FIXME: currently fits_dict below is an imported module global
         # NOTE: self.fits_dict must 1st be instant'd as self.curr_ptinfo req it
         #  self.fits_dict = fits_dict["time_rolling"]

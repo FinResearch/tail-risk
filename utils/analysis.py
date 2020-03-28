@@ -168,7 +168,7 @@ class _Analyzer(ABC):
 class StaticAnalyzer(_Analyzer):
 
     def __init__(self, settings):
-        super(StaticAnalyzer, self).__init__(settings)
+        super().__init__(settings)
         self.iter_id_keys = iter(self.data.grouping_labs)
         assert self.anal.use_static
 
@@ -187,7 +187,7 @@ class StaticAnalyzer(_Analyzer):
 class DynamicAnalyzer(_Analyzer):
 
     def __init__(self, settings):
-        super(DynamicAnalyzer, self).__init__(settings)
+        super().__init__(settings)
         assert not self.anal.use_static  # i.e. 1 of ('rolling', 'increasing')
         self.iter_id_keys = product(iter(self.data.grouping_labs),
                                     enumerate(self.data.anal_dates,
@@ -231,7 +231,7 @@ class DynamicAnalyzer(_Analyzer):
 
     # TODO: add getting xmin_today data when doing group tail analysis
     def _get_curr_tail_stats(self):
-        tail_stats = super(DynamicAnalyzer, self)._get_curr_tail_stats()
+        tail_stats = super()._get_curr_tail_stats()
         logl_stats = self._get_curr_logl_stats()
         return {**tail_stats, **logl_stats}
 
