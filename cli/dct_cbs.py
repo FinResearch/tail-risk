@@ -362,3 +362,23 @@ def get_nproc_set_show_default(ctx, param, nproc):
     none_help = f'{os.cpu_count()} (# CPUs)'
     _customize_show_default_boolcond(param, conf_dflt, (conf_help, none_help))
     return os.cpu_count() if nproc is None else nproc
+
+
+def _postprocess_tails_selections(ctx, yaml_opts, topts_names):
+    # NOTE: this function is agnostic of which tail name is passed first
+    names_srcs_vals = [(t, ctx.get_parameter_source(t), yaml_opts[t])
+                       for t in topts_names]
+    names, sources, values = zip(*names_srcs_vals)
+
+    if not any(values):
+        if all(src == 'DEFAULT' for src in sources):
+            raise ValueError('defaults for both tails are False (skip); '
+                             'specify -L or -R to analyze the left/right tail;'
+                             ' or -LR for both')
+        raise ValueError('at least one tail must be selected to run analysis')
+
+    # only toggle one of the tail selection when they are specified via diffent
+    # sources (i.e. 1 COMMANDLINE, 1 DEFAULT), and they are both True
+    if sources[0] != sources[1] and all(values):
+        for name, src, val in names_srcs_vals:
+            yaml_opts[name] = val if src == 'COMMANDLINE' else not val

@@ -142,22 +142,40 @@ absolutize:
   default: false
   help: 'take the absolute value of the input data'
 
-# TODO: use bool or feature switches for --tail ??
-#       OR VnargsOption, ex. '--tails left right'
-tail_selection:
+anal_right:
   param_decls:
-    - '-t'
-    - '--tail'
-    - 'tail_selection'
-    # - '-R'
-    # - '-L'
-  type:
-    - 'left'
-    - 'right'
-    - 'both'
-  default: 'both'
-  # callback: ''  # TODO: use cb(?) (or maybe in settings.py) to configure desired short-opts behavior
-  help: 'choose the tail(s) to analyse'
+    - '-R/--right-skip'
+    - 'anal_right'
+  is_flag: true
+  default: true
+  # default: false
+  help: '-R w/o -L to analyze right tail ONLY'
+
+anal_left:
+  param_decls:
+    - '-L/--left-skip'
+    - 'anal_left'
+  is_flag: true
+  default: true
+  # default: false
+  help: '-L w/o -R to analyze left tail ONLY'
+
+# # TODO: use bool or feature switches for --tail ??
+# #       OR VnargsOption, ex. '--tails left right'
+# tail_selection:
+#   param_decls:
+#     - '-t'
+#     - '--tail'
+#     - 'tail_selection'
+#     # - '-R'
+#     # - '-L'
+#   type:
+#     - 'left'
+#     - 'right'
+#     - 'both'
+#   default: 'both'
+#   # callback: ''  # TODO: use cb(?) (or maybe in settings.py) to configure desired short-opts behavior
+#   help: 'choose the tail(s) to analyse'
 
 alpha_signif:  # TODO: use full name for var, i.e. alpha_significance?
   param_decls:

@@ -77,19 +77,15 @@ class Settings:
     def _gset_tail_settings(self):
         """Compute settings relevant to tail selection
         """
-        use_right = True if self.tail_selection in {'right', 'both'} else False
-        use_left = True if self.tail_selection in {'left', 'both'} else False
-
-        tails_to_use = []
-        if use_right:
-            tails_to_use.append('right')
-        if use_left:
-            tails_to_use.append('left')
-        self.tails_to_use = tuple(tails_to_use)
-        self.n_tails = len(self.tails_to_use)
-
-        mult = 0.5 if self.tail_selection == 'both' else 1
-        self.alpha_qntl = NormalDist().inv_cdf(1 - mult * self.alpha_signif)
+        tails_to_anal = []
+        if self.anal_right:
+            tails_to_anal.append(Tail.right)
+        if self.anal_left:
+            tails_to_anal.append(Tail.left)
+        self.tails_to_anal = tuple(tails_to_anal)
+        #  self.n_tails = len(self.tails_to_anal)  # TODO: this sett really needed?
+        self.alpha_qntl = NormalDist().inv_cdf(1 - len(self.tails_to_anal)/2 *
+                                               self.alpha_signif)
 
     def _gset_dbdf_attrs(self):
         # NOTE on dbdf distinctions:
@@ -244,6 +240,11 @@ class GroupingName(str):  # TODO: add allowed values constraint when have time
 
 
 class Period(IntEnum):
+class Tail(enum.Enum):
+    right = 1
+    left = -1
+
+
     MONTH = 22
     QUARTER = 66
     BIANNUAL = 121

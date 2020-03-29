@@ -38,8 +38,8 @@ anal:
   - tau
   - standardize
   - absolutize
-  - tails_to_use  # TODO: rename this setting
-  - n_tails
+  - tails_to_anal
+  # - n_tails  # TODO: this doesn't seem to really be necessary
   - fit_discretely
   # - xmin  # get rid of the 2 xmin settings below once this complete
   - xmin_rule

@@ -3,7 +3,7 @@ import os
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # TODO: add ROOT_DIR to sys.path in entrypoint/top-level when packaged
 
-from .dct_cbs import gset_full_dbdf, attach_yaml_opts
+from .dct_cbs import gset_full_dbdf, attach_yaml_opts, _postprocess_tails_selections
 
 
 @click.command(context_settings=dict(default_map=None,
@@ -29,7 +29,9 @@ from .dct_cbs import gset_full_dbdf, attach_yaml_opts
 #                 '--partial-saves', '--load-opts', '--save-opts',
 #                 '--verbose' # TODO: use count opt for -v?
 def get_ui_options(full_dbdf, **yaml_opts):
-    # TODO: consider removing kv-pairs w/ None vals (ex. partition when no -G)?
+@click.pass_context
+def get_ui_options(ctx, full_dbdf, **yaml_opts):
+    _postprocess_tails_selections(ctx, yaml_opts, ('anal_right', 'anal_left'))
     return dict(full_dbdf=full_dbdf, **yaml_opts)
 # TODO add subcommands: plot & resume_calculation (given full/partial data),
 #                       calibrate multiprocessing chunksize,

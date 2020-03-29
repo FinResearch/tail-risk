@@ -68,8 +68,8 @@ class _Analyzer(ABC):
             raise AttributeError(f"invalid xmin-rule: {self.anal.xmin_rule}")
         return xmin
 
-    def _set_curr_fit_obj(self, tdir):
-        data = self.curr_input_array * {'right': +1, 'left': -1}[tdir]
+    def _set_curr_fit_obj(self, tail):
+        data = self.curr_input_array * tail.value  # tail.value = ±1 for R/L
         # TODO: can filter for nonzeros before doing above multiplication
         data = data[np.nonzero(data)]  # only keep/use non-zero elements
         xmin = self.__get_xmin()  # outsource this to settings.py
@@ -88,20 +88,20 @@ class _Analyzer(ABC):
         return {(stat, ''): locs.get(stat) for stat, _ in
                 self.data.stats_collabs if stat in locs}
 
-    def _store_partial_results(self, tdir):
+    def _store_partial_results(self, tail):
         curr_tstat_series = pd.Series(self._get_curr_tail_stats())
         # TODO: remove needless assertion stmt(s) after code is well-tested
         assert len(curr_tstat_series) == len(self.data.stats_collabs)
         idx, col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
-        self.results.loc[idx, col + (tdir,)].update(curr_tstat_series)
+        self.results.loc[idx, col + (tail,)].update(curr_tstat_series)
         # TODO: consider using pd.DataFrame.replace(, inplace=True) instead
 
-    def __get_tdir_iter_restup(self, tdir):  # retrn results tuple for one tail
+    def __get_tdir_iter_restup(self, tail):  # retrn results tuple for one tail
         # TODO: use np.ndarray instead of pd.Series (wasteful) --> order later
         curr_tstat_series = pd.Series(self._get_curr_tail_stats())
         assert len(curr_tstat_series) == len(self.data.stats_collabs)
         idx, col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
-        return (idx, col + (tdir,)), curr_tstat_series
+        return (idx, col + (tail,)), curr_tstat_series
 
     # # # orchestration / driver methods # # #
 
@@ -109,9 +109,9 @@ class _Analyzer(ABC):
     def _analyze_next(self):
         self.curr_iter_id = next(self.iter_id_keys)  # set in subclasses
         self._set_curr_input_array()  # 'input' as in input to powerlaw.Fit
-        for tdir in self.anal.tails_to_use:
-            self._set_curr_fit_obj(tdir)
-            self._store_partial_results(tdir)
+        for tail in self.anal.tails_to_anal:
+            self._set_curr_fit_obj(tail)
+            self._store_partial_results(tail)
 
     # runs analysis from start to finish, in 1-process + single-threaded mode
     def analyze_sequential(self):
@@ -129,9 +129,9 @@ class _Analyzer(ABC):
         self._set_curr_input_array()  # 'input' as in input to powerlaw.Fit
 
         iter_restups = []  # results tuple(s) for single iteration of input
-        for tdir in self.anal.tails_to_use:
-            self._set_curr_fit_obj(tdir)
-            iter_restups.append(self.__get_tdir_iter_restup(tdir))
+        for tail in self.anal.tails_to_anal:
+            self._set_curr_fit_obj(tail)
+            iter_restups.append(self.__get_tdir_iter_restup(tail))
         return iter_restups
 
     # runs analysis in multiprocessing mode
@@ -145,7 +145,7 @@ class _Analyzer(ABC):
             restup_ls = [restup for iter_restups in  # TODO: optimize chunksize
                          pool.map(self._analyze_iter, iter_id_keys)
                          for restup in iter_restups]
-        assert len(restup_ls) == self.anal.n_tails * len(iter_id_keys)
+        assert len(restup_ls) == len(self.anal.tails_to_anal)*len(iter_id_keys)
 
         # TODO: update results_df more efficiently, ex. pd.DataFrame.replace(),
         #       np.ndarray, etc.; see TODO note under __get_tdir_iter_restup)
