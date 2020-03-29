@@ -3,7 +3,7 @@ import os
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # TODO: add ROOT_DIR to sys.path in entrypoint/top-level when packaged
 
-from .dct_cbs import gset_full_dbdf, attach_yaml_opts, _postproc_tails
+from .dct_cbs import gset_full_dbdf, attach_yaml_opts, postproc_tails_
 
 
 @click.command(context_settings=dict(default_map=None,
@@ -31,7 +31,7 @@ from .dct_cbs import gset_full_dbdf, attach_yaml_opts, _postproc_tails
 @click.version_option('0.7', '-v', '--version')  # TODO: save -v for --verbose?
 @click.pass_context
 def get_ui_options(ctx, full_dbdf, **yaml_opts):
-    _postproc_tails(ctx, yaml_opts, ('anal_right', 'anal_left'))
+    postproc_tails_(ctx, yaml_opts, ('anal_right', 'anal_left'))
     return dict(full_dbdf=full_dbdf, **yaml_opts)
 # TODO add subcommands: plot & resume_calculation (given full/partial data),
 #                       calibrate multiprocessing chunksize,

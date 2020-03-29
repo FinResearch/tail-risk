@@ -47,7 +47,6 @@ class Settings:
             print(getattr(self.settings, subsett))
         else:
             self._validate_subsetting(subsett)
-
         return ''  # FIXME: instead of just print, should return proper str val
 
     # # methods needed for the core general settings # #

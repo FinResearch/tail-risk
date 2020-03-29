@@ -15,14 +15,13 @@ OPT_CFG_DIR = f'{ROOT_DIR}/config/options/'  # TODO: use pathlib.Path ??
 
 # # Decorator (& its helpers) # #
 
-def __preprocess_special_attrs_(opt_attrs):
+def __eval_special_attrs_(opt_attrs):
     """Helper for correctly translating the data types from the YAML config
     and Python; and to conveniently set some meta attributes.
 
     This function mutates the passed opt_attrs dict
     """
-
-    # attrs that are special expression objects
+    # attrs that need to be eval()'d from str
     expr_attrs = ('type', 'callback', 'cls',)
     for attr in expr_attrs:
         # check the attr is specified in the config & its value is truthy
@@ -37,7 +36,6 @@ def __preprocess_special_attrs_(opt_attrs):
                 raise TypeError(f'{attr_val} of {type(attr_val)} cannot be '
                                 f'used as the value for the {attr} attribute '
                                 'of click.Option objects')
-
     # meta attrs that can be optionally passed, to customize info from --help
     meta_help_attrs = {'show_default': True, 'metavar': None}
     for attr, dflt in meta_help_attrs.items():
@@ -46,14 +44,11 @@ def __preprocess_special_attrs_(opt_attrs):
 
 # load (from YAML), get & set (preprocess) options attributes
 def _load_gset_opts_attrs():
-
     attrs_path = OPT_CFG_DIR + 'attributes.yaml'
     with open(attrs_path) as cfg:
         opts_attrs = yaml.load(cfg, Loader=yaml.SafeLoader)
-
     for opt, attrs in opts_attrs.items():
-        __preprocess_special_attrs_(attrs)
-
+        __eval_special_attrs_(attrs)
     return opts_attrs
 
 
@@ -99,7 +94,6 @@ def _set_vnargs_choice_metahelp_(ctx):
                        if ctx._analyze_group else '')
 
     vnargs_choice_opts = ('approach_args', 'xmin_args',)
-
     for opt_name in vnargs_choice_opts:
         opt_obj = _get_param_from_ctx(ctx, opt_name)
         opt_choices = tuple(opt_obj.default.keys())
@@ -126,8 +120,7 @@ def _gset_vnargs_choice_default(ctx, param, inputs, dflt=None,
         raise ValueError(f"'{opt_name}' {errmsg_extra if errmsg_extra else ''}"
                          f"must be one of [{', '.join(choices)}]; got: {chce}")
 
-    # set the default to the 1st entry of the choice list when dflt not given
-    if dflt is None:
+    if dflt is None:  # use 1st 'default' from attrs.yaml if no dflt passed
         dflt = choices[0]
 
     # NOTE: click.ParameterSource & methods not in v7.0; using HEAD (symlink)
@@ -224,33 +217,28 @@ def gset_full_dbdf(ctx, param, db_file):
 
 # callback for -G, --group
 def gset_group_opts(ctx, param, analyze_group):
+    ctx._analyze_group = False  # set pvt toplvl attr on ctx for convenience
 
     _customize_show_default_boolcond(param, analyze_group,
                                      ('group', 'individual'))
 
-    # private toplevel group flag-val on Context for convenience of other cbs
-    ctx._analyze_group = False  # NOTE spelling: analySe NOT analyZe
-
     if analyze_group:
         ctx._analyze_group = True
-
         opt_names = [p.name for p in ctx.command.params
                      if isinstance(p, click.Option)]
         grp_defs_fpath = OPT_CFG_DIR + 'group_defaults.yaml'
         with open(grp_defs_fpath) as cfg:
             grp_dflts = yaml.load(cfg, Loader=yaml.SafeLoader)
-
         for opt in opt_names:
             opt_obj = _get_param_from_ctx(ctx, opt)
             if opt in grp_dflts:  # update group specific default val
                 opt_obj.default = grp_dflts[opt]
             # show opts hidden in individual mode, & hide opts common to both
             opt_obj.hidden = False if opt in grp_dflts else True
-
         param.hidden = False  # undoes the opt_obj.hidden toggle above
         param.help = 'see below for help specific to group analysis'
 
-    # NOTE: this hacky piggybacking only works b/c -G is an eager option
+    # use eagerness of the -G opt to dynamically set help text of various opts
     _set_vnargs_choice_metahelp_(ctx)
 
     return analyze_group  # TODO: return more useful value?
@@ -258,7 +246,6 @@ def gset_group_opts(ctx, param, analyze_group):
 
 # callback for the approach option
 def validate_approach_args(ctx, param, approach_args):
-
     try:
         approach, (lookback, anal_freq) = _gset_vnargs_choice_default(
             ctx, param, approach_args, errmsg_name='approach')
@@ -315,7 +302,6 @@ def cast_tau(ctx, param, tau_str):
 
 # callback for the xmin_args (-x, --xmin) option
 def validate_xmin_args(ctx, param, xmin_args):
-
     dflt_rule = 'average' if ctx._analyze_group else 'clauset'
     rule, vqarg = _gset_vnargs_choice_default(
         ctx, param, xmin_args, dflt=dflt_rule, errmsg_name='xmin-rule',
@@ -351,7 +337,7 @@ def validate_xmin_args(ctx, param, xmin_args):
     except (TypeError, ValueError, AssertionError):
         raise
 
-    return rule, vqarg   # NOTE: num args are all of str type (incl. defaults)
+    return rule, vqarg
 
 
 # helper for customizing str displayed in help msg when show_default is True
@@ -382,10 +368,11 @@ def get_nproc_set_show_default(ctx, param, nproc):
 
 
 # # Post-Parsing Functions # #
-# # for opts requiring full completed ctx; also note they mutate yaml_opts
+# # for opts requiring full completed ctx
+# # also note that they mutate yaml_opts (denoted by _-suffix)
 
 # validate then correctly set/toggle the two tail selection options
-def _postproc_tails(ctx, yaml_opts, topts_names):
+def postproc_tails_(ctx, yaml_opts, topts_names):
     # NOTE: this function is agnostic of which tail name is passed first
     names_srcs_vals = [(t, ctx.get_parameter_source(t), yaml_opts[t])
                        for t in topts_names]
