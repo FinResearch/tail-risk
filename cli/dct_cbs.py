@@ -106,13 +106,11 @@ def gset_full_dbdf(ctx, param, db_file):
     # TODO: attach computed objects such as {df, tickers, dates} onto ctx??
 
     full_dates = full_dbdf.index  # TODO: attach to ctx_obj for later access?
-    # FIXME: determine how to infer date_i w/ lookback None under 'static' appr
-    lbv = (ctx.params.get('lookback') or
-           _get_param_from_ctx(ctx, 'lookback').default)  # lbv: LookBack Value
+    # inferred index of date_i; only used when 'default' attr not set in YAML
+    di_iix = 0 if ctx._approach == 'static' else ctx._lookback - 1
 
-    # TODO: under static approach, use 0-th index for inferred date_i?
     db_extra_opts_map = {'tickers': list(full_dbdf.columns),  # TODO: rm nulls?
-                         'date_i': full_dates[lbv-1],
+                         'date_i': full_dates[di_iix],
                          'date_f': full_dates[-1]}
 
     # use inferred defaults when default attr isn't manually set in YAML config
@@ -188,48 +186,47 @@ def gset_group_opts(ctx, param, analyze_group):
     return analyze_group  # TODO: return more useful value?
 
 
-# helper for converting choice types (click.Choice OR custom dict choices)
-# w/ numeric str vals to Python's number types (int OR float)
-def _convert_str_to_num(str_val, must_be_int=False, type_errmsg=None,
-                        min_allowed=None, max_allowed=None, range_errmsg=None):
-    assert isinstance(str_val, str),\
-        f"value to convert to number must be of type 'str', given {str_val}"
+# callback for the approach option
+def validate_approach_args(ctx, param, approach_args):
+
     try:
-        float_val = float(str_val)
-        int_val = int(float_val)
-        val_is_integer = int_val == float_val
-        if must_be_int and not val_is_integer:
-            raise TypeError
-        if min_allowed is not None and float_val < min_allowed:
-            comp_cond = f'>= {min_allowed}'
-            raise AssertionError
-        if max_allowed is not None and float_val > max_allowed:
-            comp_cond = f'<= {max_allowed}'
-            raise AssertionError
-        return int_val if val_is_integer else float_val  # prefer return INT
-    except (ValueError, TypeError):
-        type_errmsg = (f"input value must be an INT, given {str_val}"
-                       if type_errmsg is None else type_errmsg)
-        raise TypeError(type_errmsg)
-    except AssertionError:
-        range_errmsg = (f"number must be {comp_cond}, given {str_val}"
-                        if range_errmsg is None else range_errmsg)
-        raise ValueError(range_errmsg)
+        approach, (lookback, anal_freq) = _gset_vnargs_choice_default(
+            ctx, param, approach_args, errmsg_name='approach')
+    except ValueError as err:
+        if err.args[0] == 'too many values to unpack (expected 2)':
+            raise ValueError("must pass both 'lookback' & 'analysis-frequency'"
+                             " if overriding the default for either one")
+            # TODO: can maybe constrain this, if eg. anal_freq is discrete vals
+        else:
+            raise ValueError(err)
+
+    if approach == 'static':
+        assert lookback is None and anal_freq is None,\
+            ("approach 'static' does not take 'lookback' & "
+             "'analysis-frequency' arguments")
+    elif (approach in {'rolling', 'increasing'} and
+          all(isinstance(val, str) for val in (lookback, anal_freq))):
+        type_errmsg = ("both 'lookback' & 'analysis-frequency' args for "
+                       f"approach '{approach}' must be INTs (# days); "
+                       f"given: {lookback}, {anal_freq}")
+        lookback, anal_freq = [_convert_str_to_num(val, must_be_int=True,
+                                                   type_errmsg=type_errmsg,
+                                                   min_allowed=1)
+                               for val in (lookback, anal_freq)]
+    else:  # FIXME/TODO: this branch will never get reached, no? -> remove?
+        raise TypeError(f"approach '{approach}' is incompatible with "
+                        f"inputs: '{lookback}', '{anal_freq}'")
+
+    # set as toplvl ctx attrs for the convenience of the gset_full_dbdf cb
+    ctx._approach, ctx._lookback = approach, lookback
+    return approach, lookback, anal_freq
+
 
 
 # callback for the --tau option
 def cast_tau(ctx, param, tau_str):
     # NOTE: the must_be_int flag is unneeded since using click.Choice
     return _convert_str_to_num(tau_str, must_be_int=True)
-
-
-# callback for the lookback option
-def gset_lookback(ctx, param, lookback):
-    approach, _ = ctx.params.get('approach_args')
-    # FIXME: no lookback for static -> need new method to infer date_i
-    if approach == 'static':
-        return None
-    return lookback
 
 
 # TODO: checkout default_map & auto_envvar_prefix for click.Context
@@ -266,28 +263,6 @@ def _gset_vnargs_choice_default(ctx, param, inputs, dflt=None,
             vals = tuple(vals)
 
     return chce, vals
-
-
-# callback for the approach option
-def validate_approach_args(ctx, param, approach_args):
-
-    approach, anal_freq = _gset_vnargs_choice_default(
-        ctx, param, approach_args, errmsg_name='approach')
-
-    if approach == 'static':
-        assert anal_freq is None,\
-            "approach 'static' does not take extra args"
-    elif approach in {'rolling', 'increasing'} and isinstance(anal_freq, str):
-        type_errmsg = (f"anal_frequency arg to approach '{approach}' must be "
-                       f"an INT (# days); given: {anal_freq}")
-        anal_freq = _convert_str_to_num(anal_freq, min_allowed=1,
-                                        must_be_int=True,
-                                        type_errmsg=type_errmsg)
-    else:  # NOTE/TODO: this branch will never get reached, right? -> remove?
-        raise TypeError(f"approach '{approach}' is incompatible "
-                        f"with inputs: {anal_freq}")
-
-    return approach, anal_freq
 
 
 # callback for the xmin_args (-x, --xmin) option

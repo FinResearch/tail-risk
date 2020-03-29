@@ -57,21 +57,27 @@ approach_args:
     - '--approach'
     - 'approach_args'
   cls: 'VnargsOption'
-  max_nargs: 2
-  is_eager: true  # TODO/FIXME: this need to be is_eager? can just validate after all args/opts processed in Command func
+  max_nargs: 3
+  is_eager: true  # NOTE: is_eager required to set lookback for the gset_group_opts cb
   type: 'tuple'
   default:
     # NOTE: this default map is NOT actually used by the click.Option,
     #       but is instead here for convenient serialization/encoding
-    rolling: '1'
-    increasing: '1'
-    static: null  # TODO: default it to '1' as well for validational convenience?
+    rolling:
+      - '504'
+      - '1'
+    increasing:
+      - '504'
+      - '1'
+    static:
+      - null
+      - null
   show_default: false
   callback: 'validate_approach_args'
   # metavar:  # NOTE: this attr is set by _set_vnargs_choice_metahelp_()
   help: >
-    for 'rolling' or 'increasing', optionally specify <ℤ⁺ (# days)>
-    as the analysis frequency, default: 1
+    for 'rolling' or 'increasing', optionally specify <(ℤ⁺, ℤ⁺) (# days)>
+    for the lookback & analysis frequency  [defaults: (504, 1)]
 # ASK/CONFIRM: anal_freq (in normal) == sliding_window (in group)
 
 partition:  # NOTE: opt only available in group tail analysis mode
@@ -98,18 +104,6 @@ returns_type:
     - 'log'
   default: 'log'
   help: 'specify the type of returns to analyse'
-
-# TODO: add 'lookback' as additional arg to 'approach_args' VnargsOption??
-# If above done, then should validate static approach receives no lookback input
-lookback:  # NOTE: only available in dynamic (rolling & increasing) approaches
-  param_decls:
-    - '-lb'
-    - '--lookback'
-  type: 'int'
-  default: 504
-  callback: 'gset_lookback'
-  metavar: '<ℤ⁺ (# days)>'
-  help: 'lookback (in days) to use for rolling or increasing approaches (N/A for static)'
 
 tau:
   param_decls:

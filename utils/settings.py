@@ -53,7 +53,7 @@ class Settings:
     # # methods needed for the core general settings # #
 
     def _postprocess_specific_options(self):
-        self.approach, self.anal_freq = self.approach_args
+        self.approach, self.lookback, self._anal_freq = self.approach_args
         self.use_static = True if self.approach == 'static' else False
         self.fit_discretely = True if self.data_nature == 'discrete' else False
         self.xmin_rule, self.xmin_vqty = self.xmin_args  # TODO: rm once below complete
@@ -101,7 +101,7 @@ class Settings:
             self._partition_dynamic_dbdf()
 
         self.static_dbdf = self.dynamic_dbdf.loc[self.date_i: self.date_f]
-        self.anal_dates = self.static_dbdf.index[::self.anal_freq]
+        self.anal_dates = self.static_dbdf.index[::self._anal_freq]
 
     # # methods relevant to group tail analysis behaviors # #
 
@@ -191,7 +191,7 @@ class Settings:
 
     def __get_labelstep(self):
         len_dates = len(self.anal_dates)
-        _analyze_nondaily = self.anal_freq is not None and self.anal_freq > 1
+        _analyze_nondaily = self._anal_freq is not None and self._anal_freq > 1
         use_monthly = len_dates <= Period.ANNUAL or _analyze_nondaily
         use_quarterly = Period.ANNUAL < len_dates <= 3*Period.ANNUAL
         return (Period.MONTH if use_monthly else
