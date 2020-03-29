@@ -29,7 +29,7 @@ data:
 ## analysis settings: determines how the data is analyzed
 anal:
   - approach  # TODO: make this setting needless to export; figure out how to handle rolling vs. increasing differences in initial lookback date
-  - use_static  # TODO: use better name; maybe use inverse --> use_dynamic?
+  - use_dynamic
   - returns_type
   - lookback  # TODO: won't be needed if initial lookback handled in settings.py
   - tau

@@ -54,7 +54,8 @@ class Settings:
 
     def _postprocess_specific_options(self):
         self.approach, self.lookback, self._anal_freq = self.approach_args
-        self.use_static = True if self.approach == 'static' else False
+        self.use_dynamic = (True if self.approach in {'rolling', 'increasing'}
+                            else False)
         self.fit_discretely = True if self.data_nature == 'discrete' else False
         self.xmin_rule, self.xmin_vqty = self.xmin_args  # TODO: rm once below complete
         self._xmin_rule, self._xmin_vqty = self.xmin_args
@@ -143,7 +144,7 @@ class Settings:
 
     def _load_set_stats_columns_labels(self):
         # TODO/NOTE: -G, --group dynamic cols differs slightly (xmin_today)
-        cfg_bn = 'static' if self.use_static else 'dynamic'
+        cfg_bn = 'dynamic' if self.use_dynamic else 'static'
         DIR = 'config/output_columns/'  # TODO: improve package/path system
         with open(f'{DIR}/{cfg_bn}.yaml') as cfg:
             self.stats_colname, labels = tuple(

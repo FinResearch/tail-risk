@@ -10,21 +10,23 @@ class ResultsDataFrame:
         self.anal = settings.anal
 
     def _init_static(self):
-        self._gixn = self.data.grouping_type  # gixn: grouping index name
-        n_groupings = len(self.data.grouping_labs)
-        ridx_name = (self._gixn if n_groupings == 1 else self._gixn.pluralize()
-                     if self.anal.use_static else self.data.anal_dates.name)
-        ridx_labs = (self.data.grouping_labs if self.anal.use_static else
-                     self.data.anal_dates)
+        # gixn: grouping index name
+        self._gixn = self.data.grouping_type
+        # ridx: ROW index
+        ridx_name = (self.data.anal_dates.name if self.anal.use_dynamic else
+                     self._gixn if len(self.data.grouping_labs) == 1 else
+                     self._gixn.pluralize())
+        ridx_labs = (self.data.anal_dates if self.anal.use_dynamic
+                     else self.data.grouping_labs)
         ridx = pd.Index(ridx_labs, name=ridx_name)
-        # ridx: ROW index above, & cidx: COLUMN index below
+        # cidx: COLUMN index below
         cidx = pd.MultiIndex.from_tuples(self.data.stats_collabs,
                                          names=(self.data.stats_colname, ''))
 
         df_tail = pd.DataFrame(np.full((len(ridx), len(cidx)), np.nan),
                                index=ridx, columns=cidx, dtype=float)
 
-        # TODO: use the special str subclass w/ .pluralize for name below?
+        # TODO: use the special str-subclass w/ .pluralize for tail name below?
         tidx_name = 'tails' if len(self.anal.tails_to_anal) == 2 else 'tail'
         return pd.concat({t: df_tail for t in self.anal.tails_to_anal},
                          axis=1, names=(tidx_name,))
@@ -38,5 +40,5 @@ class ResultsDataFrame:
                          axis=1, names=(self._gixn,))
 
     def initialize(self):
-        return (self._init_static() if self.anal.use_static else
-                self._init_dynamic())
+        return (self._init_dynamic() if self.anal.use_dynamic else
+                self._init_static())

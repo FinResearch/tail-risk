@@ -173,7 +173,7 @@ class StaticAnalyzer(_Analyzer):
     def __init__(self, settings):
         super().__init__(settings)
         self.iter_id_keys = iter(self.data.grouping_labs)
-        assert self.anal.use_static
+        assert not self.anal.use_dynamic
 
     def _set_curr_input_array(self):  # TODO:consider pass curr_iter_id as arg?
         lab = self.curr_iter_id
@@ -191,7 +191,7 @@ class DynamicAnalyzer(_Analyzer):
 
     def __init__(self, settings):
         super().__init__(settings)
-        assert not self.anal.use_static  # i.e. 1 of ('rolling', 'increasing')
+        assert self.anal.use_dynamic
         self.iter_id_keys = product(iter(self.data.grouping_labs),
                                     enumerate(self.data.anal_dates,
                                               start=self.data.date_i_idx))
@@ -241,7 +241,7 @@ class DynamicAnalyzer(_Analyzer):
 
 # wrapper func: instantiate correct Analyzer type and run tail analysis
 def analyze_tail(settings):
-    Analyzer = StaticAnalyzer if settings.anal.use_static else DynamicAnalyzer
+    Analyzer = DynamicAnalyzer if settings.anal.use_dynamic else StaticAnalyzer
     analyzer = Analyzer(settings)
     analyzer.analyze()
     print(analyzer.results)
