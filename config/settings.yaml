@@ -31,7 +31,7 @@ anal:
   - approach  # TODO: make this setting needless to export; figure out how to handle rolling vs. increasing differences in initial lookback date
   - use_static  # TODO: use better name; maybe use inverse --> use_dynamic?
   - returns_type
-  - lookback
+  - lookback  # TODO: won't be needed if initial lookback handled in settings.py
   - tau
   - standardize
   - absolutize

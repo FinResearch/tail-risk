@@ -1,5 +1,3 @@
-# TODO: reorder callback definitions in this file!!!
-# TODO: also REORGANIZE by adding more section headings --> rename module too?
 # TODO: wrap logical components into classes??? (ex. group tail analysis)
 
 import click
@@ -15,7 +13,7 @@ OPT_CFG_DIR = f'{ROOT_DIR}/config/options/'  # TODO: use pathlib.Path ??
 # TODO: once ROOT_DIR added to sys.path in project top level, ref from ROOT_DIR
 
 
-# # Decorator # #
+# # Decorator (& its helpers) # #
 
 def __preprocess_special_attrs_(opt_attrs):
     """Helper for correctly translating the data types from the YAML config
@@ -76,8 +74,13 @@ def attach_yaml_opts():
 # TODO: consider creating func to add Click runtime ctx obj as attr to passed
 # ui_opts obj. Ex-usecase: allow settings.py access to custom dflts on VNargOpt
 
+# TODO: reorder callback definitions in this file!!!
+# TODO: also REORGANIZE by adding more section headings --> rename module too?
 
-# # Callbacks # #
+
+# # Callbacks (CBs) # #
+
+# # # Helpers for CBs # # #
 
 # TODO: optimize using list.index(value)?
 def _get_param_from_ctx(ctx, param_name):
@@ -89,8 +92,93 @@ def _get_param_from_ctx(ctx, param_name):
                        f'click.Command: {ctx.command.name}')
 
 
+# func that mutates ctx to correctly set metavar & help attrs of VnargsOption's
+def _set_vnargs_choice_metahelp_(ctx):
+    xmin_extra_help = (('{average: (ℤ⁺, ℤ), [defaults: (66, 0)], '
+                        '<# days (rolling, lag)>}\n')
+                       if ctx._analyze_group else '')
+
+    vnargs_choice_opts = ('approach_args', 'xmin_args',)
+
+    for opt_name in vnargs_choice_opts:
+        opt_obj = _get_param_from_ctx(ctx, opt_name)
+        opt_choices = tuple(opt_obj.default.keys())
+        opt_obj.metavar = (f"[{'|'.join(opt_choices)}]  "
+                           f"[default: {opt_choices[0]}]")
+        extra_help = xmin_extra_help if opt_name == 'xmin_args' else ''
+        opt_obj.help = extra_help + opt_obj.help
+
+
+# TODO: checkout default_map & auto_envvar_prefix for click.Context
+#       as method for setting dynamic defaults
+# helper for VnargsOptions to dynamically set their various defaults
+def _gset_vnargs_choice_default(ctx, param, inputs, dflt=None,
+                                errmsg_name=None, errmsg_extra=None):
+
+    dflts_by_chce = param.default  # use default map encoded in YAML config
+    choices = tuple(dflts_by_chce.keys())
+
+    chce, *vals = inputs  # NOTE: here vals is always a list
+
+    # ensure selected choice is in the set of possible values
+    if chce not in choices:
+        opt_name = errmsg_name if errmsg_name else param.name
+        raise ValueError(f"'{opt_name}' {errmsg_extra if errmsg_extra else ''}"
+                         f"must be one of [{', '.join(choices)}]; got: {chce}")
+
+    # set the default to the 1st entry of the choice list when dflt not given
+    if dflt is None:
+        dflt = choices[0]
+
+    # NOTE: click.ParameterSource & methods not in v7.0; using HEAD (symlink)
+    opt_src = ctx.get_parameter_source(param.name)
+    if opt_src == 'DEFAULT':
+        vals = dflts_by_chce[dflt]
+    elif opt_src == 'COMMANDLINE':
+        if len(vals) == 0:
+            vals = dflts_by_chce[chce]
+        elif len(vals) == 1:
+            vals = vals[0]
+        else:
+            # TODO: if know which num-arg in tup is more likely to vary, then
+            # can implement system to allow 1 num input, and default for other
+            vals = tuple(vals)
+
+    return chce, vals
+
+
+# helper for converting choice types (click.Choice OR custom dict choices)
+# w/ numeric str vals to Python's number types (int OR float)
+def _convert_str_to_num(str_val, must_be_int=False, type_errmsg=None,
+                        min_allowed=None, max_allowed=None, range_errmsg=None):
+    assert isinstance(str_val, str),\
+        f"value to convert to number must be of type 'str', given {str_val}"
+    try:
+        float_val = float(str_val)
+        int_val = int(float_val)
+        val_is_integer = int_val == float_val
+        if must_be_int and not val_is_integer:
+            raise TypeError
+        if min_allowed is not None and float_val < min_allowed:
+            comp_cond = f'>= {min_allowed}'
+            raise AssertionError
+        if max_allowed is not None and float_val > max_allowed:
+            comp_cond = f'<= {max_allowed}'
+            raise AssertionError
+        return int_val if val_is_integer else float_val  # prefer return INT
+    except (ValueError, TypeError):
+        type_errmsg = (f"input value must be an INT, given {str_val}"
+                       if type_errmsg is None else type_errmsg)
+        raise TypeError(type_errmsg)
+    except AssertionError:
+        range_errmsg = (f"number must be {comp_cond}, given {str_val}"
+                        if range_errmsg is None else range_errmsg)
+        raise ValueError(range_errmsg)
+
+
+# # # Eager Options CBs # # #
+
 # callback for the db_df positional argument
-# gset_full_dbdf: Get/Set Full DataBase DataFrame
 def gset_full_dbdf(ctx, param, db_file):
     """Open and read the passed File as a Pandas DataFrame
 
@@ -130,26 +218,8 @@ def gset_full_dbdf(ctx, param, db_file):
 #      file_matches = [db_pat.match(f) for f in os.listdir()]
 #      return ', '.join([m.group() for m in file_matches if m is not None])
 
-
 #  def set_tickers_from_textfile(ctx, param, tickers):
 #      pass
-
-
-# small mutating utility to correctly set the metavar & help attrs of xmin_args
-def _set_vnargs_choice_metahelp_(ctx):
-    xmin_extra_help = (('{average: (ℤ⁺, ℤ), [defaults: (66, 0)], '
-                        '<# days (rolling, lag)>}\n')
-                       if ctx._analyze_group else '')
-
-    vnargs_choice_opts = ('approach_args', 'xmin_args',)
-
-    for opt_name in vnargs_choice_opts:
-        opt_obj = _get_param_from_ctx(ctx, opt_name)
-        opt_choices = tuple(opt_obj.default.keys())
-        opt_obj.metavar = (f"[{'|'.join(opt_choices)}]  "
-                           f"[default: {opt_choices[0]}]")
-        extra_help = xmin_extra_help if opt_name == 'xmin_args' else ''
-        opt_obj.help = extra_help + opt_obj.help
 
 
 # callback for -G, --group
@@ -222,47 +292,25 @@ def validate_approach_args(ctx, param, approach_args):
     return approach, lookback, anal_freq
 
 
+# # # Ordinary CBs # # #
+
+# callback for options unique to -G --group mode (curr. only for --partition)
+def confirm_group_flag_set(ctx, param, val):
+    if val is not None:
+        assert ctx._analyze_group,\
+            (f"option '{param.name}' is only available when using "
+             "group tail analysis mode; set -G or --group to use")
+    else:
+        # NOTE: this error should never triger as the default value &
+        #       click.Choice type constraints suppresses it
+        assert not ctx._analyze_group
+    return val
+
 
 # callback for the --tau option
 def cast_tau(ctx, param, tau_str):
     # NOTE: the must_be_int flag is unneeded since using click.Choice
     return _convert_str_to_num(tau_str, must_be_int=True)
-
-
-# TODO: checkout default_map & auto_envvar_prefix for click.Context
-#       as method for setting dynamic defaults
-# helper for VnargsOptions to dynamically set their various defaults
-def _gset_vnargs_choice_default(ctx, param, inputs, dflt=None,
-                                errmsg_name=None, errmsg_extra=None):
-
-    dflts_by_chce = param.default  # use default map encoded in YAML config
-    choices = tuple(dflts_by_chce.keys())
-
-    chce, *vals = inputs  # NOTE: here vals is always a list
-
-    # ensure selected choice is in the set of possible values
-    if chce not in choices:
-        opt_name = errmsg_name if errmsg_name else param.name
-        raise ValueError(f"'{opt_name}' {errmsg_extra if errmsg_extra else ''}"
-                         f"must be one of: {', '.join(choices)}; got: {chce}")
-
-    # set the default to the 1st entry of the choice list when dflt not given
-    if dflt is None:
-        dflt = choices[0]
-
-    # NOTE: click.ParameterSource & methods not in v7.0; using HEAD (symlink)
-    opt_src = ctx.get_parameter_source(param.name)
-    if opt_src == 'DEFAULT':
-        vals = dflts_by_chce[dflt]
-    elif opt_src == 'COMMANDLINE':
-        if len(vals) == 0:
-            vals = dflts_by_chce[chce]
-        elif len(vals) == 1:
-            vals = vals[0]
-        else:
-            vals = tuple(vals)
-
-    return chce, vals
 
 
 # callback for the xmin_args (-x, --xmin) option
@@ -306,19 +354,6 @@ def validate_xmin_args(ctx, param, xmin_args):
     return rule, vqarg   # NOTE: num args are all of str type (incl. defaults)
 
 
-# callback for options unique to -G --group mode (curr. only for --partition)
-def confirm_group_flag_set(ctx, param, val):
-    if val is not None:
-        assert ctx._analyze_group,\
-            (f"option '{param.name}' is only available when using "
-             "group tail analysis mode; set -G or --group to use")
-    else:
-        # NOTE: this error should never triger as the default value &
-        #       click.Choice type constraints suppresses it
-        assert not ctx._analyze_group
-    return val
-
-
 # helper for customizing str displayed in help msg when show_default is True
 def _customize_show_default_boolcond(param, boolcond, dflt_str_2tup):
     if param.show_default:
@@ -346,7 +381,11 @@ def get_nproc_set_show_default(ctx, param, nproc):
     return os.cpu_count() if nproc is None else nproc
 
 
-def _postprocess_tails_selections(ctx, yaml_opts, topts_names):
+# # Post-Parsing Functions # #
+# # for opts requiring full completed ctx; also note they mutate yaml_opts
+
+# validate then correctly set/toggle the two tail selection options
+def _postproc_tails(ctx, yaml_opts, topts_names):
     # NOTE: this function is agnostic of which tail name is passed first
     names_srcs_vals = [(t, ctx.get_parameter_source(t), yaml_opts[t])
                        for t in topts_names]

@@ -37,7 +37,7 @@ date_i:
     - '--date-initial'
     - 'date_i'
   type: 'str'
-  default: '1/4/2016'
+  default: '1/4/2016'  # NOTE: unset 'default' attr to infer date_i
   metavar: ''  # NOTE: metavar set to '' here so it doesn't show up as 'TEXT'
   help: 'the starting date of the time series to analyse'
 
@@ -47,7 +47,7 @@ date_f:
     - '--date-final'
     - 'date_f'
   type: 'str'
-  default: '5/5/2016'
+  default: '5/5/2016'  # NOTE: unset 'default' attr to infer date_f
   metavar: ''  # NOTE: metavar set to '' here so it doesn't show up as 'TEXT'
   help: 'the final date of the time series to analyse'
 
@@ -153,23 +153,6 @@ anal_left:
   default: true
   # default: false
   help: '-L w/o -R to analyze left tail ONLY'
-
-# # TODO: use bool or feature switches for --tail ??
-# #       OR VnargsOption, ex. '--tails left right'
-# tail_selection:
-#   param_decls:
-#     - '-t'
-#     - '--tail'
-#     - 'tail_selection'
-#     # - '-R'
-#     # - '-L'
-#   type:
-#     - 'left'
-#     - 'right'
-#     - 'both'
-#   default: 'both'
-#   # callback: ''  # TODO: use cb(?) (or maybe in settings.py) to configure desired short-opts behavior
-#   help: 'choose the tail(s) to analyse'
 
 alpha_signif:  # TODO: use full name for var, i.e. alpha_significance?
   param_decls:
