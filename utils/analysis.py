@@ -36,7 +36,7 @@ class _Analyzer(ABC):
         # TODO: shove below printing into verbosity logging
         print("You opted for the analysis of "
               f"{self.anal.returns_type} returns")
-        pt_i = data_array[:-self.anal.tau]
+        pt_i = data_array[:-self.anal.tau]  # ASK/TODO: if anal_freq > 1, then tau of 1 isn't really a 'daily' lag
         pt_f = data_array[self.anal.tau:]
         if self.anal.returns_type == "raw":
             X = pt_f - pt_i
@@ -63,6 +63,8 @@ class _Analyzer(ABC):
         if self.anal.xmin_rule in {"clauset", "manual"}:
             xmin = self.anal.xmin_vqty
         elif self.anal.xmin_rule == "percentile":
+            # NOTE: take percentile of non-filtered for nonzeros series,
+            #       but after potential normalization
             xmin = np.percentile(self.curr_input_array, self.anal.xmin_vqty)
         else:
             raise AttributeError(f"invalid xmin-rule: {self.anal.xmin_rule}")
@@ -156,7 +158,7 @@ class _Analyzer(ABC):
     # top-level convenience method that autodetects how to run tail analysis
     def analyze(self):
         nproc = self.anal.nproc
-        # TODO: add other OR conds for analyze_sequential anal (ex. -a static)
+        # TODO: add other conditions for analyze_sequential (ex. -a static)
         if nproc == 1:
             self.analyze_sequential()
         elif nproc > 1:

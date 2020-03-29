@@ -20,7 +20,6 @@ from .options import gset_full_dbdf, attach_yaml_opts, postproc_tails_
 @click.argument('full_dbdf', metavar='DB_FILE', nargs=1, is_eager=True,
                 type=click.File(mode='r'), callback=gset_full_dbdf,
                 default=f'{ROOT_DIR}/dbMSTR_test.csv')
-# TODO: support ARGs & move DB_FILE into config/options/attributes.yaml ??
 @attach_yaml_opts()  # NOTE: this decorator func call returns a decorator
 # FIXME: allow passing in negative number as args to opts;
 #        currently interpreted as an option;

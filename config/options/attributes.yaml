@@ -24,7 +24,7 @@ tickers:  # TODO: allow passing in a .txt file of tickers?
     - 'DE 03Y'
     - 'DE 05Y'
     - 'DE 10Y'
-  # metavar: '[ <csv on CLI> | <.csv> | <.txt> ]'  # TODO: file options
+  # metavar: '[ <csv on CLI> | <.csv> | <.txt> ]'
   # callback: 'set_tickers_from_textfile'
   metavar: '<csv on CLI>'
   help: 'specify the list of tickers from the database to analyse'
@@ -154,7 +154,7 @@ anal_left:
   # default: false
   help: '-L w/o -R to analyze left tail ONLY'
 
-alpha_signif:  # TODO: use full name for var, i.e. alpha_significance?
+alpha_signif:
   param_decls:
     - '--alpha'
     - 'alpha_signif'
@@ -195,14 +195,14 @@ xmin_args:
     'manual' & 'percentile' rules accept an optional numeric arg:
     {percentile: <ℝ ∊ [0-100]>, [default: 90]},                   
     {manual: <ℝ >, [default: 0]}
-# TODO: improve help message above & for similar opts (i.e. approach_args)
+# FIXME/TODO: improve help message above & for similar opts (i.e. approach_args)
 
 run_ks_test:
   param_decls:
     - '--ks-run/--ks-skip'
     - 'run_ks_test'
   default: true
-  metavar: '(Run/Skip KS-Test)'  # FIXME: get metavarto work w/ flags (not shown currently)
+  metavar: '(Run/Skip KS-Test)'  # FIXME: get metavar to work w/ flags (not shown currently)
   help: '--ks-skip overrides value from --ks-iter'
 
 # TODO: consider add similar skip option as above for logl_stats??

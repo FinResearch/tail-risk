@@ -206,7 +206,6 @@ class Settings:
         self._subsettings = tuple(self._settings_config.keys())
 
     def _validate_subsetting(self, subsett):
-        # FIXME: find more potential membership testing cases like the below
         assert subsett in self._subsettings,\
             f"subsetting must be one of: {', '.join(self._subsettings)}"
 

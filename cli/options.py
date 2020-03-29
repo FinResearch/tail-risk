@@ -179,7 +179,7 @@ def _customize_show_default_boolcond(param, boolcond, dflt_str_2tup):
 def __get_run_ks_test_show_dflt_inputs(ctx):
     param = _get_param_from_ctx(ctx, 'run_ks_test')
     cond = param.default
-    return param, cond, ('Run', 'Skip')
+    return param, cond, ('run', 'skip')
 
 
 # this will be called from the 'gset_group_opts' callback
@@ -203,12 +203,12 @@ def gset_full_dbdf(ctx, param, db_file):
 
     NOTE: the function mutates the ctx state to add the above inferred vals
     """
+    # TODO: attach calc'd objs such as (df, tickers, dates) onto ctx for use??
 
     # TODO: make index_col case-insensitive? i.e. 'Date' or 'date'
     full_dbdf = pd.read_csv(db_file, index_col='Date')  # TODO:pd.DatetimeIndex
-    # TODO: attach computed objects such as {df, tickers, dates} onto ctx??
 
-    full_dates = full_dbdf.index  # TODO: attach to ctx_obj for later access?
+    full_dates = full_dbdf.index
     # inferred index of date_i; only used when 'default' attr not set in YAML
     di_iix = 0 if ctx._approach == 'static' else ctx._lookback - 1
 
@@ -241,7 +241,7 @@ def gset_full_dbdf(ctx, param, db_file):
 def gset_group_opts(ctx, param, analyze_group):
     ctx._analyze_group = False  # set pvt toplvl attr on ctx for convenience
     _customize_show_default_boolcond(param, analyze_group,
-                                     ('Group', 'Individual'))
+                                     ('group', 'individual'))
 
     if analyze_group:
         ctx._analyze_group = True
@@ -265,7 +265,7 @@ def gset_group_opts(ctx, param, analyze_group):
     _customize_show_default_boolcond(*__get_run_ks_test_show_dflt_inputs(ctx))
     _customize_show_default_boolcond(*__get_nproc_show_dflt_inputs(ctx))
 
-    return analyze_group  # TODO: return more useful value?
+    return analyze_group
 
 
 # callback for the approach option
