@@ -197,13 +197,11 @@ xmin_args:
     {manual: <ℝ >, [default: 0]}
 # TODO: improve help message above & for similar opts (i.e. approach_args)
 
-ks_flag:  # TODO/FIXME: change name to 'run_ks_test'??
+run_ks_test:
   param_decls:
     - '--ks-run/--ks-skip'
-    - 'ks_flag'
-  is_eager: true  # is_eager flag needed to customize --help show_default via cb
+    - 'run_ks_test'
   default: true
-  callback: 'customize_ksflag_show_default'
   metavar: '(Run/Skip KS-Test)'  # FIXME: get metavarto work w/ flags (not shown currently)
   help: '--ks-skip overrides value from --ks-iter'
 
@@ -223,9 +221,8 @@ nproc:
     - '-N'
     - '--nproc'
   type: 'int'
-  is_eager: true  # is_eager flag needed to customize --help show_default via cb
   # default: 1  # NOTE: set 'default' here to override current behavior of using os.cpu_count()
-  callback: 'get_nproc_set_show_default'
+  callback: 'gset_nproc_default'
   metavar: '<ℤ⁺ (# processes)>'
   help: "number of concurrent processes used for analysis"
 

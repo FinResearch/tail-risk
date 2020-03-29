@@ -1,4 +1,6 @@
 # TODO: wrap logical components into classes??? (ex. group tail analysis)
+# TODO: consider creating func to add Click runtime ctx obj as attr to passed
+# ui_opts obj. Ex-usecase: allow settings.py access to custom dflts on VNargOpt
 
 import click
 
@@ -66,10 +68,6 @@ def attach_yaml_opts():
         return cmd
     return decorator
 
-# TODO: consider creating func to add Click runtime ctx obj as attr to passed
-# ui_opts obj. Ex-usecase: allow settings.py access to custom dflts on VNargOpt
-
-# TODO: reorder callback definitions in this file!!!
 # TODO: also REORGANIZE by adding more section headings --> rename module too?
 
 
@@ -169,6 +167,32 @@ def _convert_str_to_num(str_val, must_be_int=False, type_errmsg=None,
         raise ValueError(range_errmsg)
 
 
+# TODO: create & send PR implementing this type of feature below to Click??
+# helper for customizing str displayed in help msg when show_default is True
+def _customize_show_default_boolcond(param, boolcond, dflt_str_2tup):
+    if param.show_default:
+        param.show_default = False  # turn off built-in show_default
+        true_dflt, false_dflt = dflt_str_2tup
+        help_dflt = true_dflt if boolcond else false_dflt
+        param.help += f'  [default: {help_dflt}]'
+
+
+# this will be called from the 'gset_group_opts' callback
+def __get_run_ks_test_show_dflt_inputs(ctx):
+    param = _get_param_from_ctx(ctx, 'run_ks_test')
+    cond = param.default
+    return param, cond, ('Run', 'Skip')
+
+
+# this will be called from the 'gset_group_opts' callback
+def __get_nproc_show_dflt_inputs(ctx):
+    param = _get_param_from_ctx(ctx, 'nproc')
+    cond = param.default
+    t_help = f'{cond} (Config File)'
+    f_help = f'{os.cpu_count()} (# CPUs)'
+    return param, cond, (t_help, f_help)
+
+
 # # # Eager Options CBs # # #
 
 # callback for the db_df positional argument
@@ -218,9 +242,8 @@ def gset_full_dbdf(ctx, param, db_file):
 # callback for -G, --group
 def gset_group_opts(ctx, param, analyze_group):
     ctx._analyze_group = False  # set pvt toplvl attr on ctx for convenience
-
     _customize_show_default_boolcond(param, analyze_group,
-                                     ('group', 'individual'))
+                                     ('Group', 'Individual'))
 
     if analyze_group:
         ctx._analyze_group = True
@@ -236,10 +259,13 @@ def gset_group_opts(ctx, param, analyze_group):
             # show opts hidden in individual mode, & hide opts common to both
             opt_obj.hidden = False if opt in grp_dflts else True
         param.hidden = False  # undoes the opt_obj.hidden toggle above
-        param.help = 'see below for help specific to group analysis'
+        param.help = ('-G set; this is the specialized help for group '
+                      'tail analysis')
 
-    # use eagerness of the -G opt to dynamically set help text of various opts
+    # piggyback off eagerness of the -G opt to dynamically set help texts
     _set_vnargs_choice_metahelp_(ctx)
+    _customize_show_default_boolcond(*__get_run_ks_test_show_dflt_inputs(ctx))
+    _customize_show_default_boolcond(*__get_nproc_show_dflt_inputs(ctx))
 
     return analyze_group  # TODO: return more useful value?
 
@@ -340,30 +366,7 @@ def validate_xmin_args(ctx, param, xmin_args):
     return rule, vqarg
 
 
-# helper for customizing str displayed in help msg when show_default is True
-def _customize_show_default_boolcond(param, boolcond, dflt_str_2tup):
-    if param.show_default:
-        param.show_default = False  # turn off built-in show_default
-        true_dflt, false_dflt = dflt_str_2tup
-        help_dflt = true_dflt if boolcond else false_dflt
-        param.help += f'  [default: {help_dflt}]'
-# TODO: create and send this feature as PR to pallets/click ??
-
-
-# FIXME/TODO: make below piggyback off -G's callback to avoid needing is_eager itself
-
-# callback for --ks-test / --ks-skip
-def customize_ksflag_show_default(ctx, param, ks_flag):
-    _customize_show_default_boolcond(param, ks_flag,
-                                     ('Run', 'Skip',))
-    return ks_flag
-
-
-def get_nproc_set_show_default(ctx, param, nproc):
-    conf_dflt = _get_param_from_ctx(ctx, param.name).default
-    conf_help = f'{conf_dflt} (Config File)'
-    none_help = f'{os.cpu_count()} (# CPUs)'
-    _customize_show_default_boolcond(param, conf_dflt, (conf_help, none_help))
+def gset_nproc_default(ctx, param, nproc):
     return os.cpu_count() if nproc is None else nproc
 
 

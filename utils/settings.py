@@ -62,7 +62,7 @@ class Settings:
             assert not self.use_static,\
                 (f"xmin-rule '{self._xmin_rule}' is not compatible with "
                  f"the '{self.approach}' approach")
-        self.ks_flag = False if self.ks_iter <= 0 else self.ks_flag
+        self.run_ks_test = False if self.ks_iter <= 0 else self.run_ks_test
 
     # TODO: should be possible to get all xmin_val for all xmin_rule except
     # 'average'; for percentile, use lookback to slice all input arrays
@@ -149,7 +149,7 @@ class Settings:
             self.stats_colname, labels = tuple(
                 yaml.load(cfg, Loader=yaml.SafeLoader).items())[0]
 
-        if self.ks_flag is False:
+        if self.run_ks_test is False:
             labels.remove('ks_pv')
 
         self.stats_collabs = [(lab, '') if isinstance(lab, str) else lab for

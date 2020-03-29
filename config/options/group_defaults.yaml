@@ -18,7 +18,7 @@ xmin_args:
   #   -manual: float value, default: 0
   #   -percentile: 0-100, default: 90
 
-ks_flag: false
+run_ks_test: false
 
 ks_iter: 2
 

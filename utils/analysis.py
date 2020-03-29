@@ -80,7 +80,7 @@ class _Analyzer(ABC):
         alpha, xmin, sigma = (getattr(self.curr_fit.power_law, prop)
                               for prop in ('alpha', 'xmin', 'sigma'))
         abs_len = len(self.curr_input_array[self.curr_input_array >= xmin])
-        if self.anal.ks_flag is True:
+        if self.anal.run_ks_test is True:
             # TODO: try compute ks_pv using MATLAB engine & module, and time
             ks_pv, _ = _plpva(self.curr_input_array, xmin, 'reps',
                               self.anal.ks_iter, 'silent')
