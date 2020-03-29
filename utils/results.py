@@ -10,9 +10,9 @@ class ResultsDataFrame:
         self.anal = settings.anal
 
     def _init_static(self):
-        gidx_name = self.data.grouping_type
+        self._gixn = self.data.grouping_type  # gixn: grouping index name
         n_groupings = len(self.data.grouping_labs)
-        ridx_name = (gidx_name if n_groupings == 1 else gidx_name.pluralize()
+        ridx_name = (self._gixn if n_groupings == 1 else self._gixn.pluralize()
                      if self.anal.use_static else self.data.anal_dates.name)
         ridx_labs = (self.data.grouping_labs if self.anal.use_static else
                      self.data.anal_dates)
@@ -29,13 +29,13 @@ class ResultsDataFrame:
         return pd.concat({t: df_tail for t in self.anal.tails_to_anal},
                          axis=1, names=(tidx_name,))
 
-        # TODO look into pd.concat alternatives
-        # https://pandas.pydata.org/pandas-docs/stable/user_guide/merging.html
+    # TODO look into pd.concat alternatives
+    # https://pandas.pydata.org/pandas-docs/stable/user_guide/merging.html
 
     def _init_dynamic(self):
         df_sub = self._init_static()
         return pd.concat({sub: df_sub for sub in self.data.grouping_labs},
-                         axis=1, names=(self.gidx_name,))
+                         axis=1, names=(self._gixn,))
 
     def initialize(self):
         return (self._init_static() if self.anal.use_static else

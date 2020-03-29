@@ -28,18 +28,14 @@ data:
 
 ## analysis settings: determines how the data is analyzed
 anal:
-  - analyze_group
-  - approach
-  - anal_freq
+  - approach  # TODO: make this setting needless to export; figure out how to handle rolling vs. increasing differences in initial lookback date
   - use_static  # TODO: use better name; maybe use inverse --> use_dynamic?
-  # - partition  # NOTE: doesn't appear to be used
   - returns_type
   - lookback
   - tau
   - standardize
   - absolutize
   - tails_to_anal
-  # - n_tails  # TODO: this doesn't seem to really be necessary
   - fit_discretely
   # - xmin  # get rid of the 2 xmin settings below once this complete
   - xmin_rule
@@ -48,6 +44,7 @@ anal:
   - ks_iter
   - nproc
 
+## plotting settings: needed specifically and only for plotting
 plot:
   - show_plots
   - save_plots

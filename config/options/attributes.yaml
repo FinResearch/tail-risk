@@ -7,7 +7,7 @@ analyze_group:
     - '-G'
     - '--group/--individual'
     - 'analyze_group'
-  is_eager: true
+  is_eager: true  # NOTE: eagerness of this opt also helps to dynamically set --help of -G-dependent opts
   default: false
   callback: 'gset_group_opts'
   help: 'set flag to run in group analysis mode; -Gh to see help specific to group analysis'
@@ -58,7 +58,7 @@ approach_args:
     - 'approach_args'
   cls: 'VnargsOption'
   max_nargs: 2
-  is_eager: true
+  is_eager: true  # TODO/FIXME: this need to be is_eager? can just validate after all args/opts processed in Command func
   type: 'tuple'
   default:
     # NOTE: this default map is NOT actually used by the click.Option,
@@ -70,7 +70,7 @@ approach_args:
   callback: 'validate_approach_args'
   # metavar:  # NOTE: this attr is set by _set_vnargs_choice_metahelp_()
   help: >
-    for 'rolling' or 'increasing', optionally specify <INT (# days)>
+    for 'rolling' or 'increasing', optionally specify <ℤ⁺ (# days)>
     as the analysis frequency, default: 1
 # ASK/CONFIRM: anal_freq (in normal) == sliding_window (in group)
 
@@ -108,7 +108,7 @@ lookback:  # NOTE: only available in dynamic (rolling & increasing) approaches
   type: 'int'
   default: 504
   callback: 'gset_lookback'
-  metavar: '<INT (# days)>'
+  metavar: '<ℤ⁺ (# days)>'
   help: 'lookback (in days) to use for rolling or increasing approaches (N/A for static)'
 
 tau:
@@ -183,7 +183,7 @@ alpha_signif:  # TODO: use full name for var, i.e. alpha_significance?
     - 'alpha_signif'
   type: 'float'
   default: 0.05
-  metavar: '<FLOAT: [0, 1]>'
+  metavar: '<ℝ ∊ [0, 1]>'
   help: 'significance of the confidence interval: 1-α'
 
 # TODO/ASK: remove below option? since nature of data can be inferred from database
@@ -209,15 +209,16 @@ xmin_args:
     # NOTE: this default map is NOT actually used by the click.Option,
     #       but is instead here for convenient serialization/encoding
     clauset: null
-    manual: '0'
     percentile: '90'
+    manual: '0'
   show_default: false
   callback: 'validate_xmin_args'
   # metavar:  # NOTE: this attr is set by _set_vnargs_choice_metahelp_()
-  help: |  # FIXME: newline below not preserved in --help
+  help: |  # FIXME: newline(s) below not preserved in --help (adding blank spaces does it, but is janky)
     'manual' & 'percentile' rules accept an optional numeric arg:
-    {manual: ℝ, [default: 0]}, {percentile: 0-100, [default: 90]}
-    # TODO: improve help message above & for similar opts (i.e. approach_args)
+    {percentile: <ℝ ∊ [0-100]>, [default: 90]},                   
+    {manual: <ℝ >, [default: 0]}
+# TODO: improve help message above & for similar opts (i.e. approach_args)
 
 ks_flag:  # TODO/FIXME: change name to 'run_ks_test'??
   param_decls:
@@ -237,7 +238,7 @@ ks_iter:
     - '--ks-iter'
   type: 'int'
   default: 100
-  metavar: '<INT (# iterations)>'
+  metavar: '<ℤ⁺ (# iterations)>'
   help: 'specify number of iterations used for KS-testing'
 
 nproc:
@@ -248,7 +249,7 @@ nproc:
   is_eager: true  # is_eager flag needed to customize --help show_default via cb
   # default: 1  # NOTE: set 'default' here to override current behavior of using os.cpu_count()
   callback: 'get_nproc_set_show_default'
-  metavar: '<INT (# processes)>'
+  metavar: '<ℤ⁺ (# processes)>'
   help: "number of concurrent processes used for analysis"
 
 show_plots:

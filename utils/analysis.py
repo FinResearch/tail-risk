@@ -81,9 +81,9 @@ class _Analyzer(ABC):
                               for prop in ('alpha', 'xmin', 'sigma'))
         abs_len = len(self.curr_input_array[self.curr_input_array >= xmin])
         if self.anal.ks_flag is True:
+            # TODO: try compute ks_pv using MATLAB engine & module, and time
             ks_pv, _ = _plpva(self.curr_input_array, xmin, 'reps',
                               self.anal.ks_iter, 'silent')
-            # TODO: try compute ks_pv using MATLAB engine & module, and time
         locs = locals()
         return {(stat, ''): locs.get(stat) for stat, _ in
                 self.data.stats_collabs if stat in locs}
@@ -206,7 +206,7 @@ class DynamicAnalyzer(_Analyzer):
     def _set_curr_input_array(self):  # TODO:consider pass curr_iter_id as arg?
         sub, (d, date) = self.curr_iter_id
         self.curr_df_pos = date, (sub,)
-        d0 = (d - self.lkb_off if self.anal.approach == 'rolling'
+        d0 = (d - self.lkb_off if self.anal.approach == 'rolling'  # TODO: determine this in settings.py?? --> create d0_generator??
               else self.lkb_0)  # TODO: calc all needed dates in settings.py??
         # TODO: move logging of LABEL out of this repeatedly called method
         print(f"Analyzing time series for {self.data.grouping_type.title()} "

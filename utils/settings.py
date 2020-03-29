@@ -1,7 +1,7 @@
 import yaml
 import pandas as pd
 
-from enum import IntEnum
+import enum
 from types import SimpleNamespace  # TODO: consider switching to namedtuple?
 from statistics import NormalDist
 
@@ -83,7 +83,6 @@ class Settings:
         if self.anal_left:
             tails_to_anal.append(Tail.left)
         self.tails_to_anal = tuple(tails_to_anal)
-        #  self.n_tails = len(self.tails_to_anal)  # TODO: this sett really needed?
         self.alpha_qntl = NormalDist().inv_cdf(1 - len(self.tails_to_anal)/2 *
                                                self.alpha_signif)
 
@@ -220,7 +219,7 @@ class Settings:
 
 
 class GroupingName(str):  # TODO: add allowed values constraint when have time
-    """special string instance used to represent the grouping type name
+    """special string class used to represent the grouping type name
     """
     # FIXME: got error below when running w/ multiprocessing but not w/ single
     #        proc --> try collections.UserString? And also not w/ __new__ rm'd
@@ -239,12 +238,15 @@ class GroupingName(str):  # TODO: add allowed values constraint when have time
             return self + 's'
 
 
-class Period(IntEnum):
+# TODO: move these Enum types into a constants.py module?
+
 class Tail(enum.Enum):
     right = 1
     left = -1
 
 
+class Period(enum.IntEnum):
+    # TODO: just subclass Enum, and return PERIOD.value for self.labelstep??
     MONTH = 22
     QUARTER = 66
     BIANNUAL = 121

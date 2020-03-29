@@ -1,5 +1,8 @@
+# TODO: reorder callback definitions in this file!!!
+# TODO: also REORGANIZE by adding more section headings --> rename module too?
+# TODO: wrap logical components into classes??? (ex. group tail analysis)
+
 import click
-from click.core import ParameterSource
 
 import yaml
 import pandas as pd
@@ -136,8 +139,9 @@ def gset_full_dbdf(ctx, param, db_file):
 
 # small mutating utility to correctly set the metavar & help attrs of xmin_args
 def _set_vnargs_choice_metahelp_(ctx):
-    xmin_extra_help = ('-average: 2 INTs (# days) as window & lag, '
-                       'default: 66, 0\n') if ctx._analyze_group else ''
+    xmin_extra_help = (('{average: (ℤ⁺, ℤ), [defaults: (66, 0)], '
+                        '<# days (rolling, lag)>}\n')
+                       if ctx._analyze_group else '')
 
     vnargs_choice_opts = ('approach_args', 'xmin_args',)
 
@@ -228,7 +232,9 @@ def gset_lookback(ctx, param, lookback):
     return lookback
 
 
-# helper for VnargsOption's
+# TODO: checkout default_map & auto_envvar_prefix for click.Context
+#       as method for setting dynamic defaults
+# helper for VnargsOptions to dynamically set their various defaults
 def _gset_vnargs_choice_default(ctx, param, inputs, dflt=None,
                                 errmsg_name=None, errmsg_extra=None):
 
@@ -247,11 +253,11 @@ def _gset_vnargs_choice_default(ctx, param, inputs, dflt=None,
     if dflt is None:
         dflt = choices[0]
 
-    # NOTE: click.ParameterSource unavailable in v7.0; using HEAD (symlink)
+    # NOTE: click.ParameterSource & methods not in v7.0; using HEAD (symlink)
     opt_src = ctx.get_parameter_source(param.name)
-    if opt_src == ParameterSource.DEFAULT:
+    if opt_src == 'DEFAULT':
         vals = dflts_by_chce[dflt]
-    elif opt_src == ParameterSource.COMMANDLINE:
+    elif opt_src == 'COMMANDLINE':
         if len(vals) == 0:
             vals = dflts_by_chce[chce]
         elif len(vals) == 1:
@@ -348,7 +354,8 @@ def _customize_show_default_boolcond(param, boolcond, dflt_str_2tup):
 # TODO: create and send this feature as PR to pallets/click ??
 
 
-# TODO: reorder callback definitions in this file
+# FIXME/TODO: make below piggyback off -G's callback to avoid needing is_eager itself
+
 # callback for --ks-test / --ks-skip
 def customize_ksflag_show_default(ctx, param, ks_flag):
     _customize_show_default_boolcond(param, ks_flag,

@@ -28,7 +28,7 @@ from .dct_cbs import gset_full_dbdf, attach_yaml_opts, _postprocess_tails_select
 # TODO: add opts: '--multicore', '--interative', '--gui' (using easygui),
 #                 '--partial-saves', '--load-opts', '--save-opts',
 #                 '--verbose' # TODO: use count opt for -v?
-def get_ui_options(full_dbdf, **yaml_opts):
+@click.version_option('0.7', '-v', '--version')  # TODO: save -v for --verbose?
 @click.pass_context
 def get_ui_options(ctx, full_dbdf, **yaml_opts):
     _postprocess_tails_selections(ctx, yaml_opts, ('anal_right', 'anal_left'))
@@ -40,6 +40,8 @@ def get_ui_options(ctx, full_dbdf, **yaml_opts):
 
 # NOTE: cannot run as __main__ in packaged mode --> remove??
 if __name__ == '__main__':
+    #  # ImportError: attempted relative import with no known parent package
+    #  get_ui_options()  # FIXME the error above to use as __main__
     ui_opts = get_ui_options.main(standalone_mode=False)
 
 # TODO: log to stdin analysis progress (ex. 7/89 dates for ticker XYZ analyzed)
