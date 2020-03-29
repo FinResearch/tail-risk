@@ -68,8 +68,6 @@ def attach_yaml_opts():
         return cmd
     return decorator
 
-# TODO: also REORGANIZE by adding more section headings --> rename module too?
-
 
 # # Callbacks (CBs) # #
 

@@ -3,7 +3,7 @@ import os
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # TODO: add ROOT_DIR to sys.path in entrypoint/top-level when packaged
 
-from .dct_cbs import gset_full_dbdf, attach_yaml_opts, postproc_tails_
+from .options import gset_full_dbdf, attach_yaml_opts, postproc_tails_
 
 
 @click.command(context_settings=dict(default_map=None,
