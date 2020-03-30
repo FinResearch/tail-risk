@@ -2,12 +2,14 @@ import numpy as np
 import pandas as pd
 
 
-class ResultsDataFrame:
+class Results:
 
     def __init__(self, settings):
         self.ctrl = settings.ctrl
         self.data = settings.data
         self.anal = settings.anal
+
+        self.df = self.initialize()
 
     def _init_static(self):
         # gixn: grouping index name

@@ -7,7 +7,7 @@ from itertools import product
 
 from powerlaw import Fit  # TODO: consider import entire module?
 from ._plpva import plpva as _plpva
-from .results import ResultsDataFrame
+from .results import Results
 
 from os import getpid  # TODO: remove after debugging uses done
 from multiprocessing import Pool
@@ -20,7 +20,7 @@ class _Analyzer(ABC):
         self.data = settings.data
         self.anal = settings.anal
 
-        self.results = ResultsDataFrame(settings).initialize()
+        self.res = Results(settings)
 
     # # # state DEPENDENT (or aware) methods # # #
 
@@ -95,7 +95,7 @@ class _Analyzer(ABC):
         # TODO: remove needless assertion stmt(s) after code is well-tested
         assert len(curr_tstat_series) == len(self.data.stats_collabs)
         idx, col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
-        self.results.loc[idx, col + (tail,)].update(curr_tstat_series)
+        self.res.df.loc[idx, col + (tail,)].update(curr_tstat_series)
         # TODO: consider using pd.DataFrame.replace(, inplace=True) instead
 
     def __get_tdir_iter_restup(self, tail):  # retrn results tuple for one tail
@@ -153,7 +153,7 @@ class _Analyzer(ABC):
         #       np.ndarray, etc.; see TODO note under __get_tdir_iter_restup)
         for restup in restup_ls:
             (idx, col), res = restup  # if use '+' NOTE that DFs init'd w/ NaNs
-            self.results.loc[idx, col].update(res)
+            self.res.df.loc[idx, col].update(res)
 
     # top-level convenience method that autodetects how to run tail analysis
     def analyze(self):
@@ -165,9 +165,12 @@ class _Analyzer(ABC):
             self.analyze_multiproc()
         else:
             raise TypeError(f'Cannot perform analysis with {nproc} processes')
+
+    def get_resdf(self):
         # TODO: final clean ups of DF for presentation:
         #       - use df.columns = df.columns.droplevel() to remove unused lvls
         #       - use .title() on all index labels, then write to file
+        return self.res.df
 
 
 class StaticAnalyzer(_Analyzer):
@@ -246,6 +249,8 @@ def analyze_tail(settings):
     Analyzer = DynamicAnalyzer if settings.anal.use_dynamic else StaticAnalyzer
     analyzer = Analyzer(settings)
     analyzer.analyze()
-    print(analyzer.results)
+    results = analyzer.get_resdf()
+    print(results)
     print('-' * 100)
-    print(analyzer.results.info())
+    print(results.info())
+    print('-' * 100)
