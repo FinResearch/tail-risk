@@ -139,6 +139,11 @@ class Settings:
         cix = self.dynamic_dbdf.columns  # cix: column index
         self.grouping_labs = cix.levels[0] if self.analyze_group else cix
 
+    # # methods that correctly normalizes (std and/or abs) the data # #
+
+    def normalize_group_mode(self):
+        pass
+
     # # methods configuring the output results DataFrame # #
 
     def _load_set_stats_columns_labels(self):

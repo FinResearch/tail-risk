@@ -8,6 +8,9 @@ partition: 'country'
 
 lookback: 252
 
+norm_before: false
+norm_after: false
+
 xmin_args:
   average:  # NOTE: only available in dynamic (rolling & increasing) approaches 
     - '66'

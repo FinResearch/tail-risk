@@ -141,6 +141,32 @@ absolutize:
   default: false
   help: 'take absolute value of input data'
 
+norm_target:  # NOTE: only available in individual mode & for the static approach
+  param_decls:
+    - '--norm-series/--norm-tail'
+    - 'norm_target'
+  is_flag: true
+  default: true
+  help: "TARGET of std and/or abs; only w/ '-a static'"
+
+norm_before:  # NOTE: opt only available in group tail analysis mode
+  param_decls:
+    - '-nb'
+    - '--norm-before'
+  is_flag: true
+  default: null  # set to None while in the default individual mode
+  hidden: true  # hide option when using individual tail analysis mode
+  help: 'std and/or abs BEFORE grouping tickers'
+
+norm_after:  # NOTE: opt only available in group tail analysis mode
+  param_decls:
+    - '-na'
+    - '--norm-after'
+  is_flag: true
+  default: null  # set to None while in the default individual mode
+  hidden: true  # hide option when using individual tail analysis mode
+  help: 'std and/or abs AFTER grouping tickers'
+
 anal_right:
   param_decls:
     - '-R/--right-skip'

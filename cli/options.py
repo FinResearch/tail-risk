@@ -177,15 +177,23 @@ def _customize_show_default_boolcond(param, boolcond, dflt_str_2tup):
         param.help += f'  [default: {help_dflt}]'
 
 
-# this will be called from the 'gset_group_opts' callback
-def __get_run_ks_test_show_dflt_inputs(ctx):
+# # # small wrappers helping to set show_default attr of specific options # # #
+# these will be called from within 'gset_group_opts' callback
+# gsdi: get show default inputs
+
+def gsdi_nt(ctx):  # option: norm_target
+    param = _get_param_from_ctx(ctx, 'norm_target')
+    cond = param.default
+    return param, cond, ('series', 'tail')
+
+
+def gsdi_ks(ctx):  # option: run_ks_test
     param = _get_param_from_ctx(ctx, 'run_ks_test')
     cond = param.default
     return param, cond, ('run', 'skip')
 
 
-# this will be called from the 'gset_group_opts' callback
-def __get_nproc_show_dflt_inputs(ctx):
+def gsdi_np(ctx):  # option: nproc
     param = _get_param_from_ctx(ctx, 'nproc')
     cond = param.default
     t_help = f'{cond} (Config File)'
@@ -227,8 +235,8 @@ def gset_group_opts(ctx, param, analyze_group):
 
     # piggyback off eagerness of the -G opt to dynamically set help texts
     _set_vnargs_choice_metahelp_(ctx)
-    _customize_show_default_boolcond(*__get_run_ks_test_show_dflt_inputs(ctx))
-    _customize_show_default_boolcond(*__get_nproc_show_dflt_inputs(ctx))
+    for f in (gsdi_nt, gsdi_ks, gsdi_np):  # change some opts' show_defaults
+        _customize_show_default_boolcond(*f(ctx))
 
     return analyze_group
 
