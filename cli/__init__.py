@@ -27,12 +27,14 @@ from .options import gset_full_dbdf, attach_yaml_opts, postproc_tails_
 # TODO: add opts: '--multicore', '--interative', '--gui' (using easygui),
 #                 '--partial-saves', '--load-opts', '--save-opts',
 #                 '--verbose' # TODO: use count opt for -v?
-@click.version_option('0.7', '-v', '--version')  # TODO: save -v for --verbose?
+#  @click.option('-v', '--verbose', count=True)  # TODO: save -v for --verbose?
+@click.version_option('0.7dev', '-v', '--version')
 @click.pass_context
 def get_ui_options(ctx, full_dbdf, **yaml_opts):
     postproc_tails_(ctx, yaml_opts, ('anal_right', 'anal_left'))
     return dict(full_dbdf=full_dbdf, **yaml_opts)
 # TODO add subcommands: plot & resume_calculation (given full/partial data),
+#                       help subcmd to display diff opt types (ctrl, plot, etc)
 #                       calibrate multiprocessing chunksize,
 #                       autoupdate README opts help section based on attrs.yaml
 

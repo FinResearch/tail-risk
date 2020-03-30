@@ -221,6 +221,8 @@ ks_iter:
   metavar: '<ℤ⁺>'
   help: 'specify # iterations to use for KS-testing'
 
+# TODO: hide control & plotting options from --help unless specified by some subcommand/flag (to reduce clutter)
+
 nproc:
   param_decls:
     - '-N'

@@ -142,7 +142,7 @@ class _Analyzer(ABC):
         iter_id_keys = tuple(self.iter_id_keys)
 
         # TODO: look into Queue & Pipe for sharing data
-        with Pool(processes=self.anal.nproc) as pool:
+        with Pool(processes=self.ctrl.nproc) as pool:
             # TODO checkout .map alternatives: .imap, .map_async, etc.
             restup_ls = [restup for iter_restups in  # TODO: optimize chunksize
                          pool.map(self._analyze_iter, iter_id_keys)
@@ -157,7 +157,7 @@ class _Analyzer(ABC):
 
     # top-level convenience method that autodetects how to run tail analysis
     def analyze(self):
-        nproc = self.anal.nproc
+        nproc = self.ctrl.nproc
         # TODO: add other conditions for analyze_sequential (ex. -a static)
         if nproc == 1:
             self.analyze_sequential()

@@ -10,6 +10,7 @@ ctrl:
   - load_options
   - save_options
   - partial_save_data
+  - nproc
 
 ## data settings: input data and useful metadata
 data:
@@ -42,7 +43,6 @@ anal:
   - xmin_vqty
   - run_ks_test
   - ks_iter
-  - nproc
 
 ## plotting settings: needed specifically and only for plotting
 plot:
