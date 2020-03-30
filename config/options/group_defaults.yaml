@@ -12,7 +12,7 @@ norm_before: false
 norm_after: false
 
 xmin_args:
-  average:  # NOTE: only available in dynamic (rolling & increasing) approaches 
+  average:  # only available for dynamic approaches (rolling & increasing)
     - '66'
     - '0'
   clauset: null

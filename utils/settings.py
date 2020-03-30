@@ -13,7 +13,7 @@ class Settings:
             setattr(self, opt, val)
             # TODO: coord. w/ attrs.yaml to mark some opts private w/ _-prefix
 
-        # core general settings
+        # core general settings (mostly data & analysis)
         self._postprocess_specific_options()
         self._gset_tail_settings()
         self._gset_dbdf_attrs()
