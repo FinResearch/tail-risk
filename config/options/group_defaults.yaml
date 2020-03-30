@@ -2,6 +2,8 @@
 
 # defaults values specific to group tail analysis
 
+# TODO: allow modding other attrs besides 'default' in this config?
+
 partition: 'country'
 
 lookback: 252
@@ -13,13 +15,9 @@ xmin_args:
   clauset: null
   manual: '0'
   percentile: '90'
-  # help: |  # NOTE: this is set by the _set_xmin_metavar_help call
-  #   -average: 2 INTs (# days) - sliding window & lag, default: 66, 0
-  #   -manual: float value, default: 0
-  #   -percentile: 0-100, default: 90
 
 run_ks_test: false
 
 ks_iter: 2
 
-# TODO: allow modding other attrs besides 'default' in this config?
+# help: # TODO: customize --help for group?

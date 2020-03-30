@@ -14,7 +14,7 @@ analyze_group:
   is_eager: true  # NOTE: eagerness of this opt also helps to dynamically set --help of -G-dependent opts
   default: false
   callback: 'gset_group_opts'
-  help: 'set flag to run in group analysis mode; -Gh to see help specific to group analysis'
+  help: 'set flag to run in group analysis mode; -Gh to see group-specific help'
 
 tickers:  # TODO: allow passing in a .txt file of tickers?
   param_decls:
@@ -31,7 +31,7 @@ tickers:  # TODO: allow passing in a .txt file of tickers?
   # metavar: '[ <csv on CLI> | <.csv> | <.txt> ]'
   # callback: 'set_tickers_from_textfile'
   metavar: '<csv on CLI>'
-  help: 'specify the list of tickers from the database to analyse'
+  help: 'specify list of tickers from DB to analyze'
 
 # TODO: use specialized Date type (ex. pd.DatetimeIndex) for correct metavar
 # and/or alternatively, use callback to validate (likely more cumbersome)
@@ -41,9 +41,10 @@ date_i:
     - '--date-initial'
     - 'date_i'
   type: 'str'
-  default: '1/4/2016'  # NOTE: unset 'default' attr to infer date_i
+  # default: '1/4/2016'  # NOTE: unset 'default' attr to infer date_i
+  default: '2/5/2016'  # <--- very short date range for testing/debugging
   metavar: ''  # NOTE: metavar set to '' here so it doesn't show up as 'TEXT'
-  help: 'the starting date of the time series to analyse'
+  help: 'first date to analyze'
 
 date_f:
   param_decls:
@@ -53,7 +54,7 @@ date_f:
   type: 'str'
   default: '5/5/2016'  # NOTE: unset 'default' attr to infer date_f
   metavar: ''  # NOTE: metavar set to '' here so it doesn't show up as 'TEXT'
-  help: 'the final date of the time series to analyse'
+  help: 'final date to analyze'
 
 approach_args:
   param_decls:
@@ -80,8 +81,8 @@ approach_args:
   callback: 'validate_approach_args'
   # metavar:  # NOTE: this attr is set by _set_vnargs_choice_metahelp_()
   help: >
-    for 'rolling' or 'increasing', optionally specify <(ℤ⁺, ℤ⁺) (# days)>
-    for the lookback & analysis frequency  [defaults: (504, 1)]
+    opt args for 'rolling' or 'increasing': <(ℤ⁺, ℤ⁺)| # days: (lookback,
+    analysis-frequency)>  [defaults: (504, 1)]
 # ASK/CONFIRM: anal_freq (in normal) == sliding_window (in group)
 
 partition:  # NOTE: opt only available in group tail analysis mode
@@ -96,7 +97,7 @@ partition:  # NOTE: opt only available in group tail analysis mode
   default: null
   callback: 'confirm_group_flag_set'
   hidden: true  # hide option when using individual tail analysis mode
-  help: 'method for aggregating tickers for group tail analysis'
+  help: 'how to group tickers for group tail analysis'
 
 returns_type:
   param_decls:
@@ -107,7 +108,7 @@ returns_type:
     - 'relative'
     - 'log'
   default: 'log'
-  help: 'specify the type of returns to analyse'
+  help: 'specify the type of returns to analyze'
 
 tau:
   param_decls:
@@ -120,7 +121,7 @@ tau:
   default: '1'
   callback: 'cast_tau'
   metavar: '[1 (daily) | 5 (weekly) | 22 (monthly)]'
-  help: 'specify the time lag (in days) of the input series'
+  help: 'specify time lag <# days> of the input series'
 
 # TODO: implement system for specifying std/abs targets when approach is not static
 #       use VnargsOption and/or feature switches (--before, --after, etc.)
@@ -130,7 +131,7 @@ standardize:
     - 'standardize'
   is_flag: true
   default: false
-  help: 'standardize/normalize the input data'
+  help: 'standardize/normalize input data'
 
 absolutize:
   param_decls:
@@ -138,7 +139,7 @@ absolutize:
     - 'absolutize'
   is_flag: true
   default: false
-  help: 'take the absolute value of the input data'
+  help: 'take absolute value of input data'
 
 anal_right:
   param_decls:
@@ -176,7 +177,7 @@ data_nature:
     - 'discrete'
     - 'continuous'
   default: 'continuous'
-  help: 'discrete: integer data; continuous: real data'
+  help: 'discrete: ℤ | continuous: ℝ'
 
 xmin_args:
   param_decls:
@@ -196,9 +197,9 @@ xmin_args:
   callback: 'validate_xmin_args'
   # metavar:  # NOTE: this attr is set by _set_vnargs_choice_metahelp_()
   help: |  # FIXME: newline(s) below not preserved in --help (adding blank spaces does it, but is janky)
-    'manual' & 'percentile' rules accept an optional numeric arg:
-    {percentile: <ℝ ∊ [0-100]>, [default: 90]},                   
-    {manual: <ℝ >, [default: 0]}
+    percentile: <ℝ ∊ [0-100]>  [default: 90]                   
+    manual: <ℝ >  [default: 0]
+# 'manual' & 'percentile' rules accept an optional numeric arg:
 # FIXME/TODO: improve help message above & for similar opts (i.e. approach_args)
 
 run_ks_test:
@@ -207,7 +208,7 @@ run_ks_test:
     - 'run_ks_test'
   default: true
   metavar: '(Run/Skip KS-Test)'  # FIXME: get metavar to work w/ flags (not shown currently)
-  help: '--ks-skip overrides value from --ks-iter'
+  help: 'NOTE: --ks-skip overrides --ks-iter'
 
 # TODO: consider add similar skip option as above for logl_stats??
 
@@ -217,8 +218,8 @@ ks_iter:
     - '--ks-iter'
   type: 'int'
   default: 100
-  metavar: '<ℤ⁺ (# iterations)>'
-  help: 'specify number of iterations used for KS-testing'
+  metavar: '<ℤ⁺>'
+  help: 'specify # iterations to use for KS-testing'
 
 nproc:
   param_decls:
@@ -227,8 +228,8 @@ nproc:
   type: 'int'
   # default: 1  # NOTE: set 'default' here to override current behavior of using os.cpu_count()
   callback: 'gset_nproc_default'
-  metavar: '<ℤ⁺ (# processes)>'
-  help: "number of concurrent processes used for analysis"
+  metavar: '<ℤ⁺>'
+  help: "# of concurrent processes to use"
 
 show_plots:
   param_decls:

@@ -85,8 +85,8 @@ def _get_param_from_ctx(ctx, param_name):
 
 # func that mutates ctx to correctly set metavar & help attrs of VnargsOption's
 def _set_vnargs_choice_metahelp_(ctx):
-    xmin_extra_help = (('{average: (ℤ⁺, ℤ), [defaults: (66, 0)], '
-                        '<# days (rolling, lag)>}\n')
+    xmin_extra_help = (('average: <(ℤ⁺, ℤ )| # days: (rolling, lag)>  '
+                        '[defaults: (66, 0)]\n')
                        if ctx._analyze_group else '')
 
     vnargs_choice_opts = ('approach_args', 'xmin_args',)
