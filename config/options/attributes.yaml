@@ -2,6 +2,10 @@
 
 # options attributes for all forms of tail analysis
 
+# TODO: consider adding the full_dbdf argument declaration in here?
+# also create another config file to specify the order in which the
+# params & CBs are to be parsed/fired?
+
 analyze_group:
   param_decls:
     - '-G'
@@ -58,7 +62,7 @@ approach_args:
     - 'approach_args'
   cls: 'VnargsOption'
   max_nargs: 3
-  is_eager: true  # NOTE: is_eager required to set lookback for the gset_group_opts cb
+  is_eager: true  # NOTE: eagerness required to set lookback for the gset_full_dbdf cb
   type: 'tuple'
   default:
     # NOTE: this default map is NOT actually used by the click.Option,

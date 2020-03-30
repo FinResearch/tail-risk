@@ -102,13 +102,18 @@ def _set_vnargs_choice_metahelp_(ctx):
 # TODO: checkout default_map & auto_envvar_prefix for click.Context
 #       as method for setting dynamic defaults
 # helper for VnargsOptions to dynamically set their various defaults
-def _gset_vnargs_choice_default(ctx, param, inputs, dflt=None,
-                                errmsg_name=None, errmsg_extra=None):
+def _gset_vnargs_choice_default(ctx, param, inputs,
+                                errmsg_name=None,
+                                errmsg_extra=None):
 
     dflts_by_chce = param.default  # use default map encoded in YAML config
     choices = tuple(dflts_by_chce.keys())
+    dfch = choices[0]  # dfch: DeFault CHoice
 
-    chce, *vals = inputs  # NOTE: here vals is always a list
+    # NOTE: 'inputs' when not passed by user from CLI is taken from YAML cfg,
+    # which for opts whose cbs calls this helper func, is always a dict. Thus
+    # its dict.keys() iterable is passed as the arg to the 'input' parameter
+    chce, *vals = inputs  # vals is always a list here, even if empty
 
     # ensure selected choice is in the set of possible values
     if chce not in choices:
@@ -116,13 +121,10 @@ def _gset_vnargs_choice_default(ctx, param, inputs, dflt=None,
         raise ValueError(f"'{opt_name}' {errmsg_extra if errmsg_extra else ''}"
                          f"must be one of [{', '.join(choices)}]; got: {chce}")
 
-    if dflt is None:  # use 1st 'default' from attrs.yaml if no dflt passed
-        dflt = choices[0]
-
     # NOTE: click.ParameterSource & methods not in v7.0; using HEAD (symlink)
     opt_src = ctx.get_parameter_source(param.name)
     if opt_src == 'DEFAULT':
-        vals = dflts_by_chce[dflt]
+        vals = dflts_by_chce[dfch]
     elif opt_src == 'COMMANDLINE':
         if len(vals) == 0:
             vals = dflts_by_chce[chce]
@@ -193,48 +195,11 @@ def __get_nproc_show_dflt_inputs(ctx):
 
 # # # Eager Options CBs # # #
 
-# callback for the db_df positional argument
-def gset_full_dbdf(ctx, param, db_file):
-    """Open and read the passed File as a Pandas DataFrame
-
-    If the default attr isn't manually set in the YAML config,
-    infer the defaults of these extra options related to the
-    database file; namely: tickers, date_i & date_f
-
-    NOTE: the function mutates the ctx state to add the above inferred vals
-    """
-    # TODO: attach calc'd objs such as (df, tickers, dates) onto ctx for use??
-
-    # TODO: make index_col case-insensitive? i.e. 'Date' or 'date'
-    full_dbdf = pd.read_csv(db_file, index_col='Date')  # TODO:pd.DatetimeIndex
-
-    full_dates = full_dbdf.index
-    # inferred index of date_i; only used when 'default' attr not set in YAML
-    di_iix = 0 if ctx._approach == 'static' else ctx._lookback - 1
-
-    db_extra_opts_map = {'tickers': list(full_dbdf.columns),  # TODO: rm nulls?
-                         'date_i': full_dates[di_iix],
-                         'date_f': full_dates[-1]}
-
-    # use inferred defaults when default attr isn't manually set in YAML config
-    for opt_name, infrd_dflt in db_extra_opts_map.items():
-        opt = _get_param_from_ctx(ctx, opt_name)
-        if opt.default is None:
-            opt.default = infrd_dflt
-
-    # TODO: consider instead of read file & return DF, just return file handle?
-    return full_dbdf
-    # FIXME: performance mighe be somewhat reduced due to this IO operation???
-
-
 # TODO: present possible DB_FILE options if not passed & no defaults set
-#  def _get_db_choices():
-#      db_pat = re.compile(r'db.*\.(csv|xlsx)')  # TODO: confirm db name schema
+#  def _get_db_choices():  # will this feature require full_dbf to be eager??
+#      db_pat = re.compile(r'db.*\.(csv|xlsx)')  # need to cnfrm db name schema
 #      file_matches = [db_pat.match(f) for f in os.listdir()]
 #      return ', '.join([m.group() for m in file_matches if m is not None])
-
-#  def set_tickers_from_textfile(ctx, param, tickers):
-#      pass
 
 
 # callback for -G, --group
@@ -305,6 +270,44 @@ def validate_approach_args(ctx, param, approach_args):
 
 # # # Ordinary CBs # # #
 
+# callback for the full_dbdf positional argument
+def gset_full_dbdf(ctx, param, db_file):
+    """Open and read the passed File as a Pandas DataFrame
+
+    If the default attr isn't manually set in the YAML config,
+    infer the defaults of these extra options related to the
+    database file; namely: tickers, date_i & date_f
+
+    NOTE: the function mutates the ctx state to add the above inferred vals
+    """
+    # TODO: attach calc'd objs such as (df, tickers, dates) onto ctx for use??
+
+    # TODO: make index_col case-insensitive? i.e. 'Date' or 'date'
+    full_dbdf = pd.read_csv(db_file, index_col='Date')  # TODO:pd.DatetimeIndex
+
+    full_dates = full_dbdf.index
+    # inferred index of date_i; only used when 'default' attr not set in YAML
+    di_iix = 0 if ctx._approach == 'static' else ctx._lookback - 1
+
+    dbdf_attrs = {'tickers': list(full_dbdf.columns),  # TODO: rm NaNs/nulls??
+                  'date_i': full_dates[di_iix],
+                  'date_f': full_dates[-1]}
+
+    # use inferred defaults when default attr isn't manually set in YAML config
+    for opt_name, infrd_dflt in dbdf_attrs.items():
+        opt = _get_param_from_ctx(ctx, opt_name)
+        if opt.default is None:
+            opt.default = infrd_dflt
+
+    # TODO: consider instead of read file & return DF, just return file handle?
+    return full_dbdf
+    # FIXME: performance mighe be somewhat reduced due to this IO operation???
+
+
+#  def set_tickers_from_textfile(ctx, param, tickers):
+#      pass
+
+
 # callback for options unique to -G --group mode (curr. only for --partition)
 def confirm_group_flag_set(ctx, param, val):
     if val is not None:
@@ -326,11 +329,12 @@ def cast_tau(ctx, param, tau_str):
 
 # callback for the xmin_args (-x, --xmin) option
 def validate_xmin_args(ctx, param, xmin_args):
-    dflt_rule = 'average' if ctx._analyze_group else 'clauset'
-    rule, vqarg = _gset_vnargs_choice_default(
-        ctx, param, xmin_args, dflt=dflt_rule, errmsg_name='xmin-rule',
-        errmsg_extra=(f"for {'group' if ctx._analyze_group else 'individual'}"
-                      " tail analysis "))
+
+    errmsg_extra = (f"for {'group' if ctx._analyze_group else 'individual'}"
+                    " tail analysis ")
+    rule, vqarg = _gset_vnargs_choice_default(ctx, param, xmin_args,
+                                              errmsg_name='xmin-rule',
+                                              errmsg_extra=errmsg_extra)
 
     try:
         if rule == 'clauset':  # TODO: move 'clauset' out of 'try' block?
