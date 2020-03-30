@@ -16,9 +16,9 @@ from multiprocessing import Pool
 class _Analyzer(ABC):
 
     def __init__(self, settings):
-        self.ctrl = settings.ctrl
-        self.data = settings.data
-        self.anal = settings.anal
+        self.sc = settings.ctrl
+        self.sd = settings.data
+        self.sa = settings.anal
 
         self.res = Results(settings)
 
@@ -35,14 +35,14 @@ class _Analyzer(ABC):
     def _config_data_by_returns_type(self, data_array):
         # TODO: shove below printing into verbosity logging
         print("You opted for the analysis of "
-              f"{self.anal.returns_type} returns")
-        pt_i = data_array[:-self.anal.tau]  # ASK/TODO: if anal_freq > 1, then tau of 1 isn't really a 'daily' lag
-        pt_f = data_array[self.anal.tau:]
-        if self.anal.returns_type == "raw":
+              f"{self.sa.returns_type} returns")
+        pt_i = data_array[:-self.sa.tau]  # ASK/TODO: if anal_freq > 1, then tau of 1 isn't really a 'daily' lag
+        pt_f = data_array[self.sa.tau:]
+        if self.sa.returns_type == "raw":
             X = pt_f - pt_i
-        elif self.anal.returns_type == "relative":
+        elif self.sa.returns_type == "relative":
             X = pt_f / pt_i - 1.0
-        elif self.anal.returns_type == "log":
+        elif self.sa.returns_type == "log":
             X = np.log(pt_f/pt_i)
         return X
 
@@ -50,24 +50,26 @@ class _Analyzer(ABC):
     def _preprocess_data_array(self, data_array):
         X = self._config_data_by_returns_type(data_array)
         # TODO: std/abs only applies to static when _target == 'full series'
-        if self.anal.standardize is True:
+        if self.sa.standardize is True:
             print("I am standardizing your time series")
             X = (X - X.mean())/X.std()
-        if self.anal.absolutize is True:
+        if self.sa.absolutize is True:
             print("I am taking the absolute value of your time series")
             X = X.abs()
         return X
 
     def __get_xmin(self):
         # TODO: calculate clauset xmin value a priori using lookback
-        if self.anal.xmin_rule in {"clauset", "manual"}:
-            xmin = self.anal.xmin_vqty
-        elif self.anal.xmin_rule == "percentile":
+        if self.sa.xmin_rule in {"clauset", "manual"}:
+            xmin = self.sa.xmin_vqty
+        elif self.sa.xmin_rule == "percentile":
             # NOTE: take percentile of non-filtered for nonzeros series,
             #       but after potential normalization
-            xmin = np.percentile(self.curr_input_array, self.anal.xmin_vqty)
+            xmin = np.percentile(self.curr_input_array, self.sa.xmin_vqty)
+        elif self.sa.xmin_rule == "average":
+            pass
         else:
-            raise AttributeError(f"invalid xmin-rule: {self.anal.xmin_rule}")
+            raise AttributeError(f"invalid xmin-rule: {self.sa.xmin_rule}")
         return xmin
 
     def _set_curr_fit_obj(self, tail):
@@ -75,25 +77,25 @@ class _Analyzer(ABC):
         # TODO: can filter for nonzeros before doing above multiplication
         data = data[np.nonzero(data)]  # only keep/use non-zero elements
         xmin = self.__get_xmin()  # outsource this to settings.py
-        self.curr_fit = Fit(data=data, xmin=xmin,  # xmin=self.anal.xmin,
-                            discrete=self.anal.fit_discretely)
+        self.curr_fit = Fit(data=data, xmin=xmin,  # xmin=self.sa.xmin,
+                            discrete=self.sa.fit_discretely)
 
     def _get_curr_tail_stats(self):
         alpha, xmin, sigma = (getattr(self.curr_fit.power_law, prop)
                               for prop in ('alpha', 'xmin', 'sigma'))
         abs_len = len(self.curr_input_array[self.curr_input_array >= xmin])
-        if self.anal.run_ks_test is True:
+        if self.sa.run_ks_test is True:
             # TODO: try compute ks_pv using MATLAB engine & module, and time
             ks_pv, _ = _plpva(self.curr_input_array, xmin, 'reps',
-                              self.anal.ks_iter, 'silent')
+                              self.sa.ks_iter, 'silent')
         locs = locals()
         return {(stat, ''): locs.get(stat) for stat, _ in
-                self.data.stats_collabs if stat in locs}
+                self.sd.stats_collabs if stat in locs}
 
     def _store_partial_results(self, tail):
         curr_tstat_series = pd.Series(self._get_curr_tail_stats())
         # TODO: remove needless assertion stmt(s) after code is well-tested
-        assert len(curr_tstat_series) == len(self.data.stats_collabs)
+        assert len(curr_tstat_series) == len(self.sd.stats_collabs)
         idx, col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
         self.res.df.loc[idx, col + (tail,)].update(curr_tstat_series)
         # TODO: consider using pd.DataFrame.replace(, inplace=True) instead
@@ -101,7 +103,7 @@ class _Analyzer(ABC):
     def __get_tdir_iter_restup(self, tail):  # retrn results tuple for one tail
         # TODO: use np.ndarray instead of pd.Series (wasteful) --> order later
         curr_tstat_series = pd.Series(self._get_curr_tail_stats())
-        assert len(curr_tstat_series) == len(self.data.stats_collabs)
+        assert len(curr_tstat_series) == len(self.sd.stats_collabs)
         idx, col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
         return (idx, col + (tail,)), curr_tstat_series
 
@@ -111,7 +113,7 @@ class _Analyzer(ABC):
     def _analyze_next(self):
         self.curr_iter_id = next(self.iter_id_keys)  # set in subclasses
         self._set_curr_input_array()  # 'input' as in input to powerlaw.Fit
-        for tail in self.anal.tails_to_anal:
+        for tail in self.sa.tails_to_anal:
             self._set_curr_fit_obj(tail)
             self._store_partial_results(tail)
 
@@ -131,7 +133,7 @@ class _Analyzer(ABC):
         self._set_curr_input_array()  # 'input' as in input to powerlaw.Fit
 
         iter_restups = []  # results tuple(s) for single iteration of input
-        for tail in self.anal.tails_to_anal:
+        for tail in self.sa.tails_to_anal:
             self._set_curr_fit_obj(tail)
             iter_restups.append(self.__get_tdir_iter_restup(tail))
         return iter_restups
@@ -142,12 +144,12 @@ class _Analyzer(ABC):
         iter_id_keys = tuple(self.iter_id_keys)
 
         # TODO: look into Queue & Pipe for sharing data
-        with Pool(processes=self.ctrl.nproc) as pool:
+        with Pool(processes=self.sc.nproc) as pool:
             # TODO checkout .map alternatives: .imap, .map_async, etc.
             restup_ls = [restup for iter_restups in  # TODO: optimize chunksize
                          pool.map(self._analyze_iter, iter_id_keys)
                          for restup in iter_restups]
-        assert len(restup_ls) == len(self.anal.tails_to_anal)*len(iter_id_keys)
+        assert len(restup_ls) == len(self.sa.tails_to_anal)*len(iter_id_keys)
 
         # TODO: update results_df more efficiently, ex. pd.DataFrame.replace(),
         #       np.ndarray, etc.; see TODO note under __get_tdir_iter_restup)
@@ -157,7 +159,7 @@ class _Analyzer(ABC):
 
     # top-level convenience method that autodetects how to run tail analysis
     def analyze(self):
-        nproc = self.ctrl.nproc
+        nproc = self.sc.nproc
         # TODO: add other conditions for analyze_sequential (ex. -a static)
         if nproc == 1:
             self.analyze_sequential()
@@ -177,17 +179,17 @@ class StaticAnalyzer(_Analyzer):
 
     def __init__(self, settings):
         super().__init__(settings)
-        self.iter_id_keys = iter(self.data.grouping_labs)
-        assert not self.anal.use_dynamic
+        self.iter_id_keys = iter(self.sd.grouping_labs)
+        assert not self.sa.use_dynamic
 
     def _set_curr_input_array(self):  # TODO:consider pass curr_iter_id as arg?
         lab = self.curr_iter_id
         self.curr_df_pos = lab, ()
         # TODO: move logging of DATE RANGE out of this repeatedly called method
-        print(f"Analyzing time series for {self.data.grouping_type.title()} "
-              f"'{lab}' b/w [{self.data.date_i}, {self.data.date_f}]")
+        print(f"Analyzing time series for {self.sd.grouping_type.title()} "
+              f"'{lab}' b/w [{self.sd.date_i}, {self.sd.date_f}]")
         # TODO optimize below: when slice is pd.Series, no need to .flatten()
-        data_array = self.data.static_dbdf[lab].to_numpy().flatten()
+        data_array = self.sd.static_dbdf[lab].to_numpy().flatten()
         # TODO: factor below _preprocess_data_array call into ABC??
         self.curr_input_array = self._preprocess_data_array(data_array)
 
@@ -196,12 +198,12 @@ class DynamicAnalyzer(_Analyzer):
 
     def __init__(self, settings):
         super().__init__(settings)
-        assert self.anal.use_dynamic
-        self.iter_id_keys = product(iter(self.data.grouping_labs),
-                                    enumerate(self.data.anal_dates,
-                                              start=self.data.date_i_idx))
-        self.lkb_off = self.anal.lookback - 1  # ASK/TODO: offset 0 or 1 day?
-        self.lkb_0 = self.data.date_i_idx - self.lkb_off
+        assert self.sa.use_dynamic
+        self.iter_id_keys = product(iter(self.sd.grouping_labs),
+                                    enumerate(self.sd.anal_dates,
+                                              start=self.sd.date_i_idx))
+        self.lkb_off = self.sa.lookback - 1  # ASK/TODO: offset 0 or 1 day?
+        self.lkb_0 = self.sd.date_i_idx - self.lkb_off
 
         self._distros_to_compare = {'ll_tpl': 'truncated_power_law',
                                     'll_exp': 'exponential',
@@ -211,12 +213,12 @@ class DynamicAnalyzer(_Analyzer):
     def _set_curr_input_array(self):  # TODO:consider pass curr_iter_id as arg?
         sub, (d, date) = self.curr_iter_id
         self.curr_df_pos = date, (sub,)
-        d0 = (d - self.lkb_off if self.anal.approach == 'rolling'  # TODO: determine this in settings.py?? --> create d0_generator??
+        d0 = (d - self.lkb_off if self.sa.approach == 'rolling'  # TODO: determine this in settings.py?? --> create d0_generator??
               else self.lkb_0)  # TODO: calc all needed dates in settings.py??
         # TODO: move logging of LABEL out of this repeatedly called method
-        print(f"Analyzing time series for {self.data.grouping_type.title()} "
-              f"'{sub}' b/w [{self.data.full_dates[d0]}, {date}]")  # TODO:-VVV
-        data_array = self.data.dynamic_dbdf[sub].iloc[d0: d].\
+        print(f"Analyzing time series for {self.sd.grouping_type.title()} "
+              f"'{sub}' b/w [{self.sd.full_dates[d0]}, {date}]")  # TODO:-VVV
+        data_array = self.sd.dynamic_dbdf[sub].iloc[d0: d].\
             to_numpy().flatten()
         # TODO/ASK: for group input array: slice dbdf --> .to_numpy().flatten()
         #           confirm flattening order does not matter
@@ -235,7 +237,7 @@ class DynamicAnalyzer(_Analyzer):
                       for key, distro in self._distros_to_compare.items()}
 
         return {(key, stat): logl_stats.get(key, {}).get(stat) for
-                key, stat in self.data.stats_collabs if key.startswith('ll_')}
+                key, stat in self.sd.stats_collabs if key.startswith('ll_')}
 
     # TODO: add getting xmin_today data when doing group tail analysis
     def _get_curr_tail_stats(self):
