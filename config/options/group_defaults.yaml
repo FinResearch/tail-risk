@@ -8,6 +8,7 @@ partition: 'country'
 
 lookback: 252
 
+# TODO/ASK: what should the default be if either -std/-abs set, but no timings set?
 norm_before: false
 norm_after: false
 

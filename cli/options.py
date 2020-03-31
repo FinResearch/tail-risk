@@ -7,6 +7,7 @@ import click
 import yaml
 import pandas as pd
 import os
+import warnings
 
 # NOTE: import below is reified by eval() call, NOT unused as implied by linter
 from ._vnargs import VnargsOption
@@ -335,6 +336,20 @@ def cast_tau(ctx, param, tau_str):
     return _convert_str_to_num(tau_str, must_be_int=True)
 
 
+def validate_norm_target(ctx, param, target):
+    tmap = {True: '--norm-series', False: '--norm-tail'}
+    tgt_src = ctx.get_parameter_source(param.name)
+    # norm_target only applies to individual tail analysis w/ static approach
+    if ctx._analyze_group or ctx._approach != 'static':
+        if tgt_src == 'COMMANDLINE':
+            # TODO: use warnings.showwarning() to write to sys.stdout??
+            warnings.warn('Normalization target is only applicable to STATIC '
+                          "approach in INDIVIDUAL mode, i.e. w/ '-a static' & "
+                          f"no '-G' set. Ignoring flag {tmap[target]}")
+        return None
+    return target
+
+
 # callback for the xmin_args (-x, --xmin) option
 def validate_xmin_args(ctx, param, xmin_args):
 
@@ -383,6 +398,37 @@ def gset_nproc_default(ctx, param, nproc):
 # # Post-Parsing Functions # #
 # # for opts requiring full completed ctx
 # # also note that they mutate yaml_opts (denoted by _-suffix)
+
+# called in conditionalize_normalization_options_ below
+def __validate_norm_timings_(ctx, yaml_opts):
+    smap = {opt: ctx.get_parameter_source(opt) for
+            opt in ('norm_before', 'norm_after')}
+    if not ctx._analyze_group:
+        for opt, src in smap.items():
+            if src == 'COMMANDLINE':
+                warnings.warn('Normalization timing only applicable in GROUP '
+                              'analysis mode, i.e. w/ the -G flag set. '
+                              f"Ignoring flag --{'-'.join(opt.split('_'))}")
+            yaml_opts[opt] = None
+    return all(src == 'DEFAULT' for src in smap.values())  # for convenience
+
+
+def conditionalize_normalization_options_(ctx, yaml_opts):
+    use_default_timing = __validate_norm_timings_(ctx, yaml_opts)
+
+    normalize = yaml_opts['standardize'] or yaml_opts['absolutize']
+    if not normalize:
+        # the default case of no normalization at all
+        for opt in ('norm_target', 'norm_before', 'norm_after'):
+            if yaml_opts[opt] is not None:
+                warnings.warn(f"Normalization option {opt} only applicable w/ "
+                              f"-std and/or -abs set; ignoring option {opt}")
+                yaml_opts[opt] = None
+    elif normalize and ctx._analyze_group and use_default_timing:
+        # set default norm timings if none specified to be both before & after
+        yaml_opts['norm_before'] = True
+        yaml_opts['norm_after'] = True
+
 
 # validate then correctly set/toggle the two tail selection options
 def postproc_tails_(ctx, yaml_opts, topts_names):

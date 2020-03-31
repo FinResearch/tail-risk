@@ -36,6 +36,9 @@ anal:
   - tau
   - standardize
   - absolutize
+  - norm_target
+  - norm_before
+  - norm_after
   - tails_to_anal
   - fit_discretely
   # - xmin  # get rid of the 2 xmin settings below once this complete
