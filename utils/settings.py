@@ -62,6 +62,9 @@ class Settings:
             assert not self.use_static,\
                 (f"xmin-rule '{self._xmin_rule}' is not compatible with "
                  f"the '{self.approach}' approach")
+
+        if self.norm_target is not None:
+            self.norm_target = 'series' if self.norm_target else 'tail'
         self.run_ks_test = False if self.ks_iter <= 0 else self.run_ks_test
 
     # TODO: should be possible to get all xmin_val for all xmin_rule except
@@ -138,11 +141,6 @@ class Settings:
                                           else 'ticker')
         cix = self.dynamic_dbdf.columns  # cix: column index
         self.grouping_labs = cix.levels[0] if self.analyze_group else cix
-
-    # # methods that correctly normalizes (std and/or abs) the data # #
-
-    def normalize_group_mode(self):
-        pass
 
     # # methods configuring the output results DataFrame # #
 

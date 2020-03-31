@@ -413,7 +413,7 @@ def __validate_norm_timings_(ctx, yaml_opts):
     return all(src == 'DEFAULT' for src in smap.values())  # for convenience
 
 
-def conditionalize_normalization_options_(ctx, yaml_opts):
+def conditionalize_normalization_objectives_(ctx, yaml_opts):
     use_default_timing = __validate_norm_timings_(ctx, yaml_opts)
 
     normalize = yaml_opts['standardize'] or yaml_opts['absolutize']

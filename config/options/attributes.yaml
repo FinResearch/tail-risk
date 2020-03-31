@@ -123,22 +123,6 @@ tau:
   metavar: '[1 (daily) | 5 (weekly) | 22 (monthly)]'
   help: 'specify time lag <# days> of the input series'
 
-# normalization:
-#   param_decls:
-#     - '-N'
-#     - '--normalize'
-#     - 'normalization'
-#   cls: 'VnargsOption'
-#   max_nargs: 3  # TODO: change to 4 when using -G ?
-#   type: 'tuple'
-#   default: false
-#   show_default: true
-#   callback: ''
-#   metavar: ''
-#   help: 'standardize [(X-μ)/σ] and/or take abs value of input data'
-
-# TODO: implement system for specifying std/abs targets when approach is not static
-#       use VnargsOption and/or feature switches (--before, --after, etc.)
 standardize: 
   param_decls:
     - '-std'
@@ -146,7 +130,6 @@ standardize:
   is_flag: true
   default: false
   help: 'standardize [(X-μ)/σ] input data'
-# TODO: consider just using a VnargsOption to encompasse all of this shit
 
 # TODO: create alias -N, --norm for std + abs ??
 
@@ -176,8 +159,6 @@ norm_before:  # NOTE: opt only available in group tail analysis mode
   show_default: false
   hidden: true  # hide option when using individual tail analysis mode
   help: 'std +/ abs BEFORE and/or AFTER grouping tickers  [default: both]'
-
-# TODO: create alias for both before + after ???
 
 norm_after:  # NOTE: opt only available in group tail analysis mode
   param_decls:
