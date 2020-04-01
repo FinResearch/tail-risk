@@ -175,8 +175,7 @@ anal_right:
     - '-R/--right-skip'
     - 'anal_right'
   is_flag: true
-  default: true
-  # default: false
+  default: true  # default to True so if neither tail set, then both analyzed
   help: '-R w/o -L to analyze right tail ONLY'
 
 anal_left:
@@ -184,8 +183,7 @@ anal_left:
     - '-L/--left-skip'
     - 'anal_left'
   is_flag: true
-  default: true
-  # default: false
+  default: true  # default to True so if neither tail set, then both analyzed
   help: '-L w/o -R to analyze left tail ONLY'
 
 alpha_signif:

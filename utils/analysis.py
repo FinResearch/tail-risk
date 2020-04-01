@@ -10,7 +10,7 @@ from ._plpva import plpva as _plpva
 from .results import Results
 
 from os import getpid  # TODO: remove after debugging uses done
-from multiprocessing import Pool
+from multiprocessing import Pool  # TODO: import as mp?
 
 
 class _Analyzer(ABC):
@@ -53,6 +53,9 @@ class _Analyzer(ABC):
         if self.sa.standardize is True:
             print("I am standardizing your time series")
             X = (X - X.mean())/X.std()
+            # TODO/ASK/NOTE: np.std/np.ndarray.std uses ddof=0;
+            #                pd.DataFrame.rolling().std uses ddof=1
+            # i.e. each input considered a true population or just a sample?
         if self.sa.absolutize is True:
             print("I am taking the absolute value of your time series")
             X = X.abs()
@@ -72,7 +75,7 @@ class _Analyzer(ABC):
             raise AttributeError(f"invalid xmin-rule: {self.sa.xmin_rule}")
         return xmin
 
-    def _set_curr_fit_obj(self, tail):
+    def _calc_curr_fit_obj(self, tail):
         data = self.curr_input_array * tail.value  # tail.value = ±1 for R/L
         # TODO: can filter for nonzeros before doing above multiplication
         data = data[np.nonzero(data)]  # only keep/use non-zero elements
@@ -114,7 +117,7 @@ class _Analyzer(ABC):
         self.curr_iter_id = next(self.iter_id_keys)  # set in subclasses
         self._set_curr_input_array()  # 'input' as in input to powerlaw.Fit
         for tail in self.sa.tails_to_anal:
-            self._set_curr_fit_obj(tail)
+            self._calc_curr_fit_obj(tail)
             self._store_partial_results(tail)
 
     # runs analysis from start to finish, in 1-process + single-threaded mode
@@ -134,7 +137,7 @@ class _Analyzer(ABC):
 
         iter_restups = []  # results tuple(s) for single iteration of input
         for tail in self.sa.tails_to_anal:
-            self._set_curr_fit_obj(tail)
+            self._calc_curr_fit_obj(tail)
             iter_restups.append(self.__get_tdir_iter_restup(tail))
         return iter_restups
 
