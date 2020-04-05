@@ -114,13 +114,11 @@ tau:
   param_decls:
     - '--tau'
     # - 'delta'  # ASK/TODO: isn't 'delta' more fitting varname?
-  type:
-    - '1'
-    - '5'
-    - '22'
-  default: '1'
-  callback: 'cast_tau'
-  metavar: '[1 (daily) | 5 (weekly) | 22 (monthly)]'
+  type: 'int'
+  default: 1
+  # callback: 'cast_tau'
+  metavar: '<ℤ⁺>'
+  # metavar: '[1 (daily) | 5 (weekly) | 22 (monthly)]'
   help: 'specify time lag <# days> of the input series'
 
 standardize: 
@@ -204,7 +202,7 @@ data_nature:
     - 'discrete'
     - 'continuous'
   default: 'continuous'
-  help: 'discrete: ℤ | continuous: ℝ'
+  help: 'discrete ~ ℤ data vs. continuous ~ ℝ data'
 
 xmin_args:
   param_decls:

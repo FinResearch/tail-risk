@@ -36,7 +36,7 @@ class _Analyzer(ABC):
         # TODO: shove below printing into verbosity logging
         print("You opted for the analysis of "
               f"{self.sa.returns_type} returns")
-        pt_i = data_array[:-self.sa.tau]  # ASK/TODO: if anal_freq > 1, then tau of 1 isn't really a 'daily' lag
+        pt_i = data_array[:-self.sa.tau]
         pt_f = data_array[self.sa.tau:]
         if self.sa.returns_type == "raw":
             X = pt_f - pt_i
@@ -102,6 +102,7 @@ class _Analyzer(ABC):
         idx, col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
         self.res.df.loc[idx, col].update(curr_tstat_series)
         # TODO: consider using pd.DataFrame.replace(, inplace=True) instead
+        # TODO: can also order stats results first, then assign to DF row
 
     def __get_iter_results(self):  # return results tuple for one tail
         # TODO: use np.ndarray instead of pd.Series (wasteful) --> order later
@@ -228,7 +229,7 @@ class DynamicAnalyzer(_Analyzer):
         self.curr_input_array = self._preprocess_data_array(data_array) * tail.value
         # TODO: see TODO note for _set_curr_input_array of StaticAnalyzer above
 
-    def _get_curr_logl_stats(self):  # ASK/TODO: logl_stats unneeded in static?
+    def _get_curr_logl_stats(self):
         # compute (R, p) using powerlaw.Fit.distribution_compare
         logl_stats = {key:
                       {stat: val for stat, val in

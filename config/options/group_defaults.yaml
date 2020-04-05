@@ -17,6 +17,7 @@ xmin_args:
   average:  # only available for dynamic approaches (rolling & increasing)
     - '66'
     - '0'
+    - null  # TODO: file path for Clauset-calc'd xmins
   clauset: null
   manual: '0'
   percentile: '90'

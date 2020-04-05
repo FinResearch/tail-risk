@@ -330,10 +330,10 @@ def confirm_group_flag_set(ctx, param, val):
     return val
 
 
-# callback for the --tau option
-def cast_tau(ctx, param, tau_str):
-    # NOTE: the must_be_int flag is unneeded since using click.Choice
-    return _convert_str_to_num(tau_str, must_be_int=True)
+#  # callback for the --tau option
+#  def cast_tau(ctx, param, tau_str):
+#      # NOTE: the must_be_int flag is unneeded since using click.Choice
+#      return _convert_str_to_num(tau_str, must_be_int=True)
 
 
 def validate_norm_target(ctx, param, target):
