@@ -32,37 +32,6 @@ class _Analyzer(ABC):
         # NOTE: storage posn into results_df (curr_df_pos) also set here
         pass
 
-    #  # configure given series to chosen returns_type
-    #  # TODO: can do this all beforehand on entire dbdf, instead of on each iter
-    #  def _config_data_by_returns_type(self, data_array):
-    #      # TODO: shove below printing into verbosity logging
-    #      print("You opted for the analysis of "
-    #            f"{self.sa.returns_type} returns")
-    #      pt_i = data_array[:-self.sa.tau]
-    #      pt_f = data_array[self.sa.tau:]
-    #      if self.sa.returns_type == "raw":
-    #          X = pt_f - pt_i
-    #      elif self.sa.returns_type == "relative":
-    #          X = pt_f / pt_i - 1.0
-    #      elif self.sa.returns_type == "log":
-    #          X = np.log(pt_f/pt_i)
-    #      return X
-
-    #  # TODO: rewrite this better (more modular, more explicit interface, etc.)
-    #  def _preprocess_data_array(self, data_array):
-    #      X = self._config_data_by_returns_type(data_array)
-    #      # TODO: std/abs only applies to static when _target == 'full series'
-    #      if self.sa.standardize is True:
-    #          print("I am standardizing your time series")
-    #          X = (X - X.mean())/X.std()
-    #          # TODO/ASK/NOTE: np.std/np.ndarray.std uses ddof=0;
-    #          #                pd.DataFrame.rolling().std uses ddof=1
-    #          # i.e. each input considered a true population or just a sample?
-    #      if self.sa.absolutize is True:
-    #          print("I am taking the absolute value of your time series")
-    #          X = X.abs()
-    #      return X
-
     def __get_xmin(self):
         # TODO: calculate clauset xmin value a priori using lookback
         if self.sa.xmin_rule in {"clauset", "manual"}:
@@ -190,12 +159,7 @@ class StaticAnalyzer(_Analyzer):
         print(f"Analyzing the {tail.name.upper()} tail of time series for "
               f"{self.sd.grouping_type.title()} '{lab}' b/w [{self.sd.date_i},"
               f" {self.sd.date_f}]")
-        # TODO optimize below: when slice is pd.Series, no need to .flatten()
-        #  data_array = self.sd.static_dbdf[lab].to_numpy().flatten()
-        # TODO: factor below _preprocess_data_array call into ABC??
-        #  self.curr_input_array = self._preprocess_data_array(data_array) * tail.value
-        #  data_slice = self.sd.static_dbdf[lab]
-        #  self.curr_input_array = self.cfg.get_data(data_slice) * tail.value
+        # TODO: factor below cfg.get_data call into method in ABC
         self.curr_input_array = self.cfg.get_data(self.curr_iter_id) * tail.value
         # TODO: cache preproc'd data arr above so 2nd tail need not recompute;
         # NOTE: consider make tails_to_anal as 1st factor in itertools.product,
@@ -228,13 +192,6 @@ class DynamicAnalyzer(_Analyzer):
         print(f"Analyzing the {tail.name.upper()} tail of time series for "
               f"{self.sd.grouping_type.title()} '{sub}' b/w "
               f"[{self.sd.full_dates[d0]}, {date}]")
-        # TODO/NOTE: .iloc excludes index
-        #  data_array = self.sd.dynamic_dbdf[sub].iloc[d0: d].\
-        #      to_numpy().flatten()
-        # TODO/ASK: for group input array: slice dbdf --> .to_numpy().flatten()
-        #           confirm flattening order does not matter
-        #  self.curr_input_array = self._preprocess_data_array(data_array) * tail.value
-        #  data_slice = self.sd.dynamic_dbdf[sub].iloc[d0: d]
         self.curr_input_array = self.cfg.get_data(self.curr_iter_id) * tail.value
         # TODO: see TODO note for _set_curr_input_array of StaticAnalyzer above
 

@@ -19,18 +19,11 @@ class DataConfigurer:
             # FIXME/TODO: the above need to be sliced by anal_freq
         else:
             self.raw_dbdf = self.sd.static_dbdf
+        returns_df = self.__compute_returns_df()
 
-        #  returns_df = self.__compute_returns_df()
-
-        #  # TODO: don't need below check, and just init a Normalizer, b/c if no norm, then data just passed through
-        #  self.normalize_data = self.sa.standardize or self.sa.absolutize
-        #  if self.normalize_data:
-        #      Normalizer = (DynamicNormalizer if self.sa.use_dynamic else
-        #                    StaticNormalizer)
-        #      self.normalizer = Normalizer(settings, self.returns_df)
         Normalizer = (DynamicNormalizer if self.sa.use_dynamic else
                       StaticNormalizer)
-        self.normalizer = Normalizer(settings, self.__compute_returns_df())
+        self.normalizer = Normalizer(settings, returns_df)
 
     def __compute_returns_df(self):
         nan_pad = np.full(self.sa.tau, np.nan)
@@ -63,12 +56,9 @@ class DataConfigurer:
 
         return returns_df
 
+    # the public method to be called by an Analyzer instance
     def get_data(self, iter_id):
         return self.normalizer.get_normed_data(iter_id)
-        #  data = self.returns_df  # TODO: still need to correctly slice
-        #  if self.normalize_data:  # if no check, data will just go through
-        #      data = self.normalizer.get_normed_data(iter_id)
-        #  return data
 
 
 class _Normalizer(ABC):
@@ -94,15 +84,12 @@ class _Normalizer(ABC):
         return X
 
     def get_normed_data(self, iter_id):
-        #  if not self.sa.analyze_group or self.sa.norm_before:
-        #      assert ((self.sa.use_dynamic and self.sa.norm_target is None) or
-        #              (not self.sa.use_dynamic and
-        #               self.sa.norm_target == 'series') or self.sa.norm_before)
+        # TODO: implement std/abs for when target is 'tail' in individual mode
 
         # TODO optimize below: no need to .flatten() when not analyze_group??
         data = self._norm_tickers(iter_id).to_numpy().flatten()
 
-        #  if self.sa.analyze_group and self.sa.norm_after:
+        # normalize after grouping in -G mode
         if self.sa.norm_after:
             data = self.__normalize_numpy(data)
         return data
@@ -138,11 +125,6 @@ class DynamicNormalizer(_Normalizer):
         super().__init__(settings, returns_df)
         assert self.sa.use_dynamic
 
-        #  lkb = self.sa.lookback
-        #  idx_i = self.sd.date_i_idx - lkb + 1
-        #  idx_f = self.sd.full_dates.get_loc(self.sd.date_f)
-        #  self.input_dbdf = self.sd.dynamic_dbdf.iloc[idx_i:idx_f]
-
         # NOTE: blow offset req'd b/c returns necssarily has less data than raw
         self.lb_off = self.sa.lookback - self.sa.tau  # lookback offset
 
@@ -151,8 +133,8 @@ class DynamicNormalizer(_Normalizer):
         self.data_window = getattr(self.returns_df, win_type)(self.lb_off)
 
         # means & stds should be Pandas DataFrame here
-        self.means_df = self.__get_window_stat('mean')
-        self.stds_df = self.__get_window_stat('std')
+        self.means = self.__get_window_stat('mean')
+        self.stds = self.__get_window_stat('std')
 
     def __get_window_stat(self, stat):
         assert hasattr(self, 'data_window')
@@ -175,9 +157,8 @@ class DynamicNormalizer(_Normalizer):
 
         if self.sa.standardize:
             stat_loc = (date, group)
-            #  if self.sa.analyze_group:
-            #      group = [group, self.returns_df[group].columns]
-            data = (data - self.means_df.loc[stat_loc]) / self.stds_df.loc[stat_loc]
+            data = (data - self.means.loc[stat_loc]) / self.stds.loc[stat_loc]
         if self.sa.absolutize:
             data = np.abs(data)
+
         return data
