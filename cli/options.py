@@ -373,6 +373,7 @@ def validate_xmin_args(ctx, param, xmin_args):
             vqarg = _convert_str_to_num(vqarg, min_allowed=0, max_allowed=100,
                                         range_errmsg=range_errmsg)
         elif rule == 'average' and len(vqarg) == 2:  # NOTE: only applies w/ -G
+            assert ctx._analyze_group
             # TODO: need to account for when only given 1 value for average??
             type_errmsg = ("both args to xmin rule 'average' must be "
                            f"INTs (# days); given: {', '.join(vqarg)}")
@@ -449,3 +450,5 @@ def postproc_tails_(ctx, yaml_opts, topts_names):
     if sources[0] != sources[1] and all(values):
         for name, src, val in names_srcs_vals:
             yaml_opts[name] = val if src == 'COMMANDLINE' else not val
+
+    # TODO/FIXME: if --abs, then constrain to Right tail ONLY

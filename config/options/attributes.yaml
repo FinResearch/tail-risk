@@ -37,7 +37,7 @@ tickers:  # TODO: allow passing in a .txt file of tickers?
 # and/or alternatively, use callback to validate (likely more cumbersome)
 date_i:
   param_decls:
-    - '-di'
+    - '--di'
     - '--date-initial'
     - 'date_i'
   type: 'str'
@@ -48,7 +48,7 @@ date_i:
 
 date_f:
   param_decls:
-    - '-df'
+    - '--df'
     - '--date-final'
     - 'date_f'
   type: 'str'
@@ -101,8 +101,9 @@ partition:  # NOTE: opt only available in group tail analysis mode
 
 returns_type:
   param_decls:
-    - '-rt'
+    - '--rt'
     - '--returns-type'
+    - 'returns_type'
   type:  # TODO: consider using Enum types for all Choice values
     - 'raw'
     - 'relative'
@@ -123,8 +124,9 @@ tau:
 
 standardize: 
   param_decls:
-    - '-std'
+    - '--std'
     - '--standardize/--no-std'
+    - 'standardize'
   is_flag: true
   default: false
   help: 'standardize [(X-μ)/σ] input data'
@@ -133,8 +135,9 @@ standardize:
 
 absolutize:
   param_decls:
-    - '-abs'
+    - '--abs'
     - '--absolutize/--no-abs'
+    - 'absolutize'
   is_flag: true
   default: false
   help: 'take absolute value of input data'
@@ -150,8 +153,9 @@ norm_target:  # NOTE: only available in individual mode & for the static approac
 
 norm_before:  # NOTE: opt only available in group tail analysis mode
   param_decls:
-    - '-nb'
+    - '--nb'
     - '--norm-before'
+    - 'norm_before'
   is_flag: true
   default: false  # set to false in default individual mode so ctx.get_parameter_source works
   show_default: false
@@ -160,8 +164,9 @@ norm_before:  # NOTE: opt only available in group tail analysis mode
 
 norm_after:  # NOTE: opt only available in group tail analysis mode
   param_decls:
-    - '-na'
+    - '--na'
     - '--norm-after'
+    - 'norm_after'
   is_flag: true
   default: false  # set to false in default individual mode so ctx.get_parameter_source works
   show_default: false
