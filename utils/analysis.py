@@ -47,9 +47,7 @@ class _Analyzer(ABC):
         return xmin
 
     def _calc_curr_fit_obj(self):
-        #  data = self.curr_input_array[np.nonzero(self.curr_input_array)]
         data = self.curr_input_array
-        #  data = self.cfg.get_data(self.curr_iter_id)
         data = data[np.nonzero(data)]  # only keep/use non-zero elements
         xmin = self.__get_xmin()  # outsource this to settings.py
         self.curr_fit = Fit(data=data, xmin=xmin,  # xmin=self.sa.xmin,
@@ -148,22 +146,20 @@ class StaticAnalyzer(_Analyzer):
 
     def __init__(self, settings):
         super().__init__(settings)
+        assert not self.sa.use_dynamic
         self.iter_id_keys = product(self.sd.grouping_labs,
                                     self.sa.tails_to_anal)
-        assert not self.sa.use_dynamic
+        # TODO: cache preproc'd data arr above so 2nd tail need not recompute;
+        # NOTE: consider make tails_to_anal as 1st factor in itertools.product,
+        #       so data array for one set of tail are all calculated first
 
-    def _set_curr_input_array(self):  # TODO:consider pass curr_iter_id as arg?
-        lab, tail = self.curr_iter_id
-        self.curr_df_pos = lab, tail
+    def _set_curr_input_array(self):  # TODO: pass curr_iter_id as arg???
+        lab, tail = self.curr_df_pos = self.curr_iter_id
         # TODO: move logging of DATE RANGE out of this repeatedly called method
         print(f"Analyzing the {tail.name.upper()} tail of time series for "
               f"{self.sd.grouping_type.title()} '{lab}' b/w [{self.sd.date_i},"
               f" {self.sd.date_f}]")
-        # TODO: factor below cfg.get_data call into method in ABC
-        self.curr_input_array = self.cfg.get_data(self.curr_iter_id) * tail.value
-        # TODO: cache preproc'd data arr above so 2nd tail need not recompute;
-        # NOTE: consider make tails_to_anal as 1st factor in itertools.product,
-        #       so data array for one set of tail are all calculated first
+        self.curr_input_array = self.cfg.get_data(lab) * tail.value
 
 
 class DynamicAnalyzer(_Analyzer):
@@ -172,28 +168,29 @@ class DynamicAnalyzer(_Analyzer):
         super().__init__(settings)
         assert self.sa.use_dynamic
         self.iter_id_keys = product(self.sd.grouping_labs,
-                                    enumerate(self.sd.anal_dates,
-                                              start=self.sd.date_i_idx),
+                                    self.sd.anal_dates,
                                     self.sa.tails_to_anal)
-        self.lkb_off = self.sa.lookback - 1  # ASK/TODO: offset 0 or 1 day?
-        self.lkb_0 = self.sd.date_i_idx - self.lkb_off
+        # TODO: see TODO & NOTE regarding Tail in __init__ of StaticAnalyzer
 
         self._distros_to_compare = {'ll_tpl': 'truncated_power_law',
                                     'll_exp': 'exponential',
                                     'll_lgn': 'lognormal'}
 
+        #  self.lkb_off = self.sa.lookback - 1
+        #  self.lkb_0 = self.sd.date_i_idx - self.lkb_off
+
     # TODO: consider vectorizing operations on all tickers
-    def _set_curr_input_array(self):  # TODO:consider pass curr_iter_id as arg?
-        sub, (d, date), tail = self.curr_iter_id
+    def _set_curr_input_array(self):  # TODO: pass curr_iter_id as arg???
+        sub, date, tail = self.curr_iter_id
         self.curr_df_pos = date, (sub, tail)
-        d0 = (d - self.lkb_off if self.sa.approach == 'rolling'  # TODO: determine this in settings.py?? --> create d0_generator??
-              else self.lkb_0)  # TODO: calc all needed dates in settings.py??
-        # TODO: move logging of LABEL out of this repeatedly called method
-        print(f"Analyzing the {tail.name.upper()} tail of time series for "
-              f"{self.sd.grouping_type.title()} '{sub}' b/w "
-              f"[{self.sd.full_dates[d0]}, {date}]")
-        self.curr_input_array = self.cfg.get_data(self.curr_iter_id) * tail.value
-        # TODO: see TODO note for _set_curr_input_array of StaticAnalyzer above
+        # FIXME/TODO: log dynamic date ranges w/o full_dates OR date_i_idx
+        #  d0 = (d - self.lkb_off if self.sa.approach == 'rolling'  # TODO: determine this in settings.py?? --> create d0_generator??
+        #        else self.lkb_0)  # TODO: calc all needed dates in settings.py??
+        #  # TODO: move logging of LABEL out of this repeatedly called method
+        #  print(f"Analyzing the {tail.name.upper()} tail of time series for "
+        #        f"{self.sd.grouping_type.title()} '{sub}' b/w "
+        #        f"[{self.sd.full_dates[d0]}, {date}]")
+        self.curr_input_array = self.cfg.get_data((sub, date)) * tail.value
 
     def _get_curr_logl_stats(self):
         # compute (R, p) using powerlaw.Fit.distribution_compare

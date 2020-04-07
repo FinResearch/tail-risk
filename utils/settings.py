@@ -52,7 +52,7 @@ class Settings:
     # # methods needed for the core general settings # #
 
     def _postprocess_specific_options(self):
-        self.approach, self.lookback, self._anal_freq = self.approach_args
+        self.approach, self._lookback, self._anal_freq = self.approach_args
         self.use_dynamic = (True if self.approach in {'rolling', 'increasing'}
                             else False)
         self.fit_discretely = True if self.data_nature == 'discrete' else False
@@ -92,23 +92,45 @@ class Settings:
     def _gset_dbdf_attrs(self):
         # NOTE on dbdf distinctions:
         # - full_dbdf: unfiltered DataFrame as fully loaded from input DB_FILE
-        # - dynamic_dbdf: filtered by tickers (columns); has all dates (index)
-        # - static_dbdf: filtered above by given range of dates to analyze
+        # - _tickers_dbdf: filtered by tickers (columns); has all dates (index)
+        # - static_dbdf: filtered _tickers_dbdf w/ given date range to analyze
+        # - dynamic_dbdf: has data going back to the earliest lookback date
+        # - raw_dbdf: either dynamic_dbdf OR static_dbdf based on use_dynamic;
+        #             this is the actual dbdf passed onto Analyzer
 
         # TODO: mark unexported options/settings w/ _-prefix? ex. _full_dates
-        self.full_dates = self.full_dbdf.index
-        self.date_i_idx = self.full_dates.get_loc(self.date_i)
 
-        self.dynamic_dbdf = self.full_dbdf[self.tickers]
+        self._tickers_dbdf = self.full_dbdf[self.tickers]
         if self.analyze_group:
-            self._partition_dynamic_dbdf()
+            self._partition_tickers_dbdf()
 
-        self.static_dbdf = self.dynamic_dbdf.loc[self.date_i: self.date_f]
-        self.anal_dates = self.static_dbdf.index[::self._anal_freq]
+        static_dbdf = self._tickers_dbdf.loc[self.date_i: self.date_f:
+                                             self._anal_freq]
+        self.anal_dates = static_dbdf.index
+
+        if self.use_dynamic:
+            full_dates = self.full_dbdf.index
+            # NOTE: use (lookback - 1) b/c date analyzed incl. in lkbk window
+            idx_lkbk = full_dates.get_loc(self.date_i) - (self._lookback - 1)
+            lab_lkbk = full_dates[idx_lkbk]
+            lab_last = self.date_f
+            dynamic_dbdf = self._tickers_dbdf.loc[lab_lkbk:lab_last]
+            if self._anal_freq > 1:
+                # slice backwards from date_i to ensure date_i is part of input
+                lkbk_slice = dynamic_dbdf.loc[self.date_i::-self._anal_freq]
+                anal_slice = dynamic_dbdf.loc[self.date_i::self._anal_freq]
+                dynamic_dbdf = pd.concat((lkbk_slice[::-1], anal_slice[1:]))
+
+            # correctly set (minimum) window size based on lookback, anal_freq
+            # & tau, b/c returns data pts is necssarily less than that of raw
+            q, r = divmod(self._lookback, self._anal_freq)
+            self.window_size = q + bool(r) - self.tau
+
+        self.raw_dbdf = dynamic_dbdf if self.use_dynamic else static_dbdf
 
     # # methods relevant to group tail analysis behaviors # #
 
-    def _partition_dynamic_dbdf(self):
+    def _partition_tickers_dbdf(self):
         if self.partition in {'country', 'maturity'}:
             # partition rules where IDs are readily parsed from ticker labels
             a, b = {'country': (0, 2), 'maturity': (3, 6)}[self.partition]
@@ -130,16 +152,16 @@ class Settings:
 
         # set partition groups as the top-level column label
         # TODO: use slice+loc to org ticks then set toplvl-idx to rm pd depend
-        self.dynamic_dbdf = pd.concat({grp: self.dynamic_dbdf[tickers] for
-                                       grp, tickers in part_map.items()},
-                                      axis=1)  # , names=(self.partition,))
+        self._tickers_dbdf = pd.concat({grp: self._tickers_dbdf[tickers] for
+                                        grp, tickers in part_map.items()},
+                                       axis=1)  # , names=(self.partition,))
         # TODO look into pd.concat alternatives
         # https://pandas.pydata.org/pandas-docs/stable/user_guide/merging.html
 
     def _gset_grouping_info(self):
         self.grouping_type = GroupingName(self.partition if self.analyze_group
                                           else 'ticker')
-        cix = self.dynamic_dbdf.columns  # cix: column index
+        cix = self._tickers_dbdf.columns  # cix: column index
         self.grouping_labs = cix.levels[0] if self.analyze_group else cix
 
     # # methods configuring the output results DataFrame # #

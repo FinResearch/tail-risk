@@ -9,31 +9,21 @@ class DataConfigurer:
         self.sd = settings.data
         self.sa = settings.anal
 
-        if self.sa.use_dynamic:
-            #  lkb = self.sa.lookback
-            #  idx_i = self.sd.date_i_idx - lkb + 1
-            idx_i = self.sd.date_i_idx - self.sa.lookback + 1
-            idx_f = self.sd.full_dates.get_loc(self.sd.date_f)
-            # TODO: add the correctly time-range-sliced dbdf into settings.py?
-            self.raw_dbdf = self.sd.dynamic_dbdf.iloc[idx_i:idx_f+1]
-            # FIXME/TODO: the above need to be sliced by anal_freq
-        else:
-            self.raw_dbdf = self.sd.static_dbdf
         returns_df = self.__compute_returns_df()
-
         Normalizer = (DynamicNormalizer if self.sa.use_dynamic else
                       StaticNormalizer)
         self.normalizer = Normalizer(settings, returns_df)
 
     def __compute_returns_df(self):
-        nan_pad = np.full(self.sa.tau, np.nan)
+        tau = self.sa.tau
 
-        # TODO: shove below printing into verbosity logging
+        nan_pad = np.full(tau, np.nan)
         print(f"{self.sa.returns_type.upper()} returns selected")
+        # TODO: move above printing into verbosity logging
 
         def get_returns(series):  # calculates returns for a series
-            pt_i = series[:-self.sa.tau]
-            pt_f = series[self.sa.tau:]
+            pt_i = series[:-tau]
+            pt_f = series[tau:]
             if self.sa.returns_type == "raw":
                 returns = pt_f - pt_i
             elif self.sa.returns_type == "relative":
@@ -42,15 +32,18 @@ class DataConfigurer:
                 returns = np.log(pt_f/pt_i)
             return np.hstack((nan_pad, returns))
 
-        returns_df = self.raw_dbdf.apply(get_returns, raw=True).dropna()
-        assert len(returns_df) == len(self.raw_dbdf) - self.sa.tau
-        #  returns_df = self.raw_dbdf.apply(get_returns, raw=True)
+        p_len = len(self.sd.raw_dbdf)
+        assert p_len > tau,\
+            ('cannot calculate returns from time series price data of length '
+             f'{p_len} using tau/delta of {tau} days')
 
+        returns_df = self.sd.raw_dbdf.apply(get_returns, raw=True).dropna()
+
+        # TODO: can add below info as DEBUG logging
         #  # construct a new column repr dates used to calc each return
-        #  tau = self.sa.tau
-        #  idx0 = self.raw_dbdf.index
-        #  irng = range(tau, idx0.get_loc(self.sd.date_f) + 1)
-        #  idx1 = (f"{idx0[i-tau]} ⟶  {idx0[i]}" for i in irng)
+        #  idx0 = self.sd.raw_dbdf.index
+        #  irng = range(tau, idx0.get_loc(idx0[-1]) + 1)
+        #  idx1 = [f"{idx0[i-tau]} ⟶  {idx0[i]}" for i in irng]
         #  assert len(returns_df) == len(idx1)
         #  returns_df['returns_date_range'] = idx1
 
@@ -103,20 +96,21 @@ class StaticNormalizer(_Normalizer):
 
         # means & stds should be Pandas Series here
         self.means = self.returns_df.mean()
-        self.stds = self.returns_df.std()
+        self.stds = self.returns_df.std() if len(self.returns_df) > 1 else None
 
         self.stdzd_cols_df = (self.returns_df - self.means) / self.stds
 
     # NOTE: for non-G, std/abs only applies to static when target is 'series'
-    def _norm_tickers(self, iter_id):
-        group, _ = iter_id
+    def _norm_tickers(self, norm_id):
+        group = norm_id
         data = self.returns_df[group]
         if self.sa.standardize:
             data = self.stdzd_cols_df[group]
         if self.sa.absolutize:
             data = np.abs(data)
         return data
-    # TODO: implement std/abs for when target is 'tail' in individual mode
+
+    # FIXME/TODO: implement std/abs when target is 'tail' in individual mode
 
 
 class DynamicNormalizer(_Normalizer):
@@ -125,32 +119,34 @@ class DynamicNormalizer(_Normalizer):
         super().__init__(settings, returns_df)
         assert self.sa.use_dynamic
 
-        # NOTE: blow offset req'd b/c returns necssarily has less data than raw
-        self.lb_off = self.sa.lookback - self.sa.tau  # lookback offset
+        self.dates = self.returns_df.index
 
-        win_type = {'rolling': 'rolling', 'increasing': 'expanding'}.\
+        self._win_type = {'rolling': 'rolling', 'increasing': 'expanding'}.\
             get(self.sa.approach)
-        self.data_window = getattr(self.returns_df, win_type)(self.lb_off)
+        self.data_window = getattr(self.returns_df,
+                                   self._win_type)(self.sa.window_size)
 
         # means & stds should be Pandas DataFrame here
         self.means = self.__get_window_stat('mean')
-        self.stds = self.__get_window_stat('std')
+        self.stds = (self.__get_window_stat('std')
+                     if len(self.returns_df) > 1 else None)
 
     def __get_window_stat(self, stat):
-        assert hasattr(self, 'data_window')
         window_stat = getattr(self.data_window, stat)().dropna()
-        assert len(window_stat) == len(self.sd.anal_dates)
+        assert len(window_stat) == len(self.sd.anal_dates),\
+            (f'cannot calculate {stat.upper()} from {self._win_type} window of'
+             f' size {self.sa.window_size} constructed from below DataFrame:\n'
+             f'{self.returns_df}')
         return window_stat
 
     def __get_lookback_label(self, date):
-        dates = self.returns_df.index
-        lkb = (dates.get_loc(date) - self.lb_off + 1
+        lkb = (self.dates.get_loc(date) - self.sa.window_size + 1
                if self.sa.approach == 'rolling' else 0)
-        assert lkb >= 0
-        return dates[lkb]
+        assert lkb >= 0  # this necessarily must be True, otherwise bug
+        return self.dates[lkb]
 
-    def _norm_tickers(self, iter_id):
-        group, (_, date), _ = iter_id
+    def _norm_tickers(self, norm_id):
+        group, date = norm_id
         lkbd = self.__get_lookback_label(date)  # lookback date
 
         data = self.returns_df.loc[lkbd:date, group]

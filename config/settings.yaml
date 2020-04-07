@@ -17,11 +17,8 @@ data:
   # - tickers  # NOTE: doesn't appear to be used
   - date_i
   - date_f
-  - full_dates
-  - date_i_idx
-  - dynamic_dbdf
-  - static_dbdf
   - anal_dates
+  - raw_dbdf
   - grouping_type
   - grouping_labs
   - stats_colname
@@ -32,8 +29,8 @@ anal:
   - approach  # TODO: make this setting needless to export; figure out how to handle rolling vs. increasing differences in initial lookback date
   - use_dynamic
   - returns_type
-  - lookback  # TODO: won't be needed if initial lookback handled in settings.py
   - tau
+  - window_size
   - standardize
   - absolutize
   - norm_target
