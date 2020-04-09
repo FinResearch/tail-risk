@@ -138,8 +138,8 @@ class Settings:
             part_map = {pid: [tick for tick in self.tickers if pid in tick]
                         for pid in part_ids}
         elif self.partition == 'region':
-            regions_map = {'Core': ('DE', 'FR', 'BE'),
-                           'Periphery': ('IT', 'ES', 'PT', 'IR', 'GR')}
+            regions_map = {'core': ('DE', 'FR', 'BE'),
+                           'periphery': ('IT', 'ES', 'PT', 'IR', 'GR')}
             part_map = {region: ticks for region, ticks in
                         {region: [tick for tick in self.tickers if
                                   any(cid in tick for cid in countries)]

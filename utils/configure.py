@@ -84,6 +84,8 @@ class _Normalizer(ABC):
 
         # normalize after grouping in -G mode
         if self.sa.norm_after:
+            # TODO/ASK: take care of when to absolutize for -G, since --norm_after is the default
+            # ASK/TODO: do --std & --abs necessarily have the same timing when both are specified???
             data = self.__normalize_numpy(data)
         return data
 

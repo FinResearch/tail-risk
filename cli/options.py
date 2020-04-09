@@ -427,8 +427,10 @@ def conditionalize_normalization_objectives_(ctx, yaml_opts):
                 yaml_opts[opt] = None
     elif normalize and ctx._analyze_group and use_default_timing:
         # set default norm timings if none specified to be both before & after
-        yaml_opts['norm_before'] = True
+        yaml_opts['norm_before'] = False
         yaml_opts['norm_after'] = True
+
+# TODO/FIXME: if --abs, then constrain to Right tail ONLY
 
 
 # validate then correctly set/toggle the two tail selection options
@@ -450,5 +452,3 @@ def postproc_tails_(ctx, yaml_opts, topts_names):
     if sources[0] != sources[1] and all(values):
         for name, src, val in names_srcs_vals:
             yaml_opts[name] = val if src == 'COMMANDLINE' else not val
-
-    # TODO/FIXME: if --abs, then constrain to Right tail ONLY

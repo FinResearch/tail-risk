@@ -20,6 +20,7 @@ class Results:
                      self._gixn.pluralize())
         ridx_labs = (self.sd.anal_dates if self.sa.use_dynamic
                      else self.sd.grouping_labs)
+        #  ridx = pd.Index(ridx_labs, name=ridx_name.lower())
         ridx = pd.Index(ridx_labs, name=ridx_name)
         # cidx: COLUMN index below
         cidx = pd.MultiIndex.from_tuples(self.sd.stats_collabs,

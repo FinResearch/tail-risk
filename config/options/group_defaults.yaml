@@ -5,13 +5,12 @@
 # TODO: allow modding other attrs besides 'default' in this config?
 
 partition: 'country'
+# TODO: --tickers like option for selecting group(s) to analyze (i.e. specify 'DE' when in country)
 
 lookback: 252
 
-# TODO/ASK: what should the default be if either -std/-abs set, but no timings set?
 norm_before: false
-norm_after: false
-# TODO: create alias for both before + after ???
+norm_after: false  # TODO: can set default value directly here?
 
 xmin_args:
   average:  # only available for dynamic approaches (rolling & increasing)

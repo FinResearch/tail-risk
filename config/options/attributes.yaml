@@ -94,6 +94,7 @@ partition:  # NOTE: opt only available in group tail analysis mode
     - 'maturity'
     - 'region'  # i.e. core (DE, FR, BE) vs. periphery (IT, ES, PT, IR, GR)
     - 'all'
+    - 'none'  # TODO: this should just run individual analysis mode
   default: null
   callback: 'confirm_group_flag_set'
   hidden: true  # hide option when using individual tail analysis mode
