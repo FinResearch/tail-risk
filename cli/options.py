@@ -25,20 +25,24 @@ def __eval_special_attrs_(opt_attrs):
     This function mutates the passed opt_attrs dict
     """
     # attrs that need to be eval()'d from str
-    expr_attrs = ('type', 'callback', 'cls',)
+    expr_attrs = ('cls', 'type', 'callback',)
     for attr in expr_attrs:
-        # check the attr is specified in the config & its value is truthy
-        if attr in opt_attrs and bool(opt_attrs[attr]):
-            attr_val = opt_attrs[attr]
-            if isinstance(attr_val, str):
-                opt_attrs[attr] = eval(attr_val)
-            elif attr == 'type' and isinstance(attr_val, list):
-                # branch specific to type attrs with list vals
-                opt_attrs['type'] = click.Choice(attr_val)
-            else:  # TODO: revise error message
-                raise TypeError(f'{attr_val} of {type(attr_val)} cannot be '
-                                f'used as the value for the {attr} attribute '
-                                'of click.Option objects')
+        # check attr needing special treatment is spec'd for opt in YAML config
+        if attr in opt_attrs:
+            aval = opt_attrs[attr]  # attribute value
+            if bool(aval):  # ensure value is sensible (i.e. at least truthy)
+                if isinstance(aval, str):
+                    opt_attrs[attr] = eval(aval)
+                elif attr == 'type' and isinstance(aval, list):
+                    # branch specific to type attrs with list vals
+                    opt_attrs['type'] = click.Choice(aval)
+                else:  # TODO: revise error message
+                    raise TypeError(f"'{aval}' of type {type(aval)} cannot be "
+                                    f"used as value of the '{attr}' attribute "
+                                    "for click.Option objects")
+            else:
+                raise TypeError(f"Cannot use '{aval}' as '{attr}' for option: "
+                                f"{' / '.join(opt_attrs['param_decls'])}")
     # meta attrs that can be optionally passed, to customize info from --help
     meta_help_attrs = {'show_default': True, 'metavar': None}
     for attr, dflt in meta_help_attrs.items():
@@ -279,15 +283,13 @@ def validate_approach_args(ctx, param, approach_args):
 
 # # # Ordinary CBs # # #
 
-# callback for the full_dbdf positional argument
+# callback for the full_dbdf positional Argument (NOT Option)
 def gset_full_dbdf(ctx, param, db_file):
-    """Open and read the passed File as a Pandas DataFrame
+    """Open and read the passed string filepath as a Pandas DataFrame. Then
+    infer default values for {tickers, date_i & date_f} from the loaded DF,
+    if they were not manually set inside of: config/options/attributes.yaml
 
-    If the default attr isn't manually set in the YAML config,
-    infer the defaults of these extra options related to the
-    database file; namely: tickers, date_i & date_f
-
-    NOTE: the function mutates the ctx state to add the above inferred vals
+    NOTE: the function mutates the ctx state to add the inferred default vals
     """
     # TODO: attach calc'd objs such as (df, tickers, dates) onto ctx for use??
 

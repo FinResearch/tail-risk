@@ -26,7 +26,7 @@ data:
 
 ## analysis settings: determines how the data is analyzed
 anal:
-  - approach  # TODO: make this setting needless to export; figure out how to handle rolling vs. increasing differences in initial lookback date
+  - approach  # TODO: needless to export if rolling_window_type known/constructed in settings.py
   - use_dynamic
   - returns_type
   - tau

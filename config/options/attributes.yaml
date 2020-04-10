@@ -161,7 +161,7 @@ norm_before:  # NOTE: opt only available in group tail analysis mode
   default: false  # set to false in default individual mode so ctx.get_parameter_source works
   show_default: false
   hidden: true  # hide option when using individual tail analysis mode
-  help: 'std +/ abs BEFORE and/or AFTER grouping tickers  [default: both]'
+  help: '--std and/or --abs BEFORE and/or AFTER grouping tickers...'
 
 norm_after:  # NOTE: opt only available in group tail analysis mode
   param_decls:
@@ -172,7 +172,7 @@ norm_after:  # NOTE: opt only available in group tail analysis mode
   default: false  # set to false in default individual mode so ctx.get_parameter_source works
   show_default: false
   hidden: true  # hide option when using individual tail analysis mode
-  help: 'set either --norm-before OR --norm-after to ONLY normalize then'
+  help: '... can set either OR both timing flag(s)  [default: AFTER]'
 
 anal_right:
   param_decls:

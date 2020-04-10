@@ -18,3 +18,5 @@ settings = Settings(ui_opts).settings
 
 #  print(settings)
 analyze_tail(settings)
+
+# TODO: move all TODO notes into single markdown/textfile
