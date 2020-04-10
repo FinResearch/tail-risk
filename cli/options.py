@@ -9,6 +9,8 @@ import pandas as pd
 import os
 import warnings
 
+from pathlib import Path
+
 # NOTE: import below is reified by eval() call, NOT unused as implied by linter
 from ._vnargs import VnargsOption
 from . import ROOT_DIR
@@ -77,6 +79,31 @@ def attach_yaml_opts():
 # # Callbacks (CBs) # #
 
 # # # Helpers for CBs # # #
+
+# helper for reading a string filepath representing a datafile into a Pandas DF
+def _read_fname_to_df(fname):
+    fpath = Path(fname)
+    fext = fpath.suffix
+
+    if fpath.is_file():
+        # TODO: move below mapping into some config file???
+        ext2reader_map = {'.csv': 'csv',  # TODO: add kwargs like 'sep' & 'engine'
+                          '.txt': 'table',  # 'read_table' uses \t as col-delimiter by default
+                          '.xls': 'excel',  # TODO: add mult-sheet support? drop .xls support, allowing 'openpyxl' usage only
+                          '.xlsx': 'excel', }
+        # TODO: switch parsing engine from 'xlrd' to 'openpyxl', as former will
+        # be deprecated; see: https://github.com/pandas-dev/pandas/issues/28547
+        if fext in ext2reader_map.keys():
+            reader = getattr(pd, f'read_{ext2reader_map[fext]}')
+        else:
+            raise TypeError(f"Only [{', '.join(ext2reader_map.keys())}] files "
+                            f"are currently supported; given: {fpath.name}")
+    else:
+        raise FileNotFoundError(f"Cannot find file '{fpath.resolve()}'")
+
+    # TODO: make index_col case-insensitive? i.e. 'Date' or 'date'
+    return reader(fpath, index_col='Date')  # TODO:pd.DatetimeIndex
+
 
 # TODO: optimize using list.index(value)?
 def _get_param_from_ctx(ctx, param_name):
@@ -284,7 +311,7 @@ def validate_approach_args(ctx, param, approach_args):
 # # # Ordinary CBs # # #
 
 # callback for the full_dbdf positional Argument (NOT Option)
-def gset_full_dbdf(ctx, param, db_file):
+def gset_full_dbdf(ctx, param, db_fname):
     """Open and read the passed string filepath as a Pandas DataFrame. Then
     infer default values for {tickers, date_i & date_f} from the loaded DF,
     if they were not manually set inside of: config/options/attributes.yaml
@@ -293,8 +320,7 @@ def gset_full_dbdf(ctx, param, db_file):
     """
     # TODO: attach calc'd objs such as (df, tickers, dates) onto ctx for use??
 
-    # TODO: make index_col case-insensitive? i.e. 'Date' or 'date'
-    full_dbdf = pd.read_csv(db_file, index_col='Date')  # TODO:pd.DatetimeIndex
+    full_dbdf = _read_fname_to_df(db_fname)
 
     full_dates = full_dbdf.index
     # inferred index of date_i; only used when 'default' attr not set in YAML

@@ -17,9 +17,8 @@ from .options import gset_full_dbdf, attach_yaml_opts, conditionalize_normalizat
 #   - better formatting/line wrapping for options of type click.Choice
 #   - option help texts when multiline, doesn't wrap properly
 #   - remove cluttering & useless type annotations (set options' metavar attr)
-@click.argument('full_dbdf', metavar='DB_FILE', nargs=1,
-                type=click.File(mode='r'), callback=gset_full_dbdf,
-                default=f'{ROOT_DIR}/dbMSTR_test.csv')
+@click.argument('full_dbdf', metavar='DB_FILE', callback=gset_full_dbdf,
+                default=f'{ROOT_DIR}/db_tests/dbMSTR_test.csv')
 @attach_yaml_opts()  # NOTE: this decorator func call returns a decorator
 # FIXME: allow passing in negative number as args to opts;
 #        currently interpreted as an option;
