@@ -161,11 +161,12 @@ def _gset_vnargs_choice_default(ctx, param, inputs,
         if len(vals) == 0:
             vals = dflts_by_chce[chce]
         elif len(vals) == 1:
-            vals = vals[0]
+            vals = vals[0]  # all 1-tups are unpacked to their sole element
         else:
             # TODO: if know which num-arg in tup is more likely to vary, then
             # can implement system to allow 1 num input, and default for other
             vals = tuple(vals)
+            # NOTE: tuple returned from here will always have length >= 2
 
     return chce, vals
 
@@ -177,6 +178,12 @@ def _convert_str_to_num(str_val, must_be_int=False, type_errmsg=None,
     assert isinstance(str_val, str),\
         f"value to convert to number must be of type 'str', given {str_val}"
     try:
+        # NOTE: curr simple but ugly hack for negative num: using _N to repr -N
+        sign, str_val = ((-1, str_val[1:]) if str_val.startswith('_') else
+                         (1, str_val))
+        # TODO/FIXME: modify click.Option to accept '-' as -ve args on the CLI
+        #             see: https://github.com/pallets/click/issues/555
+
         float_val = float(str_val)
         int_val = int(float_val)
         val_is_integer = int_val == float_val
@@ -188,7 +195,8 @@ def _convert_str_to_num(str_val, must_be_int=False, type_errmsg=None,
         if max_allowed is not None and float_val > max_allowed:
             comp_cond = f'<= {max_allowed}'
             raise AssertionError
-        return int_val if val_is_integer else float_val  # prefer return INT
+        # preferentially return INTs over FLOATs
+        return sign * (int_val if val_is_integer else float_val)
     except (ValueError, TypeError):
         type_errmsg = (f"input value must be an INT, given {str_val}"
                        if type_errmsg is None else type_errmsg)
@@ -392,7 +400,6 @@ def validate_xmin_args(ctx, param, xmin_args):
             assert vqarg is None,\
                 "xmin determination rule 'clauset' does not take extra args"
         elif rule == 'manual' and isinstance(vqarg, str):
-            # FIXME: need to allow negative number inputs on CLI for 'manual'
             vqarg = _convert_str_to_num(vqarg)
         elif rule == 'percentile' and isinstance(vqarg, str):
             range_errmsg = ("xmin determination rule 'percentile' takes "
@@ -442,7 +449,7 @@ def __validate_norm_timings_(ctx, yaml_opts):
     return all(src == 'DEFAULT' for src in smap.values())  # for convenience
 
 
-def conditionalize_normalization_objectives_(ctx, yaml_opts):
+def conditionalize_normalization_options_(ctx, yaml_opts):
     use_default_timing = __validate_norm_timings_(ctx, yaml_opts)
 
     normalize = yaml_opts['standardize'] or yaml_opts['absolutize']
@@ -462,10 +469,10 @@ def conditionalize_normalization_objectives_(ctx, yaml_opts):
 
 
 # validate then correctly set/toggle the two tail selection options
-def postproc_tails_(ctx, yaml_opts, topts_names):
+def conditionally_toggle_tail_flag_(ctx, yaml_opts):
     # NOTE: this function is agnostic of which tail name is passed first
     names_srcs_vals = [(t, ctx.get_parameter_source(t), yaml_opts[t])
-                       for t in topts_names]
+                       for t in ('anal_right', 'anal_left')]
     names, sources, values = zip(*names_srcs_vals)
 
     if not any(values):
@@ -480,3 +487,9 @@ def postproc_tails_(ctx, yaml_opts, topts_names):
     if sources[0] != sources[1] and all(values):
         for name, src, val in names_srcs_vals:
             yaml_opts[name] = val if src == 'COMMANDLINE' else not val
+
+
+
+
+post_proc_funcs = (conditionalize_normalization_options_,
+                   conditionally_toggle_tail_flag_,
