@@ -18,7 +18,7 @@ from .options import gset_full_dbdf, attach_yaml_opts, post_proc_funcs
 #   - option help texts when multiline, doesn't wrap properly
 #   - remove cluttering & useless type annotations (set options' metavar attr)
 @click.argument('full_dbdf', metavar='DB_FILE', callback=gset_full_dbdf,
-                default=f'{ROOT_DIR}/db_tests/dbMSTR_test.csv')
+                default=f'{ROOT_DIR}/db_tests/dbMarkitST.xlsx')
 @attach_yaml_opts()  # NOTE: this decorator func call returns a decorator
 # FIXME: allow passing in negative number as args to opts;
 #        currently interpreted as an option;

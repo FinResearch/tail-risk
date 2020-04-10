@@ -428,7 +428,7 @@ def validate_xmin_args(ctx, param, xmin_args):
         elif rule == 'average':
             assert ctx._analyze_group and ctx._approach != 'static',\
                 ("xmin determination rule 'average' is only compatible under "
-                 "group tail analysis mode & using a dynamic approach")
+                 "group tail analysis mode & w/ a non-static approach")
             day_args = _parse_vqarg_and_set_axfn_(ctx, vqarg)
             type_errmsg = ("both args to xmin rule 'average' must be "
                            f"INTs (# days); given: {', '.join(vqarg)}")
@@ -452,7 +452,8 @@ def gset_nproc_default(ctx, param, nproc):
 
 
 # # Post-Parsing Functions # #
-# # for opts requiring full completed ctx
+# # for opts requiring full completed ctx AND/OR
+# # actions requiring parse-order independence
 # # also note that they mutate yaml_opts (denoted by _-suffix)
 
 # called in conditionalize_normalization_options_ below
@@ -466,24 +467,27 @@ def __validate_norm_timings_(ctx, yaml_opts):
                               'analysis mode, i.e. w/ the -G flag set. '
                               f"Ignoring flag --{'-'.join(opt.split('_'))}")
             yaml_opts[opt] = None
-    return all(src == 'DEFAULT' for src in smap.values())  # for convenience
+    return smap  # return mapping of norm-timing opts sources for convenience
 
 
 def conditionalize_normalization_options_(ctx, yaml_opts):
-    use_default_timing = __validate_norm_timings_(ctx, yaml_opts)
+    timing_srcs = __validate_norm_timings_(ctx, yaml_opts)
+    use_default_timing = all(src == 'DEFAULT' for src in timing_srcs.values())
 
     normalize = yaml_opts['standardize'] or yaml_opts['absolutize']
     if not normalize:
         # the default case of no normalization at all
         for opt in ('norm_target', 'norm_before', 'norm_after'):
-            if yaml_opts[opt] is not None:
-                warnings.warn(f"Normalization option {opt} only applicable w/ "
-                              f"-std and/or -abs set; ignoring option {opt}")
+            if not (yaml_opts[opt] is None or
+                    timing_srcs.get(opt) == 'DEFAULT'):
+                warnings.warn(f"Norm option '{opt}' only applicable w/ --std "
+                              f"and/or --abs set; ignoring option {opt}")
                 yaml_opts[opt] = None
     elif normalize and ctx._analyze_group and use_default_timing:
-        # set default norm timings if none specified to be both before & after
+        # set default norm timings if none explicitly set (but --std/--abs set)
         yaml_opts['norm_before'] = False
         yaml_opts['norm_after'] = True
+        # TODO: just set the defaults in YAML config?
 
 # TODO/FIXME: if --abs, then constrain to Right tail ONLY
 

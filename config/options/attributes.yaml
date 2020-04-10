@@ -25,9 +25,9 @@ tickers:  # TODO: allow passing in a .txt file of tickers?
   type: 'list'
   default:
     - 'DE 01Y'
-    - 'DE 03Y'
-    - 'DE 05Y'
-    - 'DE 10Y'
+    # - 'DE 03Y'
+    # - 'DE 05Y'
+    # - 'DE 10Y'
   # metavar: '[ <csv on CLI> | <.csv> | <.txt> ]'
   # callback: 'set_tickers_from_textfile'
   metavar: '<csv on CLI>'
@@ -42,7 +42,7 @@ date_i:
     - 'date_i'
   type: 'str'
   # default: '1/4/2016'  # NOTE: unset 'default' attr to infer date_i
-  default: '2/5/2016'  # <--- very short date range for testing/debugging
+  default: '02-05-2016'  # <--- very short date range for testing/debugging
   metavar: ''  # NOTE: metavar set to '' here so it doesn't show up as 'TEXT'
   help: 'first date to analyze'
 
@@ -52,7 +52,7 @@ date_f:
     - '--date-final'
     - 'date_f'
   type: 'str'
-  default: '5/5/2016'  # NOTE: unset 'default' attr to infer date_f
+  default: '05-05-2016'  # NOTE: unset 'default' attr to infer date_f
   metavar: ''  # NOTE: metavar set to '' here so it doesn't show up as 'TEXT'
   help: 'final date to analyze'
 
