@@ -107,6 +107,7 @@ class Settings:
         static_dbdf = self._tickers_dbdf.loc[self.date_i: self.date_f:
                                              self._anal_freq]
         self.anal_dates = static_dbdf.index
+        # TODO: use it to validate average xmin df
 
         if self.use_dynamic:
             full_dates = self.full_dbdf.index

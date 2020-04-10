@@ -117,7 +117,8 @@ def _get_param_from_ctx(ctx, param_name):
 
 # func that mutates ctx to correctly set metavar & help attrs of VnargsOption's
 def _set_vnargs_choice_metahelp_(ctx):
-    xmin_extra_help = (('average: <(ℤ⁺, ℤ )| # days: (rolling, lag)>  '
+    # FIXME/TODO: revise --help msg to incl file input option for 'average'
+    xmin_extra_help = (('average: <(ℤ⁺, ℤ )| # days: (window, lag)>  '
                         '[defaults: (66, 0)]\n')
                        if ctx._analyze_group else '')
 
@@ -205,6 +206,23 @@ def _convert_str_to_num(str_val, must_be_int=False, type_errmsg=None,
         range_errmsg = (f"number must be {comp_cond}, given {str_val}"
                         if range_errmsg is None else range_errmsg)
         raise ValueError(range_errmsg)
+
+
+# helper that preprocesses the vqarg passed to '$ ... -x average A B C'
+def _parse_vqarg_and_set_axfn_(ctx, vqarg):  # mutates the ctx state
+    if isinstance(vqarg, tuple):
+        if len(vqarg) == 3:
+            win, lag, fname = vqarg
+        elif len(vqarg) == 2:
+            win, lag, fname = (*vqarg, None)
+        # TODO: account for when user passes only 1 number arg
+    elif isinstance(vqarg, str):
+        win, lag, _ = _get_param_from_ctx(ctx, 'xmin_args').default['average']
+        fname = vqarg
+
+    if bool(fname):
+        ctx._avg_xmin_fname = fname
+    return win, lag
 
 
 # TODO: create & send PR implementing this type of feature below to Click??
@@ -407,17 +425,19 @@ def validate_xmin_args(ctx, param, xmin_args):
             # ASK/TODO: use '<=' OR is '<' is okay??
             vqarg = _convert_str_to_num(vqarg, min_allowed=0, max_allowed=100,
                                         range_errmsg=range_errmsg)
-        elif rule == 'average' and len(vqarg) == 2:  # NOTE: only applies w/ -G
-            assert ctx._analyze_group
-            # TODO: need to account for when only given 1 value for average??
+        elif rule == 'average':
+            assert ctx._analyze_group and ctx._approach != 'static',\
+                ("xmin determination rule 'average' is only compatible under "
+                 "group tail analysis mode & using a dynamic approach")
+            day_args = _parse_vqarg_and_set_axfn_(ctx, vqarg)
             type_errmsg = ("both args to xmin rule 'average' must be "
                            f"INTs (# days); given: {', '.join(vqarg)}")
-            vqarg = [_convert_str_to_num(val, must_be_int=True,
-                                         type_errmsg=type_errmsg,
-                                         min_allowed=0)
-                     # TODO: enable diff min_allowed for window & lag args
-                     for val in vqarg]
-            vqarg = tuple(sorted(vqarg, reverse=True))  # always: window > lag
+            vqarg = tuple(sorted([_convert_str_to_num(val, must_be_int=True,
+                                                      type_errmsg=type_errmsg,
+                                                      min_allowed=0)
+                                  # TODO: enable diff min for window & lag args
+                                  for val in day_args],
+                                 reverse=True))  # sort so window > lag always
         else:
             raise TypeError(f"xmin determination rule '{rule}' rule is "
                             f"incompatible with inputs: {vqarg}")
@@ -489,7 +509,17 @@ def conditionally_toggle_tail_flag_(ctx, yaml_opts):
             yaml_opts[name] = val if src == 'COMMANDLINE' else not val
 
 
+def read_avg_xmin_file_(ctx, yaml_opts):
+    if hasattr(ctx, '_avg_xmin_fname'):
+        axdf = _read_fname_to_df(ctx._avg_xmin_fname)
+        di, df = yaml_opts['date_i'], yaml_opts['date_f']
+        assert all(dt in axdf.index for dt in (di, df)),\
+            f"date_i '{di}' and/or date_f '{df}' not in {ctx._avg_xmin_fname}"
+    else:
+        axdf = None
+    yaml_opts['avg_xmin_df'] = axdf
 
 
 post_proc_funcs = (conditionalize_normalization_options_,
                    conditionally_toggle_tail_flag_,
+                   read_avg_xmin_file_)

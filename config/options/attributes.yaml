@@ -216,7 +216,7 @@ xmin_args:
     - '--xmin'
     - 'xmin_args'
   cls: 'VnargsOption'
-  max_nargs: 3
+  max_nargs: 4
   type: 'tuple'
   default:
     # NOTE: this default map is NOT actually used by the click.Option,
