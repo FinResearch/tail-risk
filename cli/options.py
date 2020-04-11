@@ -179,7 +179,7 @@ def _convert_str_to_num(str_val, must_be_int=False, type_errmsg=None,
     assert isinstance(str_val, str),\
         f"value to convert to number must be of type 'str', given {str_val}"
     try:
-        # NOTE: curr simple but ugly hack for negative num: using _N to repr -N
+        # NOTE: curr simple but ugly hack for negative num: use _N to repr -N
         sign, str_val = ((-1, str_val[1:]) if str_val.startswith('_') else
                          (1, str_val))
         # TODO/FIXME: modify click.Option to accept '-' as -ve args on the CLI
@@ -209,11 +209,18 @@ def _convert_str_to_num(str_val, must_be_int=False, type_errmsg=None,
 
 
 # helper that preprocesses the vqarg passed to '$ ... -x average A B C'
-def _parse_vqarg_and_set_axfn_(ctx, vqarg):  # mutates the ctx state
+def _parse_vqarg_and_set_cxfn_(ctx, vqarg):  # mutates the ctx state
     if isinstance(vqarg, (list, tuple)):
         if len(vqarg) == 3:
-            # TODO: when all 3 args given, allow fname to be passed 1st OR last
-            win, lag, fname = vqarg
+            x, y, z = vqarg
+            if all(s.isdecimal() for s in (x, y)):
+                win, lag, fname = vqarg
+            elif all(s.isdecimal() for s in (y, z)):
+                fname, win, lag = vqarg
+            else:
+                raise AssertionError("file containing Clauset-xmins to average"
+                                     " must be passed as either the FIRST or "
+                                     "LAST arg to option '-x average ...'")
         elif len(vqarg) == 2:
             win, lag, fname = (*vqarg, None)
         # TODO: account for when only 1 num arg passed --> make it window-size?
@@ -224,7 +231,7 @@ def _parse_vqarg_and_set_axfn_(ctx, vqarg):  # mutates the ctx state
         raise AssertionError('this should never be reached')
 
     if bool(fname):
-        ctx._avg_xmin_fname = fname
+        ctx._clauset_xmins_fname = fname
     return win, lag
 
 
@@ -432,7 +439,7 @@ def validate_xmin_args(ctx, param, xmin_args):
             assert ctx._analyze_group and ctx._approach != 'static',\
                 ("xmin determination rule 'average' is only compatible under "
                  "group tail analysis mode & w/ a non-static approach")
-            day_args = _parse_vqarg_and_set_axfn_(ctx, vqarg)
+            day_args = _parse_vqarg_and_set_cxfn_(ctx, vqarg)
             type_errmsg = ("both args to xmin rule 'average' must be "
                            f"INTs (# days); given: {', '.join(day_args)}")
             vqarg = tuple(sorted([_convert_str_to_num(val, must_be_int=True,
@@ -521,17 +528,18 @@ def conditionally_toggle_tail_flag_(ctx, yaml_opts):
         yaml_opts['anal_right'] = True
 
 
-def read_avg_xmin_file_(ctx, yaml_opts):
-    if hasattr(ctx, '_avg_xmin_fname'):
-        axdf = _read_fname_to_df(ctx._avg_xmin_fname)
+def read_clauset_xmins_file_(ctx, yaml_opts):
+    try:
+        fn = ctx._clauset_xmins_fname
+        cxdf = _read_fname_to_df(fn)
         di, df = yaml_opts['date_i'], yaml_opts['date_f']
-        assert all(dt in axdf.index for dt in (di, df)),\
-            f"date_i '{di}' and/or date_f '{df}' not in {ctx._avg_xmin_fname}"
-    else:
-        axdf = None
-    yaml_opts['avg_xmin_df'] = axdf
+        assert all(dt in cxdf.index for dt in (di, df)),\
+            f"date_i '{di}' and/or date_f '{df}' not in {fn}"
+    except AttributeError:
+        cxdf = None
+    yaml_opts['clauset_xmins_df'] = cxdf
 
 
 post_proc_funcs = (conditionalize_normalization_options_,
                    conditionally_toggle_tail_flag_,
-                   read_avg_xmin_file_)
+                   read_clauset_xmins_file_)

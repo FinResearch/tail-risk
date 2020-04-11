@@ -2,7 +2,7 @@ import click
 
 
 class VnargsOption(click.Option):
-    """Variable-Nargs Option:
+    """Variadic Arguments Option:
 
     A custom Option type allowing for a variable number of arguments to be set
     as its value. By default, all args up to the next option (determined as a
@@ -60,8 +60,9 @@ class VnargsOption(click.Option):
                 #  raise click.BadOptionUsage(self.name, err_msg)
                 # TODO: use Click's BadOptionUsage(UsageError) as in the above
                 raise TypeError(f"option '{self.name}' takes between "
-                                f"{self.min_nargs} to {self.max_nargs} "
-                                f"args, given: '{', '.join(vals)}'")
+                                f"{self.min_nargs} to {self.max_nargs} args, "
+                                f"given {len(vals)} args: {', '.join(vals)}")
+                # TODO: choose join separator to ensure no conflict w/ self.sep
 
             # call click.parser.Option.process with the value being a
             # single tuple of all args passed to the vnargs option
