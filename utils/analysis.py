@@ -35,10 +35,9 @@ class _Analyzer(ABC):
     def __get_xmin(self):
         # TODO: calculate clauset xmin value a priori using lookback
         if self.sa.xmin_rule in {"clauset", "manual"}:
-            xmin = self.sa.xmin_vqty
+            xmin = self.sa.xmin_vqty  # equals {None, user-given-val} resp.
         elif self.sa.xmin_rule == "percentile":
-            # NOTE: take percentile of non-filtered for nonzeros series,
-            #       but after potential normalization
+            # percentile is taken on input-array NOT filtered-for-nonzeros
             xmin = np.percentile(self.curr_input_array, self.sa.xmin_vqty)
         elif self.sa.xmin_rule == "average":
             assert self.sa.avg_xmins_df is not None and self.sa.use_dynamic
@@ -51,7 +50,7 @@ class _Analyzer(ABC):
 
     def _calc_curr_fit_obj(self):
         data = self.curr_input_array
-        data = data[np.nonzero(data)]  # only keep/use non-zero elements
+        data = data[np.nonzero(data)]  # only use non-zero elements to do Fit
         xmin = self.__get_xmin()
         self.curr_fit = Fit(data=data, xmin=xmin,
                             discrete=self.sa.fit_discretely)
@@ -59,7 +58,7 @@ class _Analyzer(ABC):
     def _get_curr_tail_stats(self):
         alpha, xmin, sigma = (getattr(self.curr_fit.power_law, prop)
                               for prop in ('alpha', 'xmin', 'sigma'))
-        abs_len = len(self.curr_input_array[self.curr_input_array >= xmin])
+        abs_len = sum(self.curr_input_array >= xmin)
         if self.sa.run_ks_test is True:
             # TODO: try compute ks_pv using MATLAB engine & module, and time
             ks_pv, _ = _plpva(self.curr_input_array, xmin, 'reps',
@@ -201,10 +200,8 @@ class DynamicAnalyzer(_Analyzer):
                       {stat: val for stat, val in
                        zip(('R', 'p'),
                            self.curr_fit.distribution_compare(
-                               'power_law',
-                               distro,
-                               normalized_ratio=True))
-                       }
+                               'power_law', distro,
+                               normalized_ratio=True))}
                       for key, distro in self._distros_to_compare.items()}
 
         return {(key, stat): logl_stats.get(key, {}).get(stat) for

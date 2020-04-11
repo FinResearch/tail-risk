@@ -29,7 +29,7 @@ from .options import gset_full_dbdf, attach_yaml_opts, post_proc_funcs
 #  @click.option('-v', '--verbose', count=True)  # TODO: save -v for --verbose?
 @click.version_option('0.7dev', '-v', '--version')
 @click.pass_context
-def get_ui_options(ctx, full_dbdf, **yaml_opts):
+def get_user_input(ctx, full_dbdf, **yaml_opts):
     for ppf in post_proc_funcs:
         ppf(ctx, yaml_opts)
     return dict(full_dbdf=full_dbdf, **yaml_opts)
@@ -41,10 +41,10 @@ def get_ui_options(ctx, full_dbdf, **yaml_opts):
 # TODO:hash opts to uniq-ID usr-input; useful for --partial-saves & --load-opts
 
 
-# NOTE: cannot run as __main__ in packaged mode --> remove??
-if __name__ == '__main__':
-    #  # ImportError: attempted relative import with no known parent package
-    #  get_ui_options()  # FIXME the error above to use as __main__
-    ui_opts = get_ui_options.main(standalone_mode=False)
+#  # NOTE: cannot run as __main__ in packaged mode --> remove??
+#  if __name__ == '__main__':
+#      #  # ImportError: attempted relative import with no known parent package
+#      #  get_ui_options()  # FIXME the error above to use as __main__
+#      ui_opts = get_ui_options.main(standalone_mode=False)
 
 # TODO: log to stdin analysis progress (ex. 7/89 dates for ticker XYZ analyzed)

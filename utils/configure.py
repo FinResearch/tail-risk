@@ -126,7 +126,7 @@ class DynamicNormalizer(_Normalizer):
         self._win_type = {'rolling': 'rolling', 'increasing': 'expanding'}.\
             get(self.sa.approach)
         self.data_window = getattr(self.returns_df,
-                                   self._win_type)(self.sa.window_size)
+                                   self._win_type)(self.sa.dyn_win_size)
 
         # means & stds should be Pandas DataFrame here
         self.means = self.__get_window_stat('mean')
@@ -137,12 +137,12 @@ class DynamicNormalizer(_Normalizer):
         window_stat = getattr(self.data_window, stat)().dropna()
         assert len(window_stat) == len(self.sd.anal_dates),\
             (f'cannot calculate {stat.upper()} from {self._win_type} window of'
-             f' size {self.sa.window_size} constructed from below DataFrame:\n'
-             f'{self.returns_df}')
+             f' size {self.sa.dyn_win_size} constructed from below DataFrame:'
+             f'\n{self.returns_df}')
         return window_stat
 
     def __get_lookback_label(self, date):
-        lkb = (self.dates.get_loc(date) - self.sa.window_size + 1
+        lkb = (self.dates.get_loc(date) - self.sa.dyn_win_size + 1
                if self.sa.approach == 'rolling' else 0)
         assert lkb >= 0  # this necessarily must be True, otherwise bug
         return self.dates[lkb]

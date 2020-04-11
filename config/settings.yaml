@@ -30,7 +30,7 @@ anal:
   - use_dynamic
   - returns_type
   - tau
-  - window_size
+  - dyn_win_size
   - standardize
   - absolutize
   - norm_target
