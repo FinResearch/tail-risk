@@ -492,8 +492,6 @@ def conditionalize_normalization_options_(ctx, yaml_opts):
         yaml_opts['norm_after'] = True
         # TODO: just set the defaults in YAML config?
 
-# TODO/FIXME: if --abs, then constrain to Right tail ONLY
-
 
 # validate then correctly set/toggle the two tail selection options
 def conditionally_toggle_tail_flag_(ctx, yaml_opts):
@@ -514,6 +512,13 @@ def conditionally_toggle_tail_flag_(ctx, yaml_opts):
     if sources[0] != sources[1] and all(values):
         for name, src, val in names_srcs_vals:
             yaml_opts[name] = val if src == 'COMMANDLINE' else not val
+
+    if yaml_opts['absolutize']:
+        if ctx.get_parameter_source('anal_left') == 'COMMANDLINE':
+            warnings.warn("'--abs / --absolutize' flag set, only RIGHT tail "
+                          "appropriate for analysis; ignoring -L, using -R")
+        yaml_opts['anal_left'] = False
+        yaml_opts['anal_right'] = True
 
 
 def read_avg_xmin_file_(ctx, yaml_opts):
