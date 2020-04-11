@@ -210,15 +210,18 @@ def _convert_str_to_num(str_val, must_be_int=False, type_errmsg=None,
 
 # helper that preprocesses the vqarg passed to '$ ... -x average A B C'
 def _parse_vqarg_and_set_axfn_(ctx, vqarg):  # mutates the ctx state
-    if isinstance(vqarg, tuple):
+    if isinstance(vqarg, (list, tuple)):
         if len(vqarg) == 3:
+            # TODO: when all 3 args given, allow fname to be passed 1st OR last
             win, lag, fname = vqarg
         elif len(vqarg) == 2:
             win, lag, fname = (*vqarg, None)
-        # TODO: account for when user passes only 1 number arg
+        # TODO: account for when only 1 num arg passed --> make it window-size?
     elif isinstance(vqarg, str):
         win, lag, _ = _get_param_from_ctx(ctx, 'xmin_args').default['average']
         fname = vqarg
+    else:
+        raise AssertionError('this should never be reached')
 
     if bool(fname):
         ctx._avg_xmin_fname = fname
@@ -431,7 +434,7 @@ def validate_xmin_args(ctx, param, xmin_args):
                  "group tail analysis mode & w/ a non-static approach")
             day_args = _parse_vqarg_and_set_axfn_(ctx, vqarg)
             type_errmsg = ("both args to xmin rule 'average' must be "
-                           f"INTs (# days); given: {', '.join(vqarg)}")
+                           f"INTs (# days); given: {', '.join(day_args)}")
             vqarg = tuple(sorted([_convert_str_to_num(val, must_be_int=True,
                                                       type_errmsg=type_errmsg,
                                                       min_allowed=0)

@@ -38,6 +38,8 @@ def get_ui_options(ctx, full_dbdf, **yaml_opts):
 #                       calibrate multiprocessing chunksize,
 #                       autoupdate README opts help section based on attrs.yaml
 
+# TODO:hash opts to uniq-ID usr-input; useful for --partial-saves & --load-opts
+
 
 # NOTE: cannot run as __main__ in packaged mode --> remove??
 if __name__ == '__main__':
