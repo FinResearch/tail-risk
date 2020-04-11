@@ -89,6 +89,27 @@ class Settings:
         self.alpha_qntl = NormalDist().inv_cdf(1 - len(self.tails_to_anal)/2 *
                                                self.alpha_signif)
 
+    # helper for correctly extending back DF's date-range when use_dynamic
+    def __dynamize_ts_df(self, ts_df):  # ts_df: Time Series DataFrame
+        assert self.use_dynamic
+        full_dates = ts_df.index
+
+        # NOTE: use (lookback - 1) b/c date analyzed incl. in lkbk window
+        idx_lkbk = full_dates.get_loc(self.date_i) - (self._lookback - 1)
+        assert idx_lkbk >= 0, (f"cannot lookback {self._lookback} days from "
+                               f"{self.date_i} in\n{ts_df.info()}")
+        lab_lkbk = full_dates[idx_lkbk]
+        lab_last = self.date_f
+        dynamized_df = ts_df.loc[lab_lkbk:lab_last]
+
+        if self._anal_freq > 1:
+            # slice backwards from date_i to ensure date_i is part of input
+            lkbk_slice = dynamized_df.loc[self.date_i::-self._anal_freq]
+            anal_slice = dynamized_df.loc[self.date_i::self._anal_freq]
+            dynamized_df = pd.concat((lkbk_slice[::-1], anal_slice[1:]))
+
+        return dynamized_df
+
     def _gset_dbdf_attrs(self):
         # NOTE on dbdf distinctions:
         # - full_dbdf: unfiltered DataFrame as fully loaded from input DB_FILE
@@ -110,22 +131,12 @@ class Settings:
         # TODO: use it to validate average xmin df
 
         if self.use_dynamic:
-            full_dates = self.full_dbdf.index
-            # NOTE: use (lookback - 1) b/c date analyzed incl. in lkbk window
-            idx_lkbk = full_dates.get_loc(self.date_i) - (self._lookback - 1)
-            lab_lkbk = full_dates[idx_lkbk]
-            lab_last = self.date_f
-            dynamic_dbdf = self._tickers_dbdf.loc[lab_lkbk:lab_last]
-            if self._anal_freq > 1:
-                # slice backwards from date_i to ensure date_i is part of input
-                lkbk_slice = dynamic_dbdf.loc[self.date_i::-self._anal_freq]
-                anal_slice = dynamic_dbdf.loc[self.date_i::self._anal_freq]
-                dynamic_dbdf = pd.concat((lkbk_slice[::-1], anal_slice[1:]))
+            dynamic_dbdf = self.__dynamize_ts_df(self._tickers_dbdf)
 
             # correctly set (minimum) window size based on lookback, anal_freq
             # & tau, b/c returns data pts is necssarily less than that of raw
             q, r = divmod(self._lookback, self._anal_freq)
-            self.window_size = q + bool(r) - self.tau
+            self.dyn_win_size = q + bool(r) - self.tau
 
         self.raw_dbdf = dynamic_dbdf if self.use_dynamic else static_dbdf
 
