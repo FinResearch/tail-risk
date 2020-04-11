@@ -20,6 +20,7 @@ class Settings:
 
         # domain-, functionality- & usecase- specific settings
         self._gset_grouping_info()  # must be called after _gset_dbdf_attrs()
+        self._gset_avg_xmins_df()  # call after grp_info() & only -G & dynamic
         self._load_set_stats_columns_labels()
         self._gset_plot_settings()
 
@@ -56,26 +57,10 @@ class Settings:
         self.use_dynamic = (True if self.approach in {'rolling', 'increasing'}
                             else False)
         self.fit_discretely = True if self.data_nature == 'discrete' else False
-        self.xmin_rule, self.xmin_vqty = self.xmin_args  # TODO: rm once below complete
-        self._xmin_rule, self._xmin_vqty = self.xmin_args
-        if self._xmin_rule == 'average':
-            assert not self.use_static,\
-                (f"xmin-rule '{self._xmin_rule}' is not compatible with "
-                 f"the '{self.approach}' approach")
-
+        self.xmin_rule, self.xmin_vqty = self.xmin_args
         if self.norm_target is not None:
             self.norm_target = 'series' if self.norm_target else 'tail'
         self.run_ks_test = False if self.ks_iter <= 0 else self.run_ks_test
-
-    # TODO: should be possible to get all xmin_val for all xmin_rule except
-    # 'average'; for percentile, use lookback to slice all input arrays
-    def __compute_percentile_xmin(self):
-        pass
-
-    # TODO: consider applying multiprocessing to such tasks
-    def __compute_average_xmin(self):
-        assert self.analyze_group
-        pass
 
     def _gset_tail_settings(self):
         """Compute settings relevant to tail selection
@@ -175,6 +160,55 @@ class Settings:
                                           else 'ticker')
         cix = self._tickers_dbdf.columns  # cix: column index
         self.grouping_labs = cix.levels[0] if self.analyze_group else cix
+
+    # # methods to obtain & validate DF containing average xmins to use # #
+
+    def __bound_and_validate_cxdf(self):
+        if self.clauset_xmins_df is not None:
+            bounded_cxdf = self.__dynamize_ts_df(self.clauset_xmins_df)
+
+            # validate Dates (rows)
+            assert len(bounded_cxdf) == len(self.raw_dbdf),\
+                (f"Dates to be analyzed b/w [{self.date_i}, {self.date_f}] are"
+                 " of DIFFERENT LENGTH for the 2 given time series data files")
+            assert all(bounded_cxdf.index == self.raw_dbdf.index),\
+                (f"dynamic analysis dates after looking back {self._lookback} "
+                 f"days for date range [{self.date_i}, {self.date_f}] DO NOT "
+                 "MATCH for the 2 given time series data files")
+
+            # validate Group ID (columns)
+            x_cols = bounded_cxdf.columns
+            assert all(any(gl.lower() in xc.lower() for xc in x_cols)
+                       for gl in self.grouping_labs),\
+                (f"one (or more) groups [{', '.join(self.grouping_labs)}] NOT "
+                 f"found in Clauset xmins file columns: '{', '.join(x_cols)}'")
+
+            tx_map = {Tail.right: 'stp', Tail.left: 'stn'}
+            assert all(any(tx_map[t] in xc.lower() for xc in x_cols)
+                       for t in self.tails_to_anal),\
+                ("STP and/or STN not present in Clauset xmins file for chosen "
+                 f"tail(s): {', '.join([t.name for t in self.tails_to_anal])}")
+
+            return bounded_cxdf
+        return None
+
+    def _gset_avg_xmins_df(self):
+        if self.analyze_group and self.use_dynamic:
+
+            # ASK/TODO: use truncated averging if len(xmins) < window + lag??
+            # ASK: alternatively, go back to early enough date to back-calc. avg
+            # ASK/CONFIRM: 0 lag means curr. date factored into average, correct?
+            #              1 lag means all dates up to but not incl. curr averaged?
+
+            window, lag = self.xmin_vqty
+            bcxdf = self.__bound_and_validate_cxdf()  # bcxdf: bounded cxdf
+
+            if bcxdf is not None:
+                axdf = bcxdf.rolling(window).mean().fillna(bcxdf)
+                self.avg_xmins_df = axdf.shift(lag).loc[self.date_i:]
+            else:
+                # TODO/FIXME: run '-x clauset', and save xmins from that to use
+                raise AssertionError("Need pre-computed Clauset xmins to average")
 
     # # methods configuring the output results DataFrame # #
 

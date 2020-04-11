@@ -41,7 +41,10 @@ class _Analyzer(ABC):
             #       but after potential normalization
             xmin = np.percentile(self.curr_input_array, self.sa.xmin_vqty)
         elif self.sa.xmin_rule == "average":
-            pass
+            assert self.sa.avg_xmins_df is not None and self.sa.use_dynamic
+            group, date, tail = self.curr_iter_id
+            stp = {"right": "STP", "left": "STN"}[tail.name]
+            xmin = self.sa.avg_xmins_df.at[date, f"{stp} {group}"]
         else:
             raise AttributeError(f"invalid xmin-rule: {self.sa.xmin_rule}")
         return xmin
@@ -49,8 +52,8 @@ class _Analyzer(ABC):
     def _calc_curr_fit_obj(self):
         data = self.curr_input_array
         data = data[np.nonzero(data)]  # only keep/use non-zero elements
-        xmin = self.__get_xmin()  # outsource this to settings.py
-        self.curr_fit = Fit(data=data, xmin=xmin,  # xmin=self.sa.xmin,
+        xmin = self.__get_xmin()
+        self.curr_fit = Fit(data=data, xmin=xmin,
                             discrete=self.sa.fit_discretely)
 
     def _get_curr_tail_stats(self):
