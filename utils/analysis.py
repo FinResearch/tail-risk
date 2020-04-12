@@ -101,7 +101,7 @@ class _Analyzer(ABC):
 
     # runs analysis for one iteration of analysis given arbitrary iter_id
     def _analyze_iter(self, iter_id):  # NOTE: use this to resume computation
-        print(f"### DEBUG: PID {getpid()} analyzing iter '{iter_id}'")
+        print(f"### DEBUG: PID {getpid()} analyzing iter {iter_id}")
 
         self.curr_iter_id = iter_id
         self._set_curr_input_array()  # 'input' as in input to powerlaw.Fit
