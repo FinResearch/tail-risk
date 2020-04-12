@@ -242,6 +242,7 @@ def _customize_show_default_boolcond(param, boolcond, dflt_str_2tup):
         param.show_default = False  # turn off built-in show_default
         true_dflt, false_dflt = dflt_str_2tup
         help_dflt = true_dflt if boolcond else false_dflt
+        help_dflt = help_dflt.title() if help_dflt.islower() else help_dflt
         param.help += f'  [default: {help_dflt}]'
 
 
@@ -261,12 +262,21 @@ def gsdi_ks(ctx):  # option: run_ks_test
     return param, cond, ('run', 'skip')
 
 
+def gsdi_cd(ctx):  # option: compare_distros
+    param = _get_param_from_ctx(ctx, 'compare_distros')
+    cond = param.default
+    return param, cond, ('compare', 'no compare')
+
+
 def gsdi_np(ctx):  # option: nproc
     param = _get_param_from_ctx(ctx, 'nproc')
     cond = param.default
     t_help = f'{cond} (Config File)'
     f_help = f'{os.cpu_count()} (# CPUs)'
     return param, cond, (t_help, f_help)
+
+
+gsdi_wrappers = (gsdi_nt, gsdi_ks, gsdi_cd, gsdi_np)
 
 
 # # # Eager Options CBs # # #
@@ -303,7 +313,7 @@ def gset_group_opts(ctx, param, analyze_group):
 
     # piggyback off eagerness of the -G opt to dynamically set help texts
     _set_vnargs_choice_metahelp_(ctx)
-    for f in (gsdi_nt, gsdi_ks, gsdi_np):  # change some opts' show_defaults
+    for f in gsdi_wrappers:  # change some opts' show_defaults
         _customize_show_default_boolcond(*f(ctx))
 
     return analyze_group

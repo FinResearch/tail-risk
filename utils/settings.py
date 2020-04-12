@@ -22,7 +22,8 @@ class Settings:
         self._gset_grouping_info()  # must be called after _gset_dbdf_attrs()
         self._gset_avg_xmins_df()  # call after grp_info() & only -G & dynamic
         self._load_set_stats_columns_labels()
-        self._gset_plot_settings()
+        if self.plot_results:
+            self._gset_plot_settings()
 
         # instantiate the settings SimpleNamespace objects
         self._load_set_settings_config()
@@ -233,17 +234,20 @@ class Settings:
             labels.remove('ks_pv')
 
         self.stats_collabs = [(lab, '') if isinstance(lab, str) else lab for
-                              lab in self.__make_logl_column_labels(labels)]
+                              lab in self.__structure_column_labels(labels)]
 
     # helper func called in _load_set_stats_columns_labels
-    def __make_logl_column_labels(self, labels):
-        ll_labs = [(i, lab) for i, lab in enumerate(labels)
-                   if lab.startswith('ll_')]
-        for i, lab in reversed(ll_labs):
-            # insert and pop in reverse order to preserve validity of index i
-            labels.insert(i + 1, (lab, 'p'))
-            labels.insert(i + 1, (lab, 'R'))
-            labels.pop(i)
+    def __structure_column_labels(self, labels):
+        if self.compare_distros:
+            ll_labs = [(i, lab) for i, lab in enumerate(labels)
+                       if lab.startswith('ll_')]
+            for i, lab in reversed(ll_labs):
+                # insert & pop in reverse order to preserve validity of idx, i
+                labels.insert(i + 1, (lab, 'p'))
+                labels.insert(i + 1, (lab, 'R'))
+                labels.pop(i)
+        else:
+            labels = [lab for lab in labels if not lab.startswith('ll_')]
         return labels
 
     # # methods relevant to settings needed by plotter # #
@@ -283,7 +287,9 @@ class Settings:
         SETTINGS_CFG = 'config/settings.yaml'  # TODO: refactor PATH into root
         with open(SETTINGS_CFG) as cfg:
             self._settings_config = yaml.load(cfg, Loader=yaml.SafeLoader)
-        self._subsettings = tuple(self._settings_config.keys())
+        self._subsettings = list(self._settings_config.keys())
+        if not self.plot_results:
+            self._subsettings.remove('plot')
 
     def _validate_subsetting(self, subsett):
         assert subsett in self._subsettings,\

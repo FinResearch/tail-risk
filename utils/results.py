@@ -45,3 +45,11 @@ class Results:
     def initialize(self):
         return (self._init_dynamic() if self.sa.use_dynamic else
                 self._init_static())
+
+    def prettify_df(self):
+        self._drop_blank_column_level()
+
+    def _drop_blank_column_level(self):
+        lvls2drop = [l for l, lvl in enumerate(self.df.columns.levels)
+                     if all(lab == '' for lab in lvl)]
+        self.df.columns = self.df.columns.droplevel(lvls2drop)

@@ -241,8 +241,6 @@ run_ks_test:
   metavar: '(Run/Skip KS-Test)'  # FIXME: get metavar to work w/ flags (not shown currently)
   help: 'NOTE: --ks-skip overrides --ks-iter'
 
-# TODO: consider add similar skip option as above for logl_stats??
-
 # TODO: make VnargsOption work with flags, then combine --ks-iter & --ks-run?
 ks_iter:
   param_decls:
@@ -251,6 +249,14 @@ ks_iter:
   default: 100
   metavar: '<ℤ⁺>'
   help: 'specify # iterations to use for KS-testing'
+
+compare_distros:
+  param_decls:
+    - '--compare/--no-compare'
+    - 'compare_distros'
+  default: true
+  metavar: ''  # FIXME: get metavar to work w/ flags (not shown currently)
+  help: 'compare the fitted power-law to other distributions using log-likelihoods'
 
 # TODO: hide control & plotting options from --help unless specified by some subcommand/flag (to reduce clutter)
 
@@ -263,6 +269,15 @@ nproc:
   callback: 'gset_nproc_default'
   metavar: '<ℤ⁺>'
   help: "# of concurrent processes to use"
+
+plot_results:
+  param_decls:
+    - '--plot/--no-plot'
+    - 'plot_results'
+  is_flag: true
+  # type: 'bool'  # TODO: cast this (& others) to proper click.BOOL type?
+  default: true
+  help: ''
 
 show_plots:
   param_decls:

@@ -139,8 +139,8 @@ class _Analyzer(ABC):
 
     def get_resdf(self):
         # TODO: final clean ups of DF for presentation:
-        #       - use df.columns = df.columns.droplevel() to remove unused lvls
         #       - use .title() on all index labels, then write to file
+        self.res.prettify_df()
         return self.res.df
 
 
@@ -210,7 +210,8 @@ class DynamicAnalyzer(_Analyzer):
     # TODO: add getting xmin_today data when doing group tail analysis
     def _get_curr_tail_stats(self):
         tail_stats = super()._get_curr_tail_stats()
-        logl_stats = self._get_curr_logl_stats()
+        logl_stats = (self._get_curr_logl_stats()
+                      if self.sa.compare_distros else {})
         return {**tail_stats, **logl_stats}
 
 

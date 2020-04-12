@@ -46,9 +46,11 @@ anal:
   - avg_xmins_df
   - run_ks_test
   - ks_iter
+  - compare_distros  # TODO: add warning informing ignored if '-a static'
 
 ## plotting settings: needed specifically and only for plotting
 plot:
+  - plot_results
   - show_plots
   - save_plots
   - title_timestamp

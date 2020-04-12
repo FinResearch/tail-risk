@@ -25,4 +25,6 @@ run_ks_test: false
 
 ks_iter: 2
 
+compare_distros: false
+
 # help: # TODO: customize --help for group?
