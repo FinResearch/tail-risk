@@ -26,6 +26,7 @@ data:
 
 ## analysis settings: determines how the data is analyzed
 anal:
+  # - analyze_group
   - approach  # TODO: needless to export if rolling_window_type known/constructed in settings.py
   - use_dynamic
   - returns_type
@@ -41,6 +42,7 @@ anal:
   # - xmin  # get rid of the 2 xmin settings below once this complete
   - xmin_rule
   - xmin_vqty
+  # - clauset_xmins_df  # contains value of xmin_today
   - avg_xmins_df
   - run_ks_test
   - ks_iter

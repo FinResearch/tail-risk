@@ -75,23 +75,34 @@ class Settings:
                                                self.alpha_signif)
 
     # helper for correctly extending back DF's date-range when use_dynamic
-    def __dynamize_ts_df(self, ts_df):  # ts_df: Time Series DataFrame
+    def __dynamize_ts_df(self, ts_df, back_days, must_back_fully=True):
         assert self.use_dynamic
         full_dates = ts_df.index
 
-        # NOTE: use (lookback - 1) b/c date analyzed incl. in lkbk window
-        idx_lkbk = full_dates.get_loc(self.date_i) - (self._lookback - 1)
-        assert idx_lkbk >= 0, (f"cannot lookback {self._lookback} days from "
-                               f"{self.date_i} in\n{ts_df.info()}")
-        lab_lkbk = full_dates[idx_lkbk]
+        # NOTE: use (back_days - 1) b/c date_i incl. in 1st dynamic window
+        idx_back = full_dates.get_loc(self.date_i) - (back_days - 1)
+
+        if idx_back < 0:  # when back_days needed is beyond the given data
+            errmsg = (f"cannot go back {back_days} full days from "
+                      f"{self.date_i} in DataFrame:\n\n{ts_df}\n")
+            if must_back_fully:
+                raise ValueError(errmsg)
+            else:
+                from warnings import warn
+                idx_back = 0
+                warn(errmsg)
+                warn("Maximum backed-date set to earliest from "
+                     f"DataFrame above: '{ts_df.index[0]}'")
+
+        lab_back = full_dates[idx_back]
         lab_last = self.date_f
-        dynamized_df = ts_df.loc[lab_lkbk:lab_last]
+        dynamized_df = ts_df.loc[lab_back:lab_last]
 
         if self._anal_freq > 1:
-            # slice backwards from date_i to ensure date_i is part of input
-            lkbk_slice = dynamized_df.loc[self.date_i::-self._anal_freq]
+            # slice backwards from date_i to ensure date_i is part of final DF
+            back_slice = dynamized_df.loc[self.date_i::-self._anal_freq]
             anal_slice = dynamized_df.loc[self.date_i::self._anal_freq]
-            dynamized_df = pd.concat((lkbk_slice[::-1], anal_slice[1:]))
+            dynamized_df = pd.concat((back_slice[::-1], anal_slice[1:]))
 
         return dynamized_df
 
@@ -116,8 +127,8 @@ class Settings:
         # TODO: use it to validate average xmin df
 
         if self.use_dynamic:
-            dynamic_dbdf = self.__dynamize_ts_df(self._tickers_dbdf)
-
+            dynamic_dbdf = self.__dynamize_ts_df(self._tickers_dbdf,
+                                                 self._lookback)
             # correctly set (minimum) window size based on lookback, anal_freq
             # & tau, b/c returns data pts is necssarily less than that of raw
             q, r = divmod(self._lookback, self._anal_freq)
@@ -163,48 +174,46 @@ class Settings:
 
     # # methods to obtain & validate DF containing average xmins to use # #
 
-    def __bound_and_validate_cxdf(self):
-        if self.clauset_xmins_df is not None:
-            bounded_cxdf = self.__dynamize_ts_df(self.clauset_xmins_df)
+    def _validate_dcxdf(self):  # dcxdf: Dynamized Clauset Xmin DF
+        # ensure analyzed dates are the same (i.e. check rows)
+        assert all(self._dcxdf.loc[self.date_i:].index == self.anal_dates),\
+            (f"Dates to be analyzed b/w [{self.date_i}, {self.date_f}] are "
+             "DIFFERENT for the 2 given time series data files")
 
-            # validate Dates (rows)
-            assert len(bounded_cxdf) == len(self.raw_dbdf),\
-                (f"Dates to be analyzed b/w [{self.date_i}, {self.date_f}] are"
-                 " of DIFFERENT LENGTH for the 2 given time series data files")
-            assert all(bounded_cxdf.index == self.raw_dbdf.index),\
-                (f"dynamic analysis dates after looking back {self._lookback} "
-                 f"days for date range [{self.date_i}, {self.date_f}] DO NOT "
-                 "MATCH for the 2 given time series data files")
-
-            # validate Group ID (columns)
-            x_cols = bounded_cxdf.columns
-            assert all(any(gl.lower() in xc.lower() for xc in x_cols)
-                       for gl in self.grouping_labs),\
-                (f"one (or more) groups [{', '.join(self.grouping_labs)}] NOT "
-                 f"found in Clauset xmins file columns: '{', '.join(x_cols)}'")
-
-            tx_map = {Tail.right: 'stp', Tail.left: 'stn'}
-            assert all(any(tx_map[t] in xc.lower() for xc in x_cols)
-                       for t in self.tails_to_anal),\
-                ("STP and/or STN not present in Clauset xmins file for chosen "
-                 f"tail(s): {', '.join([t.name for t in self.tails_to_anal])}")
-
-            return bounded_cxdf
-        return None
+        # ensure xmins for chosen group(s) & tail(s) exist (i.e. check cols)
+        from itertools import product
+        tx_map = {Tail.right: 'STP', Tail.left: 'STN'}
+        needed_cols = [f"{st} {grp}" for st, grp
+                       in product([tx_map[t] for t in self.tails_to_anal],
+                                  self.grouping_labs)]
+        x_cols = self._dcxdf.columns
+        assert all(any(nc in xc for xc in x_cols) for nc in needed_cols),\
+            (f"All columns in [{', '.join(needed_cols)}] are needed, only "
+             f"found [{', '.join(x_cols)}] in passed Clauset xmins data file")
 
     def _gset_avg_xmins_df(self):
         if self.analyze_group and self.use_dynamic:
 
-            # ASK/TODO: use truncated averging if len(xmins) < window + lag??
-            # ASK: alternatively, go back to early enough date to back-calc. avg
-            # ASK/CONFIRM: 0 lag means curr. date factored into average, correct?
-            #              1 lag means all dates up to but not incl. curr averaged?
+            # ASK/TODO: better deal w/ len(dates_b4_date_i) < window+lag ??
+            # - curr: fill those NaNs w/ just Clauset xmins ---> create option?
+            # - opt1: average using trunc_window, if len(xmins) < window + lag
+            # - opt2: go back to early enough date just to back-calc. xmin
+
+            # ASK/CNFRM: lag of 0 means curr. date factored into average ??
+            #            1 means all dates up to but NOT incl. curr avg'd? etc.
+
+            # ASK/CNFRM: diff. b/w xmin_used (xmin after fitting w/ averaged)
+            #            vs. xmin_today (direct Clauset xmin)
+            #            --> so only diff for 'average' rule
 
             window, lag = self.xmin_vqty
-            bcxdf = self.__bound_and_validate_cxdf()  # bcxdf: bounded cxdf
 
-            if bcxdf is not None:
-                axdf = bcxdf.rolling(window).mean().fillna(bcxdf)
+            if self.clauset_xmins_df is not None:
+                self._dcxdf = self.__dynamize_ts_df(self.clauset_xmins_df,
+                                                    window + lag,
+                                                    must_back_fully=False)
+                self._validate_dcxdf()
+                axdf = self._dcxdf.rolling(window).mean().fillna(self._dcxdf)
                 self.avg_xmins_df = axdf.shift(lag).loc[self.date_i:]
             else:
                 # TODO/FIXME: run '-x clauset', and save xmins from that to use

@@ -40,7 +40,7 @@ class _Analyzer(ABC):
             # percentile is taken on input-array NOT filtered-for-nonzeros
             xmin = np.percentile(self.curr_input_array, self.sa.xmin_vqty)
         elif self.sa.xmin_rule == "average":
-            assert self.sa.avg_xmins_df is not None and self.sa.use_dynamic
+            assert self.sa.avg_xmins_df is not None
             group, date, tail = self.curr_iter_id
             stp = {"right": "STP", "left": "STN"}[tail.name]
             xmin = self.sa.avg_xmins_df.at[date, f"{stp} {group}"]
