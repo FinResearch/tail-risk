@@ -221,6 +221,7 @@ xmin_args:
   default:
     # NOTE: this default map is NOT actually used by the click.Option,
     #       but is instead here for convenient serialization/encoding
+    # TODO: add from-file input option, alias '-x average xmin_file 1 0'
     clauset: null
     percentile: '90'
     manual: '0'

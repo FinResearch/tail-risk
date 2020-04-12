@@ -8,8 +8,9 @@ from statistics import NormalDist
 
 class Settings:
 
-    def __init__(self, ui_options):
-        for opt, val in ui_options.items():
+    def __init__(self, user_inputs):
+        self._user_inputs = user_inputs
+        for opt, val in self._user_inputs.items():
             setattr(self, opt, val)
             # TODO: coord. w/ attrs.yaml to mark some opts private w/ _-prefix
 

@@ -39,6 +39,7 @@ def get_user_input(ctx, full_dbdf, **yaml_opts):
 #                       autoupdate README opts help section based on attrs.yaml
 
 # TODO:hash opts to uniq-ID usr-input; useful for --partial-saves & --load-opts
+#      maybe makes more sense to only hash data & anal settings
 
 
 #  # NOTE: cannot run as __main__ in packaged mode --> remove??

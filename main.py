@@ -4,17 +4,18 @@ import cli
 from utils.analysis import analyze_tail
 from utils.settings import Settings as Settings
 
-ui_opts = cli.get_user_input.main(standalone_mode=False)
+user_inputs = cli.get_user_input.main(standalone_mode=False)
 
-if ui_opts == 0:  # for catching the --help option
+if user_inputs == 0:  # for catching the --help option
     sys.exit()
 
-#  print(ui_opts)
+# create option flag to just print out the user_inputs
+#  print(user_inputs)
 
-#  settings = Settings(ui_opts)
-settings = Settings(ui_opts).settings
+#  settings = Settings(user_inputs)
+settings = Settings(user_inputs).settings
 #  print(settings)
-
+#
 analyze_tail(settings)
 
 # TODO: apply black styling to all modules (i.e. ' --> ")
@@ -22,3 +23,5 @@ analyze_tail(settings)
 # TODO: annotate/de-annotate NOTE notes
 # TODO: move imports needed conditionally to within those branches,
 #       example: like warnings.warn & itertools.product in settings.py
+# TODO: remove needless assertion stmt(s) after code is well-tested
+# alternatively: create custom Assertion that's only in effect w/ some --debug

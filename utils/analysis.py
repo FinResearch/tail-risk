@@ -69,7 +69,6 @@ class _Analyzer(ABC):
 
     def _store_partial_results(self):
         curr_tstat_series = pd.Series(self._get_curr_tail_stats())
-        # TODO: remove needless assertion stmt(s) after code is well-tested
         assert len(curr_tstat_series) == len(self.sd.stats_collabs)
         idx, col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
         self.res.df.loc[idx, col].update(curr_tstat_series)
