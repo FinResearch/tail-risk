@@ -218,23 +218,21 @@ xmin_args:
     - '--xmin'
     - 'xmin_args'
   cls: 'VnargsOption'
-  max_nargs: 4
+  max_nargs: 2
   type: 'tuple'
-  default:
-    # NOTE: this default map is NOT actually used by the click.Option,
-    #       but is instead here for convenient serialization/encoding
-    clauset: null
-    percentile: '90'
-    manual: '0'
+  default:  # NOTE: list below NOT used as default; only used to programmatically set metavar; default actually set in parse_xmin_args()
+    - "clauset"
+    - "%"
+    - "ℝ "
+    - "XMINS_FILE"
   show_default: false
-  callback: 'validate_xmin_args'
-  # metavar:  # NOTE: this attr is set by _set_vnargs_choice_metahelp_()
+  callback: 'parse_xmin_args'
+  # metavar:  # NOTE: this attr is set in _set_vnargs_choice_metahelp_()
   help: |  # FIXME: newline(s) below not preserved in --help (adding blank spaces does it, but is janky)
-    percentile: <ℝ ∊ [0-100]>  [default: 90]                   
-    manual: <ℝ >  [default: 0]
-
-    ALTERNATIVELY: pass file containing date-labeled xmin data
-# FIXME/TODO: improve help message above & for similar opts (i.e. approach_args)
+    * clauset : enter "-x clauset" to automatically compute xmin   
+    * % (percent): enter ℝ ∊ [0, 100] w/ a %-suffix  [ex. "-x 95%"]
+    * ℝ (manual) : enter any ℝ number  [ex. "-x -0.5"]                  
+    * XMINS_FILE : pass file w/ date-indexed xmin data
 
 run_ks_test:
   param_decls:

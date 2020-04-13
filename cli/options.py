@@ -117,15 +117,14 @@ def _get_param_from_ctx(ctx, param_name):
 
 # func that mutates ctx to correctly set metavar & help attrs of VnargsOption's
 def _set_vnargs_choice_metahelp_(ctx):
-    # FIXME/TODO: revise --help msg to incl file input option for 'average'
-    xmin_extra_help = (('* average    : <(ℤ⁺, ℤ): window & lag days>  '
+    xmin_extra_help = (('* average : enter window & lag days (ℤ⁺, ℤ)  '
                         '[defaults: (66, 0)]\n')
                        if ctx._analyze_group else '')
 
     vnargs_choice_opts = ('approach_args', 'xmin_args',)
     for opt_name in vnargs_choice_opts:
         opt_obj = _get_param_from_ctx(ctx, opt_name)
-        opt_choices = tuple(opt_obj.default.keys())
+        opt_choices = tuple(opt_obj.default)
         opt_obj.metavar = (f"[{'|'.join(opt_choices)}]  "
                            f"[default: {opt_choices[0]}]")
         extra_help = xmin_extra_help if opt_name == 'xmin_args' else ''
@@ -134,6 +133,7 @@ def _set_vnargs_choice_metahelp_(ctx):
 
 # TODO: checkout default_map & auto_envvar_prefix for click.Context
 #       as method for setting dynamic defaults
+# TODO: subsume func under approach_args CB, since xmin_args no longer uses it?
 # helper for VnargsOptions to dynamically set their various defaults
 def _gset_vnargs_choice_default(ctx, param, inputs,
                                 errmsg_name=None,
@@ -179,6 +179,7 @@ def _convert_str_to_num(str_val, must_be_int=False, type_errmsg=None,
     assert isinstance(str_val, str),\
         f"value to convert to number must be of type 'str', given {str_val}"
     try:
+        # TODO: confirm w/ click --> dash for negative num now works?!?
         # NOTE: curr simple but ugly hack for negative num: use _N to repr -N
         sign, str_val = ((-1, str_val[1:]) if str_val.startswith('_') else
                          (1, str_val))
@@ -198,7 +199,7 @@ def _convert_str_to_num(str_val, must_be_int=False, type_errmsg=None,
             raise AssertionError
         # preferentially return INTs over FLOATs
         return sign * (int_val if val_is_integer else float_val)
-    except (ValueError, TypeError):
+    except TypeError:
         type_errmsg = (f"input value must be an INT, given {str_val}"
                        if type_errmsg is None else type_errmsg)
         raise TypeError(type_errmsg)
@@ -206,32 +207,6 @@ def _convert_str_to_num(str_val, must_be_int=False, type_errmsg=None,
         range_errmsg = (f"number must be {comp_cond}, given {str_val}"
                         if range_errmsg is None else range_errmsg)
         raise ValueError(range_errmsg)
-
-
-# helper that preprocesses the vqarg passed to '$ ... -x average A B C'
-def _parse_vqarg_and_set_xdf_(ctx, vqarg):  # mutates the ctx state w/ xmins_df
-    if isinstance(vqarg, (list, tuple)):
-        if len(vqarg) == 3:
-            x, y, z = vqarg
-            if all(s.isdecimal() for s in (x, y)):
-                win, lag, fname = vqarg
-            elif all(s.isdecimal() for s in (y, z)):
-                fname, win, lag = vqarg
-            else:
-                raise AssertionError("file containing Clauset-xmins to average"
-                                     " must be passed as either the FIRST or "
-                                     "LAST arg to option '-x average ...'")
-        elif len(vqarg) == 2:
-            win, lag, fname = (*vqarg, None)
-        # TODO: account for when only 1 num arg passed --> make it window-size?
-    elif isinstance(vqarg, str):
-        win, lag, _ = _get_param_from_ctx(ctx, 'xmin_args').default['average']
-        fname = vqarg
-    else:
-        raise AssertionError('this should never be reached')
-
-    ctx._xmins_df = _read_fname_to_df(fname) if bool(fname) else None
-    return win, lag
 
 
 # TODO: create & send PR implementing this type of feature below to Click??
@@ -407,51 +382,54 @@ def validate_norm_target(ctx, param, target):
 
 
 # callback for the xmin_args (-x, --xmin) option
-def validate_xmin_args(ctx, param, xmin_args):
-    try:
-        ctx._xmins_df = _read_fname_to_df(xmin_args[0])
-        return (None, None)
+def parse_xmin_args(ctx, param, xmin_args):
+    """there are 5 types of accepted input to --xmin:
+    * average:     : "$ ... -x 66 5" (only applicable in -G mode)
+    * XMINS_FILE   : "$ ... -x xmins_data_file.txt"
+    * clauset      : "$ ... -x clauset"
+    * % (percent)  : "$ ... -x 99%"
+    * ℝ (manual)   : "$ ... -x 0.5" OR "$ ... -x _2" (_ denotes negatives)
+    """
+
+    if ctx.get_parameter_source(param.name) == "DEFAULT":
+        xmin_args = ('66', '0',) if ctx._analyze_group else ('clauset',)
+
+    x, *y = xmin_args
+
+    if bool(y):  # this can only possibly be the average method
+        assert ctx._analyze_group and ctx._approach != 'static',\
+            ("xmin method 'average' only applicable under rolling/increasing "
+             "approach & -G mode")
+        type_errmsg = ("both args to '-x' must be INTs (# days) to use "
+                       "xmin determination method 'average'; given: "
+                       f"{', '.join(xmin_args)}")
+        win, lag = sorted([_convert_str_to_num(val, must_be_int=True,
+                                               type_errmsg=type_errmsg,
+                                               min_allowed=0)
+                           # TODO: enable diff min for window & lag args
+                           for val in xmin_args], reverse=True)
+        return ('average', (win, lag))
+
+    try:  # if try successful, necessarily must be the XMIN_FILE
+        xmins_df = _read_fname_to_df(x)
+        return ('file', xmins_df)
     except FileNotFoundError:
-        ctx._xmins_df = None
+        pass
 
-    errmsg_extra = (f"for {'group' if ctx._analyze_group else 'individual'}"
-                    " tail analysis ")
-    rule, vqarg = _gset_vnargs_choice_default(ctx, param, xmin_args,
-                                              errmsg_name='xmin-rule',
-                                              errmsg_extra=errmsg_extra)
-
-    try:
-        if rule == 'clauset':  # TODO: move 'clauset' out of 'try' block?
-            assert vqarg is None,\
-                "xmin determination rule 'clauset' does not take extra args"
-        elif rule == 'manual' and isinstance(vqarg, str):
-            vqarg = _convert_str_to_num(vqarg)
-        elif rule == 'percentile' and isinstance(vqarg, str):
-            range_errmsg = ("xmin determination rule 'percentile' takes "
-                            "a number between 0 and 100")
-            # ASK/TODO: use '<=' OR is '<' is okay??
-            vqarg = _convert_str_to_num(vqarg, min_allowed=0, max_allowed=100,
-                                        range_errmsg=range_errmsg)
-        elif rule == 'average':
-            assert ctx._analyze_group and ctx._approach != 'static',\
-                ("xmin determination rule 'average' is only compatible under "
-                 "group tail analysis mode & w/ a non-static approach")
-            day_args = _parse_vqarg_and_set_xdf_(ctx, vqarg)
-            type_errmsg = ("both args to xmin rule 'average' must be "
-                           f"INTs (# days); given: {', '.join(day_args)}")
-            vqarg = tuple(sorted([_convert_str_to_num(val, must_be_int=True,
-                                                      type_errmsg=type_errmsg,
-                                                      min_allowed=0)
-                                  # TODO: enable diff min for window & lag args
-                                  for val in day_args],
-                                 reverse=True))  # sort so window > lag always
-        else:
-            raise TypeError(f"xmin determination rule '{rule}' rule is "
-                            f"incompatible with inputs: {vqarg}")
-    except (TypeError, ValueError, AssertionError):
-        raise
-
-    return rule, vqarg
+    if x == 'clauset':
+        return ('clauset', None)
+    elif x.endswith('%'):
+        # ASK/TODO: use '<=' OR is '<' is okay?? i.e. open or closed bounds
+        range_errmsg = f"percent value must be in [0, 100]; given: {x[:-1]}"
+        percent = _convert_str_to_num(x[:-1], min_allowed=0, max_allowed=100,
+                                      range_errmsg=range_errmsg)
+        return ('percent', percent)
+    else:
+        try:
+            return ('manual', _convert_str_to_num(x))
+        except ValueError:
+            raise ValueError(f"option '-x / --xmin' is incompatible w/ input: "
+                             f"'{x}'; see --help for acceptable inputs")
 
 
 def gset_nproc_default(ctx, param, nproc):
@@ -526,20 +504,20 @@ def conditionally_toggle_tail_flag_(ctx, yaml_opts):
 
 
 # helper for validating analysis date bounds
-def _validate_dates_exist(df, dates):
+def _assert_dates_in_file(df, dates):
     assert all(dt in df.index for dt in dates),\
         (f"analysis date(s) {dates} NOT found in the Date Index of given "
          f"data:\n\n{df.index}\n")
 
 
-def attach_xmins_df_and_validate_anal_dates_(ctx, yaml_opts):
+def validate_anal_dates_(ctx, yaml_opts):
     di, df = yaml_opts['date_i'], yaml_opts['date_f']
-    _validate_dates_exist(ctx.params['full_dbdf'], (di, df))
-    if ctx._xmins_df is not None:
-        _validate_dates_exist(ctx._xmins_df, (di,))
-    yaml_opts['xmins_df'] = ctx._xmins_df
+    _assert_dates_in_file(ctx.params['full_dbdf'], (di, df))
+    xmin_rule, xmin_qnty = yaml_opts['xmin_args']
+    if xmin_rule == 'file':
+        _assert_dates_in_file(xmin_qnty, (di,))
 
 
 post_proc_funcs = (conditionalize_normalization_options_,
                    conditionally_toggle_tail_flag_,
-                   attach_xmins_df_and_validate_anal_dates_)
+                   validate_anal_dates_)

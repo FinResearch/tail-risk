@@ -15,13 +15,11 @@ norm_before: false
 norm_after: false  # TODO: can set default value directly here?
 
 xmin_args:
-  average:  # only available for dynamic approaches (rolling & increasing)
-    - '66'  # rolling window period in days
-    - '0'   # rolling lag in days
-    - null  # optional path to file containing pre-calc'd xmin values used to average
-  clauset: null
-  manual: '0'
-  percentile: '91.41'
+  - "average"
+  - "clauset"
+  - "%"
+  - "ℝ "
+  - "XMINS_FILE"
 
 run_ks_test: false
 
