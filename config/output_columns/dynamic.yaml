@@ -9,7 +9,7 @@ statistics:
   - alpha
   - xmin
   # - xmin_used
-  # - xmin_today
+  # - xmin_today  # contained in clauset_xmins_df <-- ASK/CNFRM: not add to results_df??
   - sigma
   - abs_len
   - ks_pv

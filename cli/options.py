@@ -209,7 +209,7 @@ def _convert_str_to_num(str_val, must_be_int=False, type_errmsg=None,
 
 
 # helper that preprocesses the vqarg passed to '$ ... -x average A B C'
-def _parse_vqarg_and_set_cxfn_(ctx, vqarg):  # mutates the ctx state
+def _parse_vqarg_and_set_xdf_(ctx, vqarg):  # mutates the ctx state w/ xmins_df
     if isinstance(vqarg, (list, tuple)):
         if len(vqarg) == 3:
             x, y, z = vqarg
@@ -230,8 +230,7 @@ def _parse_vqarg_and_set_cxfn_(ctx, vqarg):  # mutates the ctx state
     else:
         raise AssertionError('this should never be reached')
 
-    if bool(fname):
-        ctx._clauset_xmins_fname = fname
+    ctx._xmins_df = _read_fname_to_df(fname) if bool(fname) else None
     return win, lag
 
 
@@ -426,6 +425,11 @@ def validate_norm_target(ctx, param, target):
 
 # callback for the xmin_args (-x, --xmin) option
 def validate_xmin_args(ctx, param, xmin_args):
+    try:
+        ctx._xmins_df = _read_fname_to_df(xmin_args[0])
+        return (None, None)
+    except FileNotFoundError:
+        ctx._xmins_df = None
 
     errmsg_extra = (f"for {'group' if ctx._analyze_group else 'individual'}"
                     " tail analysis ")
@@ -449,7 +453,7 @@ def validate_xmin_args(ctx, param, xmin_args):
             assert ctx._analyze_group and ctx._approach != 'static',\
                 ("xmin determination rule 'average' is only compatible under "
                  "group tail analysis mode & w/ a non-static approach")
-            day_args = _parse_vqarg_and_set_cxfn_(ctx, vqarg)
+            day_args = _parse_vqarg_and_set_xdf_(ctx, vqarg)
             type_errmsg = ("both args to xmin rule 'average' must be "
                            f"INTs (# days); given: {', '.join(day_args)}")
             vqarg = tuple(sorted([_convert_str_to_num(val, must_be_int=True,
@@ -538,18 +542,21 @@ def conditionally_toggle_tail_flag_(ctx, yaml_opts):
         yaml_opts['anal_right'] = True
 
 
-def read_clauset_xmins_file_(ctx, yaml_opts):
-    try:
-        fn = ctx._clauset_xmins_fname
-        cxdf = _read_fname_to_df(fn)
-        di, df = yaml_opts['date_i'], yaml_opts['date_f']
-        assert all(dt in cxdf.index for dt in (di, df)),\
-            f"date_i '{di}' and/or date_f '{df}' not in {fn}"
-    except AttributeError:
-        cxdf = None
-    yaml_opts['clauset_xmins_df'] = cxdf
+# helper for validating analysis date bounds
+def _validate_dates_exist(df, dates):
+    assert all(dt in df.index for dt in dates),\
+        (f"analysis date(s) {dates} NOT found in the Date Index of given "
+         f"data:\n\n{df.index}\n")
+
+
+def attach_xmins_df_and_validate_anal_dates_(ctx, yaml_opts):
+    di, df = yaml_opts['date_i'], yaml_opts['date_f']
+    _validate_dates_exist(ctx.params['full_dbdf'], (di, df))
+    if ctx._xmins_df is not None:
+        _validate_dates_exist(ctx._xmins_df, (di,))
+    yaml_opts['xmins_df'] = ctx._xmins_df
 
 
 post_proc_funcs = (conditionalize_normalization_options_,
                    conditionally_toggle_tail_flag_,
-                   read_clauset_xmins_file_)
+                   attach_xmins_df_and_validate_anal_dates_)
