@@ -221,7 +221,7 @@ class Settings:
 
             cxdf = (self.__precompute_clauset_xmins()  # TODO: save this to file for re-use
                     if self.clauset_xmins_df is None
-                    else self.clauset_xmins_df)
+                    else self.clauset_xmins_df)  # TODO: calc. rolling average from file xmin vals --> see commit f12b505315 and prior
 
             self._dcxdf = self.__dynamize_ts_df(cxdf, self._avg_d0,)  # end_date=self._avg_d1)
 

@@ -85,6 +85,8 @@ approach_args:
     analysis-frequency)>  [defaults: (504, 1)]
 # ASK/CONFIRM: anal_freq (in normal) == sliding_window (in group)
 
+# TODO: add --lookback option that overrides
+
 partition:  # NOTE: opt only available in group tail analysis mode
   param_decls:
     - '-p'
@@ -150,7 +152,7 @@ norm_target:  # NOTE: only available in individual mode & for the static approac
   is_flag: true
   default: true  # {series: true, tail: false}
   callback: 'validate_norm_target'
-  help: "-std +/ -abs TARGET when using '-a static'"
+  help: "--std and/or --abs TARGET when '-a static'"
 
 norm_before:  # NOTE: opt only available in group tail analysis mode
   param_decls:

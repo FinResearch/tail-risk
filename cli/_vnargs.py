@@ -19,7 +19,7 @@ class VnargsOption(click.Option):
 
         # attrs specific to the VnargsOption subclass
         self.separator = separator
-        self.min_nargs = min_nargs
+        self.min_nargs = min_nargs  # TODO: support 0 args? i.e. treat as flag
         self.max_nargs = max_nargs
 
         nargs = attrs.pop('nargs', -1)

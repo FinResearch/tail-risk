@@ -4,6 +4,8 @@
 
 # TODO: allow modding other attrs besides 'default' in this config?
 
+analyze_group: true
+
 partition: 'country'
 # TODO: --tickers like option for selecting group(s) to analyze (i.e. specify 'DE' when in country)
 

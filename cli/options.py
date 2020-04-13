@@ -118,7 +118,7 @@ def _get_param_from_ctx(ctx, param_name):
 # func that mutates ctx to correctly set metavar & help attrs of VnargsOption's
 def _set_vnargs_choice_metahelp_(ctx):
     # FIXME/TODO: revise --help msg to incl file input option for 'average'
-    xmin_extra_help = (('average: <(ℤ⁺, ℤ )| # days: (window, lag)>  '
+    xmin_extra_help = (('* average    : <(ℤ⁺, ℤ): window & lag days>  '
                         '[defaults: (66, 0)]\n')
                        if ctx._analyze_group else '')
 
@@ -241,41 +241,28 @@ def _customize_show_default_boolcond(param, boolcond, dflt_str_2tup):
         param.show_default = False  # turn off built-in show_default
         true_dflt, false_dflt = dflt_str_2tup
         help_dflt = true_dflt if boolcond else false_dflt
-        help_dflt = help_dflt.title() if help_dflt.islower() else help_dflt
+        #  help_dflt = help_dflt.title() if help_dflt.islower() else help_dflt
         param.help += f'  [default: {help_dflt}]'
 
 
-# # # small wrappers helping to set show_default attr of specific options # # #
-# these will be called from within 'gset_group_opts' callback
-# gsdi: get show default inputs
-
-def gsdi_nt(ctx):  # option: norm_target
-    param = _get_param_from_ctx(ctx, 'norm_target')
-    cond = param.default
-    return param, cond, ('series', 'tail')
-
-
-def gsdi_ks(ctx):  # option: run_ks_test
-    param = _get_param_from_ctx(ctx, 'run_ks_test')
-    cond = param.default
-    return param, cond, ('run', 'skip')
-
-
-def gsdi_cd(ctx):  # option: compare_distros
-    param = _get_param_from_ctx(ctx, 'compare_distros')
-    cond = param.default
-    return param, cond, ('compare', 'no compare')
-
-
-def gsdi_np(ctx):  # option: nproc
-    param = _get_param_from_ctx(ctx, 'nproc')
-    cond = param.default
-    t_help = f'{cond} (Config File)'
-    f_help = f'{os.cpu_count()} (# CPUs)'
-    return param, cond, (t_help, f_help)
-
-
-gsdi_wrappers = (gsdi_nt, gsdi_ks, gsdi_cd, gsdi_np)
+# TODO: consider shoving _customize_show_default_boolcond into wrapper below??
+# wrapper that sets the show_default attr of specific boolean flag options #
+def _config_show_help_default_(ctx):  # mutates the ctx object
+    nproc_cfg_val = _get_param_from_ctx(ctx, 'nproc').default
+    opt_bool_map = {'analyze_group': ('group', 'individual'),
+                    'norm_target': ('series', 'tail'),
+                    'run_ks_test': ('run', 'skip'),
+                    'compare_distros': ('compare', 'no compare'),
+                    'nproc': (f'{nproc_cfg_val} (from config)',
+                              f'{os.cpu_count()} (# CPUs)'),
+                    #  'plot_results': (,),
+                    #  'show_plots': (,),
+                    #  'save_plots': (,),
+                    }
+    # TODO: consider move above mapping to own config
+    for opt, dflt_tup in opt_bool_map.items():
+        param = _get_param_from_ctx(ctx, opt)
+        _customize_show_default_boolcond(param, param.default, dflt_tup)
 
 
 # # # Eager Options CBs # # #
@@ -290,8 +277,6 @@ gsdi_wrappers = (gsdi_nt, gsdi_ks, gsdi_cd, gsdi_np)
 # callback for -G, --group
 def gset_group_opts(ctx, param, analyze_group):
     ctx._analyze_group = False  # set pvt toplvl attr on ctx for convenience
-    _customize_show_default_boolcond(param, analyze_group,
-                                     ('group', 'individual'))
 
     if analyze_group:
         ctx._analyze_group = True
@@ -304,16 +289,14 @@ def gset_group_opts(ctx, param, analyze_group):
             opt_obj = _get_param_from_ctx(ctx, opt)
             if opt in grp_dflts:  # update group specific default val
                 opt_obj.default = grp_dflts[opt]
-            # show opts hidden in individual mode, & hide opts common to both
+            # ONLY display options specified in group_defaults.yaml
             opt_obj.hidden = False if opt in grp_dflts else True
-        param.hidden = False  # undoes the opt_obj.hidden toggle above
         param.help = ('-G set; this is the specialized help for group '
                       'tail analysis')
 
     # piggyback off eagerness of the -G opt to dynamically set help texts
     _set_vnargs_choice_metahelp_(ctx)
-    for f in gsdi_wrappers:  # change some opts' show_defaults
-        _customize_show_default_boolcond(*f(ctx))
+    _config_show_help_default_(ctx)
 
     return analyze_group
 
