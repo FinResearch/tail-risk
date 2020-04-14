@@ -503,21 +503,26 @@ def conditionally_toggle_tail_flag_(ctx, yaml_opts):
         yaml_opts['anal_right'] = True
 
 
-# helper for validating analysis date bounds
-def _assert_dates_in_file(df, dates):
-    assert all(dt in df.index for dt in dates),\
-        (f"analysis date(s) {dates} NOT found in the Date Index of given "
-         f"data:\n\n{df.index}\n")
+# helper for validating analysis dates
+def _assert_dates_in_df(df, dates_to_check):
+    for dt in dates_to_check:
+        if dt not in df.index:
+            raise ValueError(f"analysis date {dt} NOT found in Date Index "
+                             f"of loaded DataFrame:\n\n{df}\n")
 
 
-def validate_anal_dates_(ctx, yaml_opts):
+def validate_df_date_indexes(ctx, yaml_opts):
     di, df = yaml_opts['date_i'], yaml_opts['date_f']
-    _assert_dates_in_file(ctx.params['full_dbdf'], (di, df))
+    full_dbdf = ctx.params['full_dbdf']
+    _assert_dates_in_df(full_dbdf, (di, df))
+
     xmin_rule, xmin_qnty = yaml_opts['xmin_args']
     if xmin_rule == 'file':
-        _assert_dates_in_file(xmin_qnty, (di,))
+        anal_freq = yaml_opts['approach_args'][2]
+        anal_dates = full_dbdf.loc[di:df:anal_freq].index
+        _assert_dates_in_df(xmin_qnty, anal_dates)
 
 
 post_proc_funcs = (conditionalize_normalization_options_,
                    conditionally_toggle_tail_flag_,
-                   validate_anal_dates_)
+                   validate_df_date_indexes,)

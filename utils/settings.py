@@ -14,8 +14,6 @@ class Settings:
             setattr(self, opt, val)
             # TODO: coord. w/ attrs.yaml to mark some opts private w/ _-prefix
 
-        self._tail_st_map = {Tail.right: 'STP', Tail.left: 'STN'}
-
         # core general settings (mostly data & analysis)
         self._postprocess_specific_options()
         self._gset_tail_settings()
@@ -23,10 +21,12 @@ class Settings:
 
         # domain-, functionality- & usecase- specific settings
         self._gset_grouping_info()  # must be called after _gset_dbdf_attrs()
-        self._gset_avg_xmins_df()  # call after grp_info() & only -G & dynamic
         self._load_set_stats_columns_labels()
         if self.plot_results:
             self._gset_plot_settings()
+        if isinstance(self.xmin_qnty, pd.DataFrame):  # only w/ {file, average}
+            # validation must be after _gset_grouping_info()
+            self._validate_xmins_df_statcols()
 
         # instantiate the settings SimpleNamespace objects
         self._load_set_settings_config()
@@ -61,7 +61,14 @@ class Settings:
         self.use_dynamic = (True if self.approach in {'rolling', 'increasing'}
                             else False)
         self.fit_discretely = True if self.data_nature == 'discrete' else False
-        self.xmin_rule, self.xmin_vqty = self.xmin_args
+
+        self.xmin_rule, self.xmin_qnty = self.xmin_args
+        self.tst_map = {Tail.right: 'STP', Tail.left: 'STN'}  # used rule: file
+        if self.xmin_rule == "average":
+            self._gset_xmins_df_for_average()
+            # TODO: consider performing averaging of xmins from passed file
+            # --> see original implementation in commit f12b505315 & prior
+
         if self.norm_target is not None:
             self.norm_target = 'series' if self.norm_target else 'tail'
         self.run_ks_test = False if self.ks_iter <= 0 else self.run_ks_test
@@ -78,29 +85,25 @@ class Settings:
         self.alpha_qntl = NormalDist().inv_cdf(1 - len(self.tails_to_anal)/2 *
                                                self.alpha_signif)
 
-    def __get_back_date_label(self, n_back,
-                              dates_ix=None, date0=None,
-                              must_back_fully=True):
-        dates_ix = self._tickers_dbdf.index if dates_ix is None else dates_ix
+    def __get_back_date_label(self, n_back, date0=None, dates_ix=None):
+        dates_ix = self.full_dbdf.index if dates_ix is None else dates_ix
         date0 = self.date_i if date0 is None else date0
-        # NOTE: use (n_back - 1) b/c date0 incl in 1st rolling window frame
+        # NOTE: use (n_back - 1) b/c date0 incl. in back window by default
         idx_back = dates_ix.get_loc(date0) - (n_back - 1)
         if idx_back < 0:  # when n_back needed is beyond the given data
-            errmsg = (f"cannot go back {n_back} full days from "
-                      f"{date0} in DateIndex:\n\n{dates_ix}\n")
-            if must_back_fully:
-                raise ValueError(errmsg)
-            else:
-                from warnings import warn
-                idx_back = 0
-                warn(errmsg)
-                warn("Maximum backed-date set to earliest from "
-                     f"DateIndex above: '{dates_ix[0]}'")
+            raise ValueError(f"cannot go back {n_back} full days from "
+                             f"{date0} in DateIndex:\n\n{dates_ix}\n")
         return dates_ix[idx_back]
 
     # helper for correctly extending back DF's date-range when use_dynamic
     def __dynamize_ts_df(self, ts_df, back_date, end_date=None):
+        """accepts a DataFrame to slice, and an argument that can be either:
+        i)  an integer num of dates to go back from self.date_i (inclusive)
+        ii) a string representing the actual date label to go back to
+        """
         assert self.use_dynamic
+        if isinstance(back_date, int):
+            back_date = self.__get_back_date_label(back_date)
         end_date = self.date_f if end_date is None else end_date
         dynamized_df = ts_df.loc[back_date:end_date]
         if self._anal_freq > 1:
@@ -113,15 +116,13 @@ class Settings:
         return dynamized_df
 
     def _gset_dbdf_attrs(self):
-        # NOTE on dbdf distinctions:
+        # Note on dbdf distinctions:
         # - full_dbdf: unfiltered DataFrame as fully loaded from input DB_FILE
         # - _tickers_dbdf: filtered by tickers (columns); has all dates (index)
         # - static_dbdf: filtered _tickers_dbdf w/ given date range to analyze
         # - dynamic_dbdf: has data going back to the earliest lookback date
         # - raw_dbdf: either dynamic_dbdf OR static_dbdf based on use_dynamic;
         #             this is the actual dbdf passed onto Analyzer
-
-        # TODO: mark unexported options/settings w/ _-prefix? ex. _full_dates
 
         self._tickers_dbdf = self.full_dbdf[self.tickers]
         if self.analyze_group:
@@ -133,8 +134,8 @@ class Settings:
         # TODO: use it to validate average xmin df
 
         if self.use_dynamic:
-            lkbk_date = self.__get_back_date_label(self._lookback)
-            dynamic_dbdf = self.__dynamize_ts_df(self._tickers_dbdf, lkbk_date)
+            dynamic_dbdf = self.__dynamize_ts_df(self._tickers_dbdf,
+                                                 self._lookback)
             # correctly set (minimum) window size based on lookback, anal_freq
             # & tau, b/c returns data pts is necssarily less than that of raw
             q, r = divmod(self._lookback, self._anal_freq)
@@ -177,89 +178,6 @@ class Settings:
                                           else 'ticker')
         cix = self._tickers_dbdf.columns  # cix: column index
         self.grouping_labs = cix.levels[0] if self.analyze_group else cix
-
-    # # methods to obtain & validate DF containing average xmins to use # #
-
-    def _validate_dcxdf(self):  # dcxdf: Dynamized Clauset Xmin DF
-
-        # FIXME: more sensible validation of dates
-        #  # ensure analyzed dates are the same (i.e. check rows)
-        #  assert all(self._dcxdf.loc[self.date_i:].index == self.anal_dates),\
-        #      (f"Dates to be analyzed b/w [{self.date_i}, {self.date_f}] are "
-        #       "DIFFERENT for the 2 given time series data files")
-
-        # ensure xmins for chosen group(s) & tail(s) exist (i.e. check cols)
-        from itertools import product
-        needed_cols = [f"{st} {grp}" for st, grp
-                       in product(
-                           [self._tail_st_map[t] for t in self.tails_to_anal],
-                           self.grouping_labs)]
-        x_cols = self._dcxdf.columns
-        assert all(any(nc in xc for xc in x_cols) for nc in needed_cols),\
-            (f"All columns in [{', '.join(needed_cols)}] are needed, only "
-             f"found [{', '.join(x_cols)}] in passed Clauset xmins data file")
-
-    def _gset_avg_xmins_df(self):
-        if self.xmin_rule == "average":
-            # NOTE: to use passed xmins directly, do '-x average xmin_file 1 0'
-
-            # ASK/TODO: better deal w/ len(dates_b4_date_i) < window+lag ??
-            # - curr: fill those NaNs w/ just Clauset xmins ---> create option?
-            # - opt1: average using trunc_window, if len(xmins) < window + lag
-            # - opt2: go back to early enough date just to back-calc. xmin
-
-            # ASK/CNFRM: lag of 0 means curr. date factored into average ??
-            #            1 means all dates up to but NOT incl. curr avg'd? etc.
-
-            # ASK/CNFRM: diff. b/w xmin_used (xmin after fitting w/ averaged)
-            #            vs. xmin_today (direct Clauset xmin)
-            #            --> so only diff for 'average' rule
-
-            window, lag = self.xmin_vqty
-            self._avg_d0 = self.__get_back_date_label(window + lag,
-                                                      must_back_fully=False)
-
-            cxdf = (self.__precompute_clauset_xmins()  # TODO: save this to file for re-use
-                    if self.clauset_xmins_df is None
-                    else self.clauset_xmins_df)  # TODO: calc. rolling average from file xmin vals --> see commit f12b505315 and prior
-
-            self._dcxdf = self.__dynamize_ts_df(cxdf, self._avg_d0,)  # end_date=self._avg_d1)
-
-            self._validate_dcxdf()
-            axdf = self._dcxdf.rolling(window).mean().fillna(self._dcxdf)
-            self.avg_xmins_df = axdf.shift(lag).loc[self.date_i:]
-
-    def __precompute_clauset_xmins(self):
-        assert self.clauset_xmins_df is None
-
-        print("no file containing pre-computed Clauset xmins passed; "
-              "fitting data using Clauset method to get xmins first")
-
-        lag_offset = self.xmin_vqty[1] + 1  # add 1 to offset -1 in func
-        self._avg_d1 = self.__get_back_date_label(lag_offset,
-                                                  date0=self.date_f)
-        # FIXME: if _avg_d1 above used as date_f, need to apply shift before calling __dynamize_ts_df
-        overridden_opts = {'date_i': self._avg_d0,
-                           #  'date_f': self._avg_d1,  # TODO: see FIXME above
-                           'xmin_args': ('clauset', None),  # 'verbosity': 0,
-                           'run_ks_test': False,
-                           'compare_distros': False,
-                           'plot_results': False}
-
-        # TODO: override date_i & date_f, s.t. date_i produces the 1st date to
-        # be used in the averaging window; and date_f produces the needed
-
-        self._user_inputs.update(overridden_opts)
-        precomp_settings = Settings(self._user_inputs).settings
-        precomp_settings.data.stats_collabs = [('xmin', '')]
-
-        from .analysis import DynamicAnalyzer
-        analyzer = DynamicAnalyzer(precomp_settings)
-        analyzer.analyze()
-        clauset_xmins_df = analyzer.get_resdf()
-        clauset_xmins_df.columns = [f"{self._tail_st_map[t]} {grp}"
-                                    for grp, t, _ in clauset_xmins_df.columns]
-        return clauset_xmins_df
 
     # # methods configuring the output results DataFrame # #
 
@@ -321,6 +239,57 @@ class Settings:
         use_quarterly = Period.ANNUAL < len_dates <= 3*Period.ANNUAL
         return (Period.MONTH if use_monthly else
                 Period.QUARTER if use_quarterly else Period.BIANNUAL)
+
+    # # methods to obtain & validate DF containing xmins to directly use # #
+
+    def _gset_xmins_df_for_average(self):
+        window, lag = self.xmin_qnty
+
+        # TODO: add below printing to appropriate verbosity logging
+        print("AVERAGE xmins to be calculated w/ rolling window size of "
+              f"{window} days & lag days of {lag}")
+
+        self._avbk_date = self.__get_back_date_label(window + lag)
+        cx_df = self.__precompute_clauset_xmins()  # TODO: save2file for re-use
+        self._dyn_cx_df = self.__dynamize_ts_df(cx_df, self._avbk_date)
+        self.xmin_qnty = self._dyn_cx_df.rolling(window).mean().\
+            shift(lag).loc[self.date_i:]
+
+    def __precompute_clauset_xmins(self):
+        overridden_opts = {'date_i': self._avbk_date,
+                           'xmin_args': ('clauset', None),
+                           'run_ks_test': False,
+                           'compare_distros': False,
+                           'plot_results': False}
+        self._user_inputs.update(overridden_opts)
+        pcs = Settings(self._user_inputs).settings
+        pcs.data.stats_collabs = [('xmin', '')]
+        pcs.data.stats_colname = "Clauset xmins"
+
+        # TODO: add below printing to appropriate verbosity logging
+        print("first need to pre-compute Clauset xmins b/w "
+              f"[{pcs.data.date_i}, {pcs.data.date_f}]")
+
+        from .analysis import DynamicAnalyzer
+        analyzer = DynamicAnalyzer(pcs)
+        analyzer.analyze()
+        clauset_xmins_df = analyzer.get_resdf()
+        clauset_xmins_df.columns = [f"{self.tst_map[t]} {grp}" for grp, t, _
+                                    in clauset_xmins_df.columns]
+        return clauset_xmins_df
+
+    # ensures xmins for chosen ticker(s)/group(s) & tail(s) exist
+    def _validate_xmins_df_statcols(self):
+        assert self.xmin_rule in {'file', 'average'}
+
+        from itertools import product
+        needed_cols = [f"{st} {grp}" for st, grp in
+                       product([self.tst_map[t] for t in self.tails_to_anal],
+                               self.grouping_labs)]
+        xmin_cols = self.xmin_qnty.columns
+        assert all(any(nc in xc for xc in xmin_cols) for nc in needed_cols),\
+            (f"All columns in [{', '.join(needed_cols)}] are needed, only "
+             f"found [{', '.join(xmin_cols)}] in xmins data")
 
     # # methods for creating the settings SimpleNamespace object(s) # #
 

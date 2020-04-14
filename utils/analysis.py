@@ -33,19 +33,19 @@ class _Analyzer(ABC):
         pass
 
     def __get_xmin(self):
-        # TODO: calculate clauset xmin value a priori using lookback
         if self.sa.xmin_rule in {"clauset", "manual"}:
-            xmin = self.sa.xmin_vqty  # equals {None, user-given-val} resp.
+            xmin = self.sa.xmin_qnty  # ie. {None, user-input-ℝ} respectively
         elif self.sa.xmin_rule == "percentile":
-            # percentile is taken on input-array NOT filtered-for-nonzeros
-            xmin = np.percentile(self.curr_input_array, self.sa.xmin_vqty)
-        elif self.sa.xmin_rule == "average":
-            assert self.sa.avg_xmins_df is not None
-            group, date, tail = self.curr_iter_id
-            stp = {"right": "STP", "left": "STN"}[tail.name]
-            xmin = self.sa.avg_xmins_df.at[date, f"{stp} {group}"]
+            xmin = np.percentile(self.curr_input_array, self.sa.xmin_qnty)
+        elif self.sa.xmin_rule in {"file", "average"}:
+            assert self.sa.use_dynamic,\
+                ("static approach does NOT currently support passing "
+                 "xmin data by file")  # TODO: add file support for -a static?
+            grp, date, tail = self.curr_iter_id
+            tst = self.sa.tst_map[tail]
+            xmin = self.sa.xmin_qnty.loc[date, f"{tst} {grp}"]
         else:
-            raise AttributeError(f"invalid xmin-rule: {self.sa.xmin_rule}")
+            raise AttributeError("this should never be reached!")
         return xmin
 
     def _calc_curr_fit_obj(self):
