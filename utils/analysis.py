@@ -31,10 +31,10 @@ class _Analyzer(ABC):
         gtyp, *date, tail = self.curr_iter_id
         grp_tail_log = (f"Analyzing {tail.name.upper()} tail of time series "
                         f"for {self.sd.grouping_type.title()} '{gtyp}' ")
-        if bool(date):  # this is the dynamic approach
+        if bool(date):  # dynamic approach
             df = date[0]
             di = self.sa.get_dyn_lbd(df)
-        else:  # this is the dynamic approach
+        else:           # static approach
             di, df = self.sd.date_i, self.sd.date_f
         date_log = f"b/w [{di}, {df}]"
         print(grp_tail_log + date_log)
@@ -61,7 +61,7 @@ class _Analyzer(ABC):
             raise AttributeError("this should never be reached!")
         return xmin
 
-    def _calc_curr_fit_obj(self):
+    def _fit_curr_data(self):
         data = self.curr_input_array
         data = data[np.nonzero(data)]  # only use non-zero elements to do Fit
         xmin = self.__get_xmin()
@@ -100,8 +100,8 @@ class _Analyzer(ABC):
     # convenience wrapper to keep things tidy
     def _run_curr_iter_fitting(self):
         self._log_curr_iter()
-        self._set_curr_input_array()  # 'input' as in input to powerlaw.Fit
-        self._calc_curr_fit_obj()
+        self._set_curr_input_array()
+        self._fit_curr_data()
 
     # runs analysis on data ID'd by the next iteration of the stateful iterator
     def _analyze_next(self):  # TODO: combine _analyze_next & _analyze_iter??
