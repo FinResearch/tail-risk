@@ -292,6 +292,11 @@ class Settings:
             raise ValueError(f"xmin columns {missing_cols} are needed but "
                              "not found in loaded xmins data")
 
+    # # method exported to analysis.py, used strictly for logging # #
+    def get_dyn_lbd(self, date):  # get dynamic lookback date
+        d0 = date if self.approach == 'rolling' else self.date_i
+        return self.__get_back_date_label(self._lookback, date0=d0)
+
     # # methods for creating the settings SimpleNamespace object(s) # #
 
     def _load_set_settings_config(self):

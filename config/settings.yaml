@@ -30,7 +30,8 @@ anal:
   - returns_type
   - tau
   - dyn_win_size
-  - standardize
+  - get_dyn_lbd  # bound method used in analysis.py for getting the lookback date label to log
+  - standardize  # TODO: move normalization options into own section?
   - absolutize
   - norm_target
   - norm_before

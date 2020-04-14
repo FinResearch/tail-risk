@@ -26,6 +26,19 @@ class _Analyzer(ABC):
 
     # # # state DEPENDENT (or aware) methods # # #
 
+    def _log_curr_iter(self):
+        # TODO: factor out repetitive log? (static: date, dynamic: group_label)
+        gtyp, *date, tail = self.curr_iter_id
+        grp_tail_log = (f"Analyzing {tail.name.upper()} tail of time series "
+                        f"for {self.sd.grouping_type.title()} '{gtyp}' ")
+        if bool(date):  # this is the dynamic approach
+            df = date[0]
+            di = self.sa.get_dyn_lbd(df)
+        else:  # this is the dynamic approach
+            di, df = self.sd.date_i, self.sd.date_f
+        date_log = f"b/w [{di}, {df}]"
+        print(grp_tail_log + date_log)
+
     @abstractmethod
     # TODO --> def _slice_dbdf_data(self):
     def _set_curr_input_array(self):
@@ -87,6 +100,7 @@ class _Analyzer(ABC):
     # runs analysis on data ID'd by the next iteration of the stateful iterator
     def _analyze_next(self):
         self.curr_iter_id = next(self.iter_id_keys)  # set in subclasses
+        self._log_curr_iter()
         self._set_curr_input_array()  # 'input' as in input to powerlaw.Fit
         self._calc_curr_fit_obj()
         self._store_partial_results()
@@ -104,6 +118,7 @@ class _Analyzer(ABC):
         print(f"### DEBUG: PID {getpid()} analyzing iter {iter_id}")
 
         self.curr_iter_id = iter_id
+        self._log_curr_iter()
         self._set_curr_input_array()  # 'input' as in input to powerlaw.Fit
         self._calc_curr_fit_obj()
         return self.__get_iter_results()
@@ -156,10 +171,6 @@ class StaticAnalyzer(_Analyzer):
 
     def _set_curr_input_array(self):  # TODO: pass curr_iter_id as arg???
         lab, tail = self.curr_df_pos = self.curr_iter_id
-        # TODO: move logging of DATE RANGE out of this repeatedly called method
-        print(f"Analyzing the {tail.name.upper()} tail of time series for "
-              f"{self.sd.grouping_type.title()} '{lab}' b/w [{self.sd.date_i},"
-              f" {self.sd.date_f}]")
         self.curr_input_array = self.cfg.get_data(lab) * tail.value
 
 
@@ -172,25 +183,14 @@ class DynamicAnalyzer(_Analyzer):
                                     self.sd.anal_dates,
                                     self.sa.tails_to_anal)
         # TODO: see TODO & NOTE regarding Tail in __init__ of StaticAnalyzer
-
         self._distros_to_compare = {'ll_tpl': 'truncated_power_law',
                                     'll_exp': 'exponential',
                                     'll_lgn': 'lognormal'}
-
-        #  self.lkb_off = self.sa.lookback - 1
-        #  self.lkb_0 = self.sd.date_i_idx - self.lkb_off
 
     # TODO: consider vectorizing operations on all tickers
     def _set_curr_input_array(self):  # TODO: pass curr_iter_id as arg???
         sub, date, tail = self.curr_iter_id
         self.curr_df_pos = date, (sub, tail)
-        # FIXME/TODO: log dynamic date ranges w/o full_dates OR date_i_idx
-        #  d0 = (d - self.lkb_off if self.sa.approach == 'rolling'  # TODO: determine this in settings.py?? --> create d0_generator??
-        #        else self.lkb_0)  # TODO: calc all needed dates in settings.py??
-        #  # TODO: move logging of LABEL out of this repeatedly called method
-        #  print(f"Analyzing the {tail.name.upper()} tail of time series for "
-        #        f"{self.sd.grouping_type.title()} '{sub}' b/w "
-        #        f"[{self.sd.full_dates[d0]}, {date}]")
         self.curr_input_array = self.cfg.get_data((sub, date)) * tail.value
 
     def _get_curr_logl_stats(self):
