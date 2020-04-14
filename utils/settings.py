@@ -286,10 +286,11 @@ class Settings:
         needed_cols = [f"{st} {grp}" for st, grp in
                        product([self.tst_map[t] for t in self.tails_to_anal],
                                self.grouping_labs)]
-        xmin_cols = self.xmin_qnty.columns
-        assert all(any(nc in xc for xc in xmin_cols) for nc in needed_cols),\
-            (f"All columns in [{', '.join(needed_cols)}] are needed, only "
-             f"found [{', '.join(xmin_cols)}] in xmins data")
+        missing_cols = [nc for nc in needed_cols
+                        if nc not in self.xmin_qnty.columns]
+        if bool(missing_cols):
+            raise ValueError(f"xmin columns {missing_cols} are needed but "
+                             "not found in loaded xmins data")
 
     # # methods for creating the settings SimpleNamespace object(s) # #
 

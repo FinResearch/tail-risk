@@ -398,8 +398,9 @@ def parse_xmin_args(ctx, param, xmin_args):
 
     if bool(y):  # this can only possibly be the average method
         assert ctx._analyze_group and ctx._approach != 'static',\
-            ("xmin method 'average' only applicable under rolling/increasing "
-             "approach & -G mode")
+            (f"2 arguments {xmin_args} provided to '-x / --xmin', thus use "
+             "method 'average', which is only applicable under a dynamic "
+             "approach & in group analysis mode (i.e. -G flag set)")
         type_errmsg = ("both args to '-x' must be INTs (# days) to use "
                        "xmin determination method 'average'; given: "
                        f"{', '.join(xmin_args)}")
@@ -505,10 +506,10 @@ def conditionally_toggle_tail_flag_(ctx, yaml_opts):
 
 # helper for validating analysis dates
 def _assert_dates_in_df(df, dates_to_check):
-    for dt in dates_to_check:
-        if dt not in df.index:
-            raise ValueError(f"analysis date {dt} NOT found in Date Index "
-                             f"of loaded DataFrame:\n\n{df}\n")
+    missing_dates = [dt for dt in dates_to_check if dt not in df.index]
+    if bool(missing_dates):
+        raise ValueError(f"analysis date(s) {missing_dates} needed but NOT "
+                         f"found in Date Index of loaded DataFrame:\n\n{df}\n")
 
 
 def validate_df_date_indexes(ctx, yaml_opts):
