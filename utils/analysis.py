@@ -97,12 +97,16 @@ class _Analyzer(ABC):
 
     # # # orchestration / driver methods # # #
 
-    # runs analysis on data ID'd by the next iteration of the stateful iterator
-    def _analyze_next(self):
-        self.curr_iter_id = next(self.iter_id_keys)  # set in subclasses
+    # convenience wrapper to keep things tidy
+    def _run_curr_iter_fitting(self):
         self._log_curr_iter()
         self._set_curr_input_array()  # 'input' as in input to powerlaw.Fit
         self._calc_curr_fit_obj()
+
+    # runs analysis on data ID'd by the next iteration of the stateful iterator
+    def _analyze_next(self):  # TODO: combine _analyze_next & _analyze_iter??
+        self.curr_iter_id = next(self.iter_id_keys)  # set in subclasses
+        self._run_curr_iter_fitting()
         self._store_partial_results()
 
     # runs analysis from start to finish, in 1-process + single-threaded mode
@@ -116,11 +120,8 @@ class _Analyzer(ABC):
     # runs analysis for one iteration of analysis given arbitrary iter_id
     def _analyze_iter(self, iter_id):  # NOTE: use this to resume computation
         print(f"### DEBUG: PID {getpid()} analyzing iter {iter_id}")
-
         self.curr_iter_id = iter_id
-        self._log_curr_iter()
-        self._set_curr_input_array()  # 'input' as in input to powerlaw.Fit
-        self._calc_curr_fit_obj()
+        self._run_curr_iter_fitting()
         return self.__get_iter_results()
 
     # runs analysis in multiprocessing mode
