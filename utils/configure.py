@@ -136,9 +136,10 @@ class DynamicNormalizer(_Normalizer):
     def __get_window_stat(self, stat):
         window_stat = getattr(self.data_window, stat)().dropna()
         assert len(window_stat) == len(self.sd.anal_dates),\
-            (f'cannot calculate {stat.upper()} from {self._win_type} window of'
-             f' size {self.sa.dyn_win_size} constructed from below DataFrame:'
-             f'\n{self.returns_df}')
+            (f'cannot calculate suitable {stat.upper()}s for analysis dates '
+             f"[{', '.join(self.sd.anal_dates)}] from {self._win_type} "
+             f'window of minimum size {self.sa.dyn_win_size}, constructed '
+             f'from DataFrame below:\n\n{self.returns_df}\n')
         return window_stat
 
     def __get_lookback_label(self, date):

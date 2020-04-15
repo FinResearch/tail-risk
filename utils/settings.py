@@ -57,14 +57,16 @@ class Settings:
     # # methods needed for the core general settings # #
 
     def _postprocess_specific_options(self):
-        self.approach, self._lookback, self._anal_freq = self.approach_args
+        self._full_dates = self.full_dbdf.index
+        self.approach, self._lookback, self._frq = self.approach_args
         self.use_dynamic = (True if self.approach in {'rolling', 'increasing'}
                             else False)
         self.fit_discretely = True if self.data_nature == 'discrete' else False
 
         self.xmin_rule, self.xmin_qnty = self.xmin_args
         self.tst_map = {Tail.right: 'STP', Tail.left: 'STN'}  # used rule: file
-        if self.xmin_rule == "average":
+        if self.xmin_rule == 'average':
+            self._n_bound_i = sum(self.xmin_qnty) + self._lookback - 1
             self._gset_xmins_df_for_average()
             # TODO: consider performing averaging of xmins from passed file
             # --> see original implementation in commit f12b505315 & prior
@@ -85,34 +87,38 @@ class Settings:
         self.alpha_qntl = NormalDist().inv_cdf(1 - len(self.tails_to_anal)/2 *
                                                self.alpha_signif)
 
-    def __get_back_date_label(self, n_back, date0=None, dates_ix=None):
-        dates_ix = self.full_dbdf.index if dates_ix is None else dates_ix
+    # helper to get the displacement (signed distance) b/w query & origin dates
+    def __get_disp_to_orig_date(self, date_q, date_o=None, dates_ix=None):
+        date_o = self.date_i if date_o is None else date_o
+        dates_ix = self._full_dates if dates_ix is None else dates_ix
+        ix_o = dates_ix.get_loc(date_o)  # date_o: origin date
+        ix_q = dates_ix.get_loc(date_q)  # date_q: query date
+        return ix_o - ix_q  # can be negative, hence 'displacement'
+
+    # helper that gets the date label from some date0, given a distance offset
+    def __get_back_date_label(self, n_back, dates_ix=None,
+                              date0=None, incl_date0=False):
+        dates_ix = self._full_dates if dates_ix is None else dates_ix
         date0 = self.date_i if date0 is None else date0
-        # NOTE: use (n_back - 1) b/c date0 incl. in back window by default
-        idx_back = dates_ix.get_loc(date0) - (n_back - 1)
-        if idx_back < 0:  # when n_back needed is beyond the given data
-            raise ValueError(f"cannot go back {n_back} full days from "
-                             f"{date0} in DateIndex:\n\n{dates_ix}\n")
+        dirn = "BACKWARDS" if n_back > 0 else "FORWARDS"
+        idx_back = dates_ix.get_loc(date0) - (n_back - incl_date0)
+        assert 0 < idx_back < len(dates_ix),\
+            (f"cannot go {dirn} {n_back} full days from "
+             f"{date0} in DateIndex:\n\n{dates_ix}\n")
         return dates_ix[idx_back]
+
+    __gbdl = __get_back_date_label  # alias for convenience
 
     # helper for correctly extending back DF's date-range when use_dynamic
     def __dynamize_ts_df(self, ts_df, back_date, end_date=None):
-        """accepts a DataFrame to slice, and an argument that can be either:
-        i)  an integer num of dates to go back from self.date_i (inclusive)
-        ii) a string representing the actual date label to go back to
-        """
         assert self.use_dynamic
-        if isinstance(back_date, int):
-            back_date = self.__get_back_date_label(back_date)
         end_date = self.date_f if end_date is None else end_date
         dynamized_df = ts_df.loc[back_date:end_date]
-        if self._anal_freq > 1:
+        if self._frq > 1:
             # slice backwards from date_i to ensure date_i is part of final DF
-            back_slice = dynamized_df.loc[self.date_i::-self._anal_freq]
-            # TODO/FIXME: self.date_i pins final DF -> could be problematic
-            # when pre-computing Clauset xmins if anal_freq ≠ 1
-            anal_slice = dynamized_df.loc[self.date_i::self._anal_freq]
-            dynamized_df = pd.concat((back_slice[::-1], anal_slice[1:]))
+            back_slice = dynamized_df.loc[self.date_i::-self._frq]
+            fore_slice = dynamized_df.loc[self.date_i::self._frq]
+            dynamized_df = pd.concat((back_slice[::-1], fore_slice[1:]))
         return dynamized_df
 
     def _gset_dbdf_attrs(self):
@@ -123,24 +129,18 @@ class Settings:
         # - dynamic_dbdf: has data going back to the earliest lookback date
         # - raw_dbdf: either dynamic_dbdf OR static_dbdf based on use_dynamic;
         #             this is the actual dbdf passed onto Analyzer
-
         self._tickers_dbdf = self.full_dbdf[self.tickers]
         if self.analyze_group:
             self._partition_tickers_dbdf()
-
-        static_dbdf = self._tickers_dbdf.loc[self.date_i: self.date_f:
-                                             self._anal_freq]
+        static_dbdf = self._tickers_dbdf.loc[self.date_i:self.date_f:self._frq]
         self.anal_dates = static_dbdf.index
-        # TODO: use it to validate average xmin df
-
         if self.use_dynamic:
             dynamic_dbdf = self.__dynamize_ts_df(self._tickers_dbdf,
-                                                 self._lookback)
-            # correctly set (minimum) window size based on lookback, anal_freq
-            # & tau, b/c returns data pts is necssarily less than that of raw
-            q, r = divmod(self._lookback, self._anal_freq)
+                                                 self.__gbdl(self._lookback,
+                                                             incl_date0=True))
+            # set min. dynamic window size based on lkb, frq & tau
+            q, r = divmod(self._lookback, self._frq)
             self.dyn_win_size = q + bool(r) - self.tau
-
         self.raw_dbdf = dynamic_dbdf if self.use_dynamic else static_dbdf
 
     # # methods relevant to group tail analysis behaviors # #
@@ -234,29 +234,68 @@ class Settings:
 
     def __get_labelstep(self):
         len_dates = len(self.anal_dates)
-        _analyze_nondaily = self._anal_freq is not None and self._anal_freq > 1
+        _analyze_nondaily = self._frq is not None and self._frq > 1
         use_monthly = len_dates <= Period.ANNUAL or _analyze_nondaily
         use_quarterly = Period.ANNUAL < len_dates <= 3*Period.ANNUAL
         return (Period.MONTH if use_monthly else
                 Period.QUARTER if use_quarterly else Period.BIANNUAL)
 
-    # # methods to obtain & validate DF containing xmins to directly use # #
+    # # methods to obtain (for average) & validate xmins DF to directly use # #
+
+    def __get_date_i_aligned_bound(self, n_back):
+        #  Gets the date to go back/foward to, w/ appropriate shift if needed
+        #
+        #  Rationale: when analysis frequency ≠ 1, Date index could become
+        #  misaligned when looking back, causing user specified initial date
+        #  to not be contained in the final DataFrame; this helper fixes that
+        ntrl_date = self.__gbdl(n_back)  # natural date, ie. exact back date
+        dist = abs(self.__get_disp_to_orig_date(ntrl_date))
+        rem_nd = dist % self._frq
+        if rem_nd == 0:
+            return ntrl_date
+
+        from warnings import warn
+        warn(f"analysis frequency of {self._frq} days, averaging window & lag "
+             f"of {self.xmin_qnty} days, and {self._lookback} days lookback "
+             f"causes Date index to misalign WRT init-date '{self.date_i}'; "
+             "appropriate date bounds shall be automatically selected")
+        sign, bndpt, chron = ((1, 'START', 'BEFORE') if n_back > 0 else
+                              (-1, 'END', 'AFTER'))
+        dist_shift = dist - rem_nd  # remove remainder dates to realign index
+        try:  # prefer to return date that encompasses the natural date bound
+            new_dist = dist_shift + self._frq
+            bound_date = self.__gbdl(new_dist * sign)
+        except AssertionError:  # if above fails, just drop the remainder days
+            new_dist = dist_shift
+            bound_date = self.__gbdl(new_dist * sign)
+        warn(f"cannot set {bndpt} bound to natural date of {ntrl_date} "
+             f"({dist} day(s) {chron} {self.date_i}); use {bound_date} "
+             f"instead ({new_dist} day(s) {chron} {self.date_i})")
+        return bound_date
+
+    __gdiab = __get_date_i_aligned_bound  # alias for convenience
 
     def _gset_xmins_df_for_average(self):
         window, lag = self.xmin_qnty
+        # NOTE: if _frq>1, then real num day for params window & lag are scaled
+        # by freq, b/c window & lag actually refer to data pts, NOT actual days
+        # NOTE: the above caveat applies equally to the tau parameter
 
         # TODO: add below printing to appropriate verbosity logging
         print("AVERAGE xmins to be calculated w/ rolling window size of "
               f"{window} days & lag days of {lag}")
 
-        self._avbk_date = self.__get_back_date_label(window + lag)
-        cx_df = self.__precompute_clauset_xmins()  # TODO: save2file for re-use
-        self._dyn_cx_df = self.__dynamize_ts_df(cx_df, self._avbk_date)
-        self.xmin_qnty = self._dyn_cx_df.rolling(window).mean().\
+        clauset_xmins_df = self.__precompute_clauset_xmins()  # TODO: save2file for re-use
+        self.xmin_qnty = clauset_xmins_df.rolling(window).mean().\
             shift(lag).loc[self.date_i:]
 
     def __precompute_clauset_xmins(self):
-        overridden_opts = {'date_i': self._avbk_date,
+        bound_i = self.__gdiab(self._n_bound_i)
+        self.date_f = self.__gdiab(self.__get_disp_to_orig_date(self.date_f))
+        # TODO: add option to not save precomp'd Clauset xmins, which
+        #       enables fitting up to the (date_f - lag)-th date only
+        overridden_opts = {'date_i': bound_i,
+                           'date_f': self.date_f,
                            'xmin_args': ('clauset', None),
                            'run_ks_test': False,
                            'compare_distros': False,
@@ -294,8 +333,8 @@ class Settings:
 
     # # method exported to analysis.py, used strictly for logging # #
     def get_dyn_lbd(self, date):  # get dynamic lookback date
-        d0 = date if self.approach == 'rolling' else self.date_i
-        return self.__get_back_date_label(self._lookback, date0=d0)
+        date0 = date if self.approach == 'rolling' else self.date_i
+        return self.__gbdl(self._lookback, date0=date0, incl_date0=True)
 
     # # methods for creating the settings SimpleNamespace object(s) # #
 
