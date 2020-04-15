@@ -216,7 +216,6 @@ def _customize_show_default_boolcond(param, boolcond, dflt_str_2tup):
         param.show_default = False  # turn off built-in show_default
         true_dflt, false_dflt = dflt_str_2tup
         help_dflt = true_dflt if boolcond else false_dflt
-        #  help_dflt = help_dflt.title() if help_dflt.islower() else help_dflt
         param.help += f'  [default: {help_dflt}]'
 
 

@@ -59,6 +59,7 @@ class Settings:
     def _postprocess_specific_options(self):
         self._full_dates = self.full_dbdf.index
         self.approach, self._lookback, self._frq = self.approach_args
+        self._lookback = self.lkbk_true if self.lkbk_true else self._lookback
         self.use_dynamic = (True if self.approach in {'rolling', 'increasing'}
                             else False)
         self.fit_discretely = True if self.data_nature == 'discrete' else False

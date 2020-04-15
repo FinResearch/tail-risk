@@ -8,7 +8,7 @@
 
 analyze_group:
   param_decls:
-    - '-G'
+    - '-G/-I'
     - '--group/--individual'
     - 'analyze_group'
   is_eager: true  # NOTE: eagerness of this opt also helps to dynamically set --help of -G-dependent opts
@@ -85,7 +85,16 @@ approach_args:
     analysis-frequency)>  [defaults: (504, 1)]
 # ASK/CONFIRM: anal_freq (in normal) == sliding_window (in group)
 
-# TODO: add --lookback option that overrides
+lkbk_true:
+  param_decls:
+    - '--lb'
+    - '--lookback'
+    - 'lkbk_true'
+  type: 'int'
+  # default: null
+  metavar: '<ℤ⁺>'
+  # hidden: true  # TODO: hide??
+  help: 'set to override lookback value given to --approach'
 
 partition:  # NOTE: opt only available in group tail analysis mode
   param_decls:

@@ -10,6 +10,7 @@ from ._plpva import plpva as _plpva
 from .configure import DataConfigurer
 from .results import Results
 
+import sys  # TODO: remove after debugging uses done
 from os import getpid  # TODO: remove after debugging uses done
 from multiprocessing import Pool  # TODO: import as mp?
 
@@ -119,7 +120,7 @@ class _Analyzer(ABC):
 
     # runs analysis for one iteration of analysis given arbitrary iter_id
     def _analyze_iter(self, iter_id):  # NOTE: use this to resume computation
-        print(f"### DEBUG: PID {getpid()} analyzing iter {iter_id}")
+        print(f"### DEBUG: PID {getpid()} analyzing iter {iter_id}", file=sys.stderr)
         self.curr_iter_id = iter_id
         self._run_curr_iter_fitting()
         return self.__get_iter_results()
