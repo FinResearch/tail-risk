@@ -62,7 +62,7 @@ class Settings:
         self._lookback = self.lkbk_true if self.lkbk_true else self._lookback
         self.use_dynamic = (True if self.approach in {'rolling', 'increasing'}
                             else False)
-        self.fit_discretely = True if self.data_nature == 'discrete' else False
+        self.fit_discretely = True if not self.data_is_continuous else False
 
         self.xmin_rule, self.xmin_qnty = self.xmin_args
         self.tst_map = {Tail.right: 'STP', Tail.left: 'STN'}  # used rule: file

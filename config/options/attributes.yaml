@@ -212,14 +212,14 @@ alpha_signif:
 
 # TODO/ASK: remove below option? since nature of data can be inferred from database
 #           also confirm result of using discrete-fit on continous data; vice versa
-data_nature:
+data_is_continuous:
   param_decls:
-    - '--data-nature'
-  type:
-    - 'discrete'
-    - 'continuous'
-  default: 'continuous'
-  help: 'discrete ~ ℤ data vs. continuous ~ ℝ data'
+    - '--continuous/--discrete'
+    - 'data_is_continuous'
+  is_flag: true
+  default: true
+  # hidden: true  # TODO: or at least hide??
+  help: 'data type: continuous~ℝ , discrete~ℤ'
 
 xmin_args:
   param_decls:
@@ -285,7 +285,7 @@ plot_results:
     - '--plot/--no-plot'
     - 'plot_results'
   is_flag: true
-  # type: 'bool'  # TODO: cast this (& others) to proper click.BOOL type?
+  # type: 'bool'  # TODO: consider cast this (& other bool-flags) to proper click.BOOL type?
   default: true
   help: ''
 
@@ -294,7 +294,6 @@ show_plots:
     - '--show-plots/--no-show-plots'
     # - 'show_plots'
   is_flag: true
-  # type: 'bool'  # TODO: cast this (& others) to proper click.BOOL type?
   default: true
   help: ''
 

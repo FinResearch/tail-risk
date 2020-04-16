@@ -225,6 +225,7 @@ def _config_show_help_default_(ctx):  # mutates the ctx object
     nproc_cfg_val = _get_param_from_ctx(ctx, 'nproc').default
     opt_bool_map = {'analyze_group': ('group', 'individual'),
                     'norm_target': ('series', 'tail'),
+                    'data_is_continuous': ('continuous', 'discrete'),
                     'run_ks_test': ('run', 'skip'),
                     'compare_distros': ('compare', 'no compare'),
                     'nproc': (f'{nproc_cfg_val} (from config)',
