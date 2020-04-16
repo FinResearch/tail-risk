@@ -4,8 +4,8 @@
 
 ## control settings: meta control flow of the program
 ctrl:
-  - interactive
-  - gui
+  - run_gui
+  # - interactive
   - verbosity
   - load_options
   - save_options

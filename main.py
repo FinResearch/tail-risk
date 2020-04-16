@@ -4,7 +4,7 @@ import cli
 from utils.analysis import analyze_tail
 from utils.settings import Settings as Settings
 
-user_inputs = cli.get_user_input.main(standalone_mode=False)
+user_inputs = cli.get_user_inputs.main(standalone_mode=False)
 
 if user_inputs == 0:  # for catching the --help option
     sys.exit()

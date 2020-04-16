@@ -1,0 +1,244 @@
+---
+
+# parameters specifications for EasyGUI
+#
+# TOOD: make alias for something like user_inputs['approach']
+
+analyze_group:
+  box_type: 'boolbox'
+  msg: 'Run individual or group tail analysis?'
+  title: 'Analysis Type'
+  choices:
+    # - 'Individual'
+    - '[G]roup'
+    - 'Individual'
+  cancel_choice: 'Individual'
+
+full_dbdf:
+  box_type: 'fileopenbox'
+  msg: 'What is the name of the database?'
+  title: 'DB name'
+  filetypes:
+    - '*.csv'
+    - '*.txt'
+    - '*.xls'
+    - '*.xlsx'
+
+# msg       = "How many entries would you like to analyze?"
+# no_entries       = int(eg.enterbox(msg, title="No. entries", default="4"))
+# fieldNames       = ["# " + str(i) for i in xrange(1, no_entries + 1, 1)]
+# fieldValues   = ['DE 01Y', 'DE 03Y', 'DE 05Y', 'DE 10Y',]
+# title           = "Tickers input"
+# labels        = eg.multenterbox(msg, title, fieldNames, fieldValues)
+#
+# tickers:
+#   box_type: 'multchoicebox'
+#   msg: 'Select the tickers to analyze'
+#   title: 'Tickers selection'
+#   choices:
+#     - ''
+#     - ''
+
+date_bounds:
+  box_type: 'multenterbox'
+  msg: 'Please specify the initial date, the final date and the lookback for rolling analysis?'
+  title: 'Dates input'
+  fields:
+    - 'initial date'
+    - 'final date'
+
+# date_i:
+#   msg: ''
+#   title: ''
+#
+# date_f:
+#   msg: ''
+#   title: ''
+
+# approach_args:
+approach:
+  box_type: 'choicebox'
+  msg: 'Please specify which approach you would like to use'
+  title: 'Approach'
+  choices:
+    - 'rolling'
+    - 'increasing'
+    - 'static'
+  preselect: 0
+
+dynamic_parameters:
+  init_cond: "user_inputs['approach'] != 'static'"
+  box_type: 'multenterbox'
+  msg: "What is the frequency at which the tail should be analyzed (days)?"
+  title: 'lookback & frequency'
+  fields:
+    - 'lookback'
+    - 'frequency'
+  values:  # this type of box's equivalent for default
+    - 504
+    - 1
+
+partition:
+  init_cond: "user_inputs['analyze_group'] is True"
+  box_type: 'choicebox'
+  msg: 'How do you want to group the inputs?'
+  title: 'Partition type'
+  choices:
+    - 'Country'
+    - 'Maturity'
+    - 'Core vs Peripheral'
+    - 'All'
+    - 'Rating'
+    - 'High Yield'
+    - 'Investment Grade'
+  preselect: 0
+
+returns_type:
+  box_type: 'choicebox'
+  msg: 'Please specify which type of series you want to study'
+  title: 'Input type'
+  choices:
+    - 'raw'
+    - 'relative'
+    - 'log'
+  preselect: 3
+
+tau:
+  box_type: 'integerbox'
+  msg: 'Please specify the time lag of the input series: 1 = daily, 5 = weekly, 22 = monthly'
+  title: 'delta'
+
+# standardize:
+#   msg: ''
+#   title: ''
+#
+# absolutize:
+#   msg: ''
+#   title: ''
+#
+# msg      = "Do you want to normalize each investigated time series?"
+# choices       = ['Yes', 'No']
+# standardize   = eg.buttonbox(msg, 'Normalization', choices)
+#
+# if standardize == 'Yes':
+#     msg           = "What should be standardized?"
+#     choices            = ['Full Series', 'Tail']
+#     standardize_target = eg.buttonbox(msg, 'Normalization target', choices)
+#
+# msg      = "Do you want to take the absolute value of your series (after any eventual normalization)?"
+# choices       = ['Yes', 'No']
+# abs_value     = eg.buttonbox(msg, 'Absolute value', choices)
+#
+# if abs_value == 'Yes':
+#     msg           = "What should be standardized?"
+#     choices            = ['Full Series', 'Tail']
+#     abs_target = eg.buttonbox(msg, 'Absolute value target', choices)
+#
+# norm_target:
+#   msg: ''
+#   title: ''
+#
+# msg       = "How many entries would you like to analyze?"
+# no_entries       = int(eg.enterbox(msg, title="No. entries", default="4"))
+# fieldNames       = ["# " + str(i) for i in xrange(1, no_entries + 1, 1)]
+# fieldValues   = ['DE 01Y', 'DE 03Y', 'DE 05Y', 'DE 10Y',]
+# title           = "Tickers input"
+# labels        = eg.multenterbox(msg, title, fieldNames, fieldValues)
+#
+# norm_before:
+#   msg: ''
+#   title: ''
+#
+# norm_after:
+#   msg: ''
+#   title: ''
+
+anal_tails:
+  box_type: 'multchoicebox'
+  msg: 'Please specify which tail you want to plot in the alpha timeline'
+  title: 'Select one or both tails'
+  choices:
+    - 'left'
+    - 'right'
+
+# anal_right:
+#   msg: ''
+#   title: ''
+#
+# anal_left:
+#   msg: ''
+#   title: ''
+
+alpha_signif:
+  box_type: 'enterbox'
+  msg: 'Please specify the significance of the confidence interval (1 - a) for the alpha parameter '
+  title: 'alpha'
+
+data_is_continuous:
+  box_type: 'boolbox'
+  msg: 'What is the nature of your data?'
+  title: 'Data type'
+  choices:
+    - 'continuous'
+    - 'discrete'
+  cancel_choice: 'continuous'
+
+xmin_args:
+  box_type: 'choicebox'
+  msg: 'What is the criteria for picking xmin'
+  title: 'xmin rule'
+  choices:
+    - 'clauset'
+    - 'manual'
+    - 'percentile'
+    - 'file'
+
+# if xmin_rule == 'Manual':
+#         msg   = "What is the value for xmin?"
+#         xmin_value = float(eg.enterbox(msg, title="xmin value", default="0.0"))
+# if xmin_rule == 'Percentile':
+#         msg   = "What is the value of the significance for xmin?"
+#         xmin_sign  = float(eg.enterbox(msg, title="xmin percentile", default="90"))
+#
+# if xmin_rule == 'Rolling':  # i.e. Average
+#         msg     = "How many days do you want to include in the moving xmin average?"
+#         rolling_days = int(eg.enterbox(msg, title="rolling days", default="66"))
+#         msg     = "How many lags do you want in your average?"
+#         rolling_lags = int(eg.enterbox(msg, title="rolling days", default="0"))
+
+# run_ks_test:
+#   msg: ''
+#   title: ''
+
+ks_iter:
+  box_type: 'integerbox'
+  msg: 'What is the number of iterations for the Clauset p-value algorithm?'
+  title: 'iterations'
+
+# compare_distros:
+#   msg: ''
+#   title: ''
+#
+# nproc:
+#   msg: ''
+#   title: ''
+#
+# plot_results:
+#   msg: ''
+#   title: ''
+#
+# show_plots:
+#   msg: ''
+#   title: ''
+#
+# save_plots:
+#   msg: ''
+#   title: ''
+
+# question      = "Do you want to save the sequential scaling plot?"
+#         choices      = ['Yes', 'No']
+#         plot_storing = eg.choicebox(question, 'Plot', choices)
+#
+#         if plot_storing == 'Yes':
+#             question    = "What is the target directory for the pictures?";
+#             motherpath  = eg.enterbox(question, title="path", default='C:\Users\\alber\Dropbox\Research\IP\Econophysics\Final Code Hurst Exponent\\');

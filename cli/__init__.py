@@ -29,7 +29,7 @@ from .options import gset_full_dbdf, attach_yaml_opts, post_proc_funcs
 #  @click.option('-v', '--verbose', count=True)  # TODO: save -v for --verbose?
 @click.version_option('0.7dev', '-v', '--version')
 @click.pass_context
-def get_user_input(ctx, full_dbdf, **yaml_opts):
+def get_user_inputs(ctx, full_dbdf, **yaml_opts):
     for ppf in post_proc_funcs:
         ppf(ctx, yaml_opts)
     return dict(full_dbdf=full_dbdf, **yaml_opts)

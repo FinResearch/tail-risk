@@ -223,7 +223,8 @@ def _customize_show_default_boolcond(param, boolcond, dflt_str_2tup):
 # wrapper that sets the show_default attr of specific boolean flag options #
 def _config_show_help_default_(ctx):  # mutates the ctx object
     nproc_cfg_val = _get_param_from_ctx(ctx, 'nproc').default
-    opt_bool_map = {'analyze_group': ('group', 'individual'),
+    opt_bool_map = {'run_gui': ('GUI', 'CLI'),
+                    'analyze_group': ('Group', 'Individual'),
                     'norm_target': ('series', 'tail'),
                     'data_is_continuous': ('continuous', 'discrete'),
                     'run_ks_test': ('run', 'skip'),

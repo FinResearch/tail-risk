@@ -6,6 +6,15 @@
 # also create another config file to specify the order in which the
 # params & CBs are to be parsed/fired?
 
+run_gui:
+  param_decls:
+    - '--gui/--cli'
+    - 'run_gui'
+  is_eager: true
+  default: false
+  # callback: ''
+  help: 'input analysis parameters via the GUI system'
+
 analyze_group:
   param_decls:
     - '-G/-I'
