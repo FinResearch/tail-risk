@@ -10,7 +10,7 @@ OPT_CFG_DIR = f'{ROOT_DIR}/config/options/'  # TODO: use pathlib.Path ??
 
 def _load_easygui_specs():
     specs_fpath = OPT_CFG_DIR + 'easygui.yaml'
-    with open(specs_fpath) as cfg:
+    with open(specs_fpath, encoding='utf8') as cfg:
         gui_specs = yaml.load(cfg, Loader=yaml.SafeLoader)
 
     meta_specs_map = {'box_type': None, 'init_cond': 'True', }  # 'callafter'

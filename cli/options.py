@@ -54,7 +54,7 @@ def __eval_special_attrs_(opt_attrs):
 # load (from YAML), get & set (preprocess) options attributes
 def _load_gset_opts_attrs():
     attrs_path = OPT_CFG_DIR + 'attributes.yaml'
-    with open(attrs_path) as cfg:
+    with open(attrs_path, encoding='utf8') as cfg:
         opts_attrs = yaml.load(cfg, Loader=yaml.SafeLoader)
     for opt, attrs in opts_attrs.items():
         __eval_special_attrs_(attrs)
@@ -259,7 +259,7 @@ def gset_group_opts(ctx, param, analyze_group):
         opt_names = [p.name for p in ctx.command.params
                      if isinstance(p, click.Option)]
         grp_defs_fpath = OPT_CFG_DIR + 'group_defaults.yaml'
-        with open(grp_defs_fpath) as cfg:
+        with open(grp_defs_fpath, encoding='utf8') as cfg:
             grp_dflts = yaml.load(cfg, Loader=yaml.SafeLoader)
         for opt in opt_names:
             opt_obj = _get_param_from_ctx(ctx, opt)

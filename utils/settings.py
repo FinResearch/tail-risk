@@ -186,7 +186,7 @@ class Settings:
         # TODO/NOTE: -G, --group dynamic cols differs slightly (xmin_today)
         cfg_bn = 'dynamic' if self.use_dynamic else 'static'
         DIR = 'config/output_columns/'  # TODO: improve package/path system
-        with open(f'{DIR}/{cfg_bn}.yaml') as cfg:
+        with open(f'{DIR}/{cfg_bn}.yaml', encoding='utf8') as cfg:
             self.stats_colname, labels = tuple(
                 yaml.load(cfg, Loader=yaml.SafeLoader).items())[0]
 
@@ -341,7 +341,7 @@ class Settings:
 
     def _load_set_settings_config(self):
         SETTINGS_CFG = 'config/settings.yaml'  # TODO: refactor PATH into root
-        with open(SETTINGS_CFG) as cfg:
+        with open(SETTINGS_CFG, encoding='utf8') as cfg:
             self._settings_config = yaml.load(cfg, Loader=yaml.SafeLoader)
         self._subsettings = list(self._settings_config.keys())
         if not self.plot_results:
