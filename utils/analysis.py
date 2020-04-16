@@ -57,7 +57,9 @@ class _Analyzer(ABC):
                  "xmin data by file")  # TODO: add file support for -a static?
             grp, date, tail = self.curr_iter_id
             tst = self.sa.tst_map[tail]
-            xmin = self.sa.xmin_qnty.loc[date, f"{tst} {grp}"]
+            win_size = (f' {self.sa.rws}'
+                        if self.sa.xmin_rule == 'average' else '')
+            xmin = self.sa.xmin_qnty.loc[date, f"{tst} {grp}{win_size}"]
         else:
             raise AttributeError("this should never be reached!")
         return xmin

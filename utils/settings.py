@@ -67,7 +67,6 @@ class Settings:
         self.xmin_rule, self.xmin_qnty = self.xmin_args
         self.tst_map = {Tail.right: 'STP', Tail.left: 'STN'}  # for xmins_file
         if self.xmin_rule == 'average':
-            self._n_bound_i = sum(self.xmin_qnty) + self._lookback - 1
             self._gset_xmins_df_for_average()
             # TODO: consider performing averaging of xmins from passed file
             # --> see original implementation in commit f12b505315 & prior
@@ -256,8 +255,8 @@ class Settings:
             return ntrl_date
 
         from warnings import warn
-        warn(f"analysis frequency of {self._frq} days, averaging window & lag "
-             f"of {self.xmin_qnty} days, and {self._lookback} days lookback "
+        warn(f"analysis frequency of {self._frq} days, average window & lag of"
+             f" {self.xmin_qnty[:2]} days, and {self._lookback} days lookback "
              f"causes Date index to misalign WRT init-date '{self.date_i}'; "
              "appropriate date bounds shall be automatically selected")
         sign, bndpt, chron = ((1, 'START', 'BEFORE') if n_back > 0 else
@@ -277,20 +276,22 @@ class Settings:
     __gdiab = __get_date_i_aligned_bound  # alias for convenience
 
     def _gset_xmins_df_for_average(self):
-        window, lag = self.xmin_qnty
+        self.rws, lag, xmins_df = self.xmin_qnty  # rws: rolling window size
         # NOTE: if _frq>1, then real num day for params window & lag are scaled
         # by freq, b/c window & lag actually refer to data pts, NOT actual days
         # NOTE: the above caveat applies equally to the tau parameter
 
-        # TODO: add below printing to appropriate verbosity logging
-        print("AVERAGE xmins to be calculated w/ rolling window size of "
-              f"{window} days & lag days of {lag}")
+        if xmins_df is None:
+            self._n_bound_i = self.rws + lag + self._lookback - 1
+            print("AVERAGE xmins to be calculated w/ rolling window size of "
+                  f"{self.rws} days & lag days of {lag}")  # add to -V logging
+            clauset_xmins_df = self.__precompute_clauset_xmins_df()
+            # TODO: save the above to file for later re-use
+            xmins_df = clauset_xmins_df.rolling(self.rws).mean()
 
-        clauset_xmins_df = self.__precompute_clauset_xmins()  # TODO: save2file for re-use
-        self.xmin_qnty = clauset_xmins_df.rolling(window).mean().\
-            shift(lag).loc[self.date_i:]
+        self.xmin_qnty = xmins_df.shift(lag).loc[self.date_i:self.date_f]
 
-    def __precompute_clauset_xmins(self):
+    def __precompute_clauset_xmins_df(self):
         bound_i = self.__gdiab(self._n_bound_i)
         self.date_f = self.__gdiab(self.__get_disp_to_orig_date(self.date_f))
         # TODO: add option to not save precomp'd Clauset xmins, which
@@ -314,8 +315,8 @@ class Settings:
         analyzer = DynamicAnalyzer(pcs)
         analyzer.analyze()
         clauset_xmins_df = analyzer.get_resdf()
-        clauset_xmins_df.columns = [f"{self.tst_map[t]} {grp}" for grp, t, _
-                                    in clauset_xmins_df.columns]
+        clauset_xmins_df.columns = [f"{self.tst_map[t]} {grp} {self.rws}" for
+                                    grp, t, _ in clauset_xmins_df.columns]
         return clauset_xmins_df
 
     # ensures xmins for chosen ticker(s)/group(s) & tail(s) exist
@@ -323,7 +324,8 @@ class Settings:
         assert self.xmin_rule in {'file', 'average'}
 
         from itertools import product
-        needed_cols = [f"{st} {grp}" for st, grp in
+        win_size_info = f' {self.rws}' if self.xmin_rule == 'average' else ''
+        needed_cols = [f"{st} {grp}{win_size_info}" for st, grp in
                        product([self.tst_map[t] for t in self.tails_to_anal],
                                self.grouping_labs)]
         missing_cols = [nc for nc in needed_cols

@@ -236,7 +236,7 @@ xmin_args:
     - '--xmin'
     - 'xmin_args'
   cls: 'VnargsOption'
-  max_nargs: 2
+  max_nargs: 3
   type: 'tuple'
   default:  # NOTE: list below NOT used as default; only used to programmatically set metavar; default actually set in parse_xmin_args()
     - "clauset"

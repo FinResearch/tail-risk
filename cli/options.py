@@ -399,22 +399,35 @@ def parse_xmin_args(ctx, param, xmin_args):
 
     if bool(y):  # this can only possibly be the average method
         assert ctx._analyze_group and ctx._approach != 'static',\
-            (f"2 arguments {xmin_args} provided to '-x / --xmin', thus use "
-             "method 'average', which is only applicable under a dynamic "
+            (f"multiple args {xmin_args} passed to '-x / --xmin', thus use "
+             "method 'average', which is only applicable w/ a dynamic "
              "approach & in group analysis mode (i.e. -G flag set)")
-        type_errmsg = ("both args to '-x' must be INTs (# days) to use "
-                       "xmin determination method 'average'; given: "
-                       f"{', '.join(xmin_args)}")
+        if len(y) == 2:
+            a, b, c = xmin_args
+            if all(s.isdecimal() for s in (a, b)):
+                win, lag, fname = xmin_args
+            elif all(s.isdecimal() for s in (b, c)):
+                fname, win, lag = xmin_args
+            else:
+                errmsg = ("3 args passed to '--xmin'; xmins data file to use "
+                          "for 'average' must be passed either FIRST or LAST")
+                raise AssertionError(errmsg)
+        elif len(y) == 1:
+            win, lag, fname = (*xmin_args, None)
+        # TODO: account for when only 1 num arg passed --> make it window-size?
+        type_errmsg = ("both numeric args to '--xmin' rule 'average' must "
+                       f"be INTs (# days); given: '{win}, {lag}'")
         win, lag = sorted([_convert_str_to_num(val, must_be_int=True,
                                                type_errmsg=type_errmsg,
                                                min_allowed=0)
                            # TODO: enable diff min for window & lag args
-                           for val in xmin_args], reverse=True)
-        return ('average', (win, lag))
+                           for val in (win, lag)], reverse=True)
+        ctx._xmins_df = _read_fname_to_df(fname) if bool(fname) else None
+        return ('average', (win, lag, ctx._xmins_df))
 
     try:  # if try successful, necessarily must be the XMIN_FILE
-        xmins_df = _read_fname_to_df(x)
-        return ('file', xmins_df)
+        ctx._xmins_df = _read_fname_to_df(x)
+        return ('file', ctx._xmins_df)
     except FileNotFoundError:
         pass
 
@@ -518,11 +531,10 @@ def validate_df_date_indexes(ctx, yaml_opts):
     full_dbdf = ctx.params['full_dbdf']
     _assert_dates_in_df(full_dbdf, (di, df))
 
-    xmin_rule, xmin_qnty = yaml_opts['xmin_args']
-    if xmin_rule == 'file':
+    if hasattr(ctx, '_xmins_df') and isinstance(ctx._xmins_df, pd.DataFrame):
         anal_freq = yaml_opts['approach_args'][2]
         anal_dates = full_dbdf.loc[di:df:anal_freq].index
-        _assert_dates_in_df(xmin_qnty, anal_dates)
+        _assert_dates_in_df(ctx._xmins_df, anal_dates)
 
 
 post_proc_funcs = (conditionalize_normalization_options_,
