@@ -65,7 +65,7 @@ class Settings:
         self.fit_discretely = True if not self.data_is_continuous else False
 
         self.xmin_rule, self.xmin_qnty = self.xmin_args
-        self.tst_map = {Tail.right: 'STP', Tail.left: 'STN'}  # used rule: file
+        self.tst_map = {Tail.right: 'STP', Tail.left: 'STN'}  # for xmins_file
         if self.xmin_rule == 'average':
             self._n_bound_i = sum(self.xmin_qnty) + self._lookback - 1
             self._gset_xmins_df_for_average()
@@ -319,7 +319,7 @@ class Settings:
         return clauset_xmins_df
 
     # ensures xmins for chosen ticker(s)/group(s) & tail(s) exist
-    def _validate_xmins_df_statcols(self):
+    def _validate_xmins_df_statcols(self):  # only called if xmin_qnty is DF
         assert self.xmin_rule in {'file', 'average'}
 
         from itertools import product

@@ -13,7 +13,7 @@ run_gui:
   is_eager: true
   default: false
   # callback: ''
-  help: 'input analysis parameters via the GUI system'
+  help: 'specify which user input system to use'
 
 analyze_group:
   param_decls:
@@ -33,7 +33,7 @@ tickers:  # TODO: allow passing in a .txt file of tickers?
   cls: 'VnargsOption'
   separator: ','
   type: 'list'
-  default:
+  default:  # TODO: remove default after project completion
     - 'DE 01Y'
     # - 'DE 03Y'
     # - 'DE 05Y'
@@ -126,7 +126,7 @@ returns_type:
     - '--returns-type'
     - 'returns_type'
   type:  # TODO: consider using Enum types for all Choice values
-    - 'raw'
+    - 'raw'  # TODO: rename to 'basic'
     - 'relative'
     - 'log'
   default: 'log'

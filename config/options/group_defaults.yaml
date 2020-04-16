@@ -15,7 +15,7 @@ norm_before: false
 norm_after: false  # TODO: can set default value directly here?
 
 xmin_args:
-  - "average"
+  - "average"  # TODO: defaults for 'average' set in parse_xmin_args() in options.py
   - "clauset"
   - "%"
   - "ℝ "
