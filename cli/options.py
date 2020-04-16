@@ -200,12 +200,12 @@ def _convert_str_to_num(str_val, must_be_int=False, type_errmsg=None,
         # preferentially return INTs over FLOATs
         return sign * (int_val if val_is_integer else float_val)
     except TypeError:
-        type_errmsg = (f"input value must be an INT, given {str_val}"
-                       if type_errmsg is None else type_errmsg)
+        type_errmsg = (type_errmsg or
+                       f"input value must be an INT, given {str_val}")
         raise TypeError(type_errmsg)
     except AssertionError:
-        range_errmsg = (f"number must be {comp_cond}, given {str_val}"
-                        if range_errmsg is None else range_errmsg)
+        range_errmsg = (range_errmsg or
+                        f"number must be {comp_cond}, given {str_val}")
         raise ValueError(range_errmsg)
 
 
@@ -434,7 +434,7 @@ def parse_xmin_args(ctx, param, xmin_args):
 
 
 def gset_nproc_default(ctx, param, nproc):
-    return os.cpu_count() if nproc is None else nproc
+    return nproc or os.cpu_count()
 
 
 # # Post-Parsing Functions # #

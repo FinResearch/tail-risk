@@ -59,7 +59,7 @@ class Settings:
     def _postprocess_specific_options(self):
         self._full_dates = self.full_dbdf.index
         self.approach, self._lookback, self._frq = self.approach_args
-        self._lookback = self.lkbk_true if self.lkbk_true else self._lookback
+        self._lookback = self.lb_override or self._lookback
         self.use_dynamic = (True if self.approach in {'rolling', 'increasing'}
                             else False)
         self.fit_discretely = True if not self.data_is_continuous else False
@@ -90,8 +90,8 @@ class Settings:
 
     # helper to get the displacement (signed distance) b/w query & origin dates
     def __get_disp_to_orig_date(self, date_q, date_o=None, dates_ix=None):
-        date_o = self.date_i if date_o is None else date_o
-        dates_ix = self._full_dates if dates_ix is None else dates_ix
+        date_o = date_o or self.date_i
+        dates_ix = dates_ix or self._full_dates
         ix_o = dates_ix.get_loc(date_o)  # date_o: origin date
         ix_q = dates_ix.get_loc(date_q)  # date_q: query date
         return ix_o - ix_q  # can be negative, hence 'displacement'
@@ -99,8 +99,8 @@ class Settings:
     # helper that gets the date label from some date0, given a distance offset
     def __get_back_date_label(self, n_back, dates_ix=None,
                               date0=None, incl_date0=False):
-        dates_ix = self._full_dates if dates_ix is None else dates_ix
-        date0 = self.date_i if date0 is None else date0
+        dates_ix = dates_ix or self._full_dates
+        date0 = date0 or self.date_i
         dirn = "BACKWARDS" if n_back > 0 else "FORWARDS"
         idx_back = dates_ix.get_loc(date0) - (n_back - incl_date0)
         assert 0 < idx_back < len(dates_ix),\
@@ -113,7 +113,7 @@ class Settings:
     # helper for correctly extending back DF's date-range when use_dynamic
     def __dynamize_ts_df(self, ts_df, back_date, end_date=None):
         assert self.use_dynamic
-        end_date = self.date_f if end_date is None else end_date
+        end_date = end_date or self.date_f
         dynamized_df = ts_df.loc[back_date:end_date]
         if self._frq > 1:
             # slice backwards from date_i to ensure date_i is part of final DF

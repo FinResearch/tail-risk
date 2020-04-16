@@ -16,6 +16,7 @@ analyze_group:
   callback: 'gset_group_opts'
   help: 'set flag to run in group analysis mode; -Gh to see group-specific help'
 
+# TODO: change opt to 'labels', i.e. tickers for -I, groups for -G
 tickers:  # TODO: allow passing in a .txt file of tickers?
   param_decls:
     - '-T'
@@ -83,13 +84,12 @@ approach_args:
   help: >
     opt args for 'rolling' or 'increasing': <(ℤ⁺, ℤ⁺)| # days: (lookback,
     analysis-frequency)>  [defaults: (504, 1)]
-# ASK/CONFIRM: anal_freq (in normal) == sliding_window (in group)
 
-lkbk_true:
+lb_override:
   param_decls:
     - '--lb'
     - '--lookback'
-    - 'lkbk_true'
+    - 'lb_override'
   type: 'int'
   # default: null
   metavar: '<ℤ⁺>'
