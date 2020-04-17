@@ -140,70 +140,49 @@ tau:
     lowerbound: 1
     upperbound: 1_000_000
 
-standardize:
+normalize:
   metas:
-    box_type: 'boolbox'
+    box_type: 'multchoicebox'
     set_bool_flag:
       - 'normalize'
-      - 'opt_val is True'
+      - 'bool(opt_val)'
+    # trans_func: ''
   attrs:
-    msg: 'Standardize the data normally?'
-    title: 'Standarization'
+    msg: 'Standardize and/or take Absolute value of data'
+    title: 'Normalization'
     choices:
-      - '[Y]es'
-      - '[N]o'
-    default_choice: '[N]o'
+      - 'standardize (normally)'
+      - 'absolute value'
+    # preselect:
+    #   - 0
+    #   - 1
 
-absolutize:
+norm_target:
   metas:
     box_type: 'boolbox'
-    set_bool_flag:
-      - 'normalize'
-      - 'opt_val is True'
+    creation_flags:
+      - 'init_on: self.normalize and not self.analyze_group and not self.use_dynamic'
   attrs:
-    msg: 'Take the absolute value of input data?'
-    title: 'Absolute value'
+    msg: 'What target to normalize?'
+    title: 'normalization target'
     choices:
-      - '[Y]es'
-      - '[N]o'
-    default_choice: '[N]o'
+      - '[s]eries'
+      - '[t]ail'
+    default_choice: '[s]eries'
 
-# msg      = "Do you want to normalize each investigated time series?"
-# choices       = ['Yes', 'No']
-# standardize   = eg.buttonbox(msg, 'Normalization', choices)
-#
-# if standardize == 'Yes':
-#     msg           = "What should be standardized?"
-#     choices            = ['Full Series', 'Tail']
-#     standardize_target = eg.buttonbox(msg, 'Normalization target', choices)
-#
-# msg      = "Do you want to take the absolute value of your series (after any eventual normalization)?"
-# choices       = ['Yes', 'No']
-# abs_value     = eg.buttonbox(msg, 'Absolute value', choices)
-#
-# if abs_value == 'Yes':
-#     msg           = "What should be standardized?"
-#     choices            = ['Full Series', 'Tail']
-#     abs_target = eg.buttonbox(msg, 'Absolute value target', choices)
-#
-# norm_target:
-#   msg: ''
-#   title: ''
-#
-# msg       = "How many entries would you like to analyze?"
-# no_entries       = int(eg.enterbox(msg, title="No. entries", default="4"))
-# fieldNames       = ["# " + str(i) for i in xrange(1, no_entries + 1, 1)]
-# fieldValues   = ['DE 01Y', 'DE 03Y', 'DE 05Y', 'DE 10Y',]
-# title           = "Tickers input"
-# labels        = eg.multenterbox(msg, title, fieldNames, fieldValues)
-#
-# norm_before:
-#   msg: ''
-#   title: ''
-#
-# norm_after:
-#   msg: ''
-#   title: ''
+norm_timings:
+  metas:
+    box_type: 'multchoicebox'
+    creation_flags:
+      - 'init_on: self.normalize and self.analyze_group'
+    # trans_func: ''
+  attrs:
+    msg: 'Normalize before and/or after grouping the data'
+    title: 'normalization timing'
+    choices:
+      - 'before'
+      - 'after'
+    preselect: 1
 
 anal_tails:
   metas:
@@ -215,7 +194,9 @@ anal_tails:
     choices:
       - 'right'
       - 'left'
-    preselect: 0
+    preselect:
+      - 0
+      - 1
 
 alpha_signif:
   metas:

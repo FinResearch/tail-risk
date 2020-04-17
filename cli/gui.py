@@ -37,17 +37,20 @@ class GUI:
         if bool(flags):
             for fstr in flags:
                 action, cond = fstr.split(': ')
-                evald_cond = eval(f"getattr(self, '{cond}', None)")
+                if len(cond.split()) == 1:
+                    ev_cond = eval(f"getattr(self, '{cond}', None)")
+                else:  # TODO: kinda janky, try to improve
+                    ev_cond = eval(cond)
                 if action == 'init_on':
-                    create_gui = evald_cond
+                    create_gui = ev_cond
                 elif action.endswith('set_by'):
                     val_attr = action.split('-')[0]
                     assert val_attr in attrs
                     if cond == 'analyze_group':
-                        idx = bool(evald_cond)
+                        idx = bool(ev_cond)
                         attrs[val_attr] = attrs[val_attr][idx]
                     elif cond == 'evaluation':
-                        assert evald_cond is None
+                        assert ev_cond is None
                         import os  # used by eval() to get # processors
                         attrs[val_attr] = eval(attrs[val_attr])
                     else:

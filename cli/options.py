@@ -420,9 +420,8 @@ def parse_xmin_args(ctx, param, xmin_args):
 
     if bool(y):  # this can only possibly be the average method
         assert ctx._analyze_group and ctx._approach != 'static',\
-            (f"multiple args {xmin_args} passed to '-x / --xmin', thus use "
-             "method 'average', which is only applicable w/ a dynamic "
-             "approach & in group analysis mode (i.e. -G flag set)")
+            (f"{xmin_args} passed to '--xmin', thus method 'average' inferred;"
+             "\nAVERAGE only applicable w/ DYNAMIC approaches & in GROUP mode")
         if len(y) == 2:
             a, b, c = xmin_args
             if all(s.isdecimal() for s in (a, b)):
