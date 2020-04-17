@@ -1,28 +1,34 @@
 ---
 
 # parameters specifications for EasyGUI
-#
-# TOOD: make alias for something like user_inputs['approach']
 
 analyze_group:
-  box_type: 'boolbox'
-  msg: 'Run individual or group tail analysis?'
-  title: 'Analysis Type'
-  choices:
-    # - 'Individual'
-    - '[G]roup'
-    - 'Individual'
-  cancel_choice: 'Individual'
+  metas:
+    box_type: 'boolbox'
+    set_bool_flag:
+      - 'analyze_group'
+      - 'opt_val is True'
+  attrs:
+    msg: 'Run individual or group tail analysis?'
+    title: 'Analysis Type'
+    choices:
+      - '[G]roup'
+      - '[I]ndividual'
+    default_choice: '[I]ndividual'
+    # cancel_choice: '[I]ndividual'
 
 full_dbdf:
-  box_type: 'fileopenbox'
-  msg: 'What is the name of the database?'
-  title: 'DB name'
-  filetypes:
-    - '*.csv'
-    - '*.txt'
-    - '*.xls'
-    - '*.xlsx'
+  metas:
+    box_type: 'fileopenbox'
+    # cb_val: ''
+  attrs:
+    msg: 'What is the name of the database?'
+    title: 'DB name'
+    filetypes:
+      - '*.csv'
+      - '*.txt'
+      - '*.xls'
+      - '*.xlsx'
 
 # msg       = "How many entries would you like to analyze?"
 # no_entries       = int(eg.enterbox(msg, title="No. entries", default="4"))
@@ -30,7 +36,7 @@ full_dbdf:
 # fieldValues   = ['DE 01Y', 'DE 03Y', 'DE 05Y', 'DE 10Y',]
 # title           = "Tickers input"
 # labels        = eg.multenterbox(msg, title, fieldNames, fieldValues)
-#
+
 # tickers:
 #   box_type: 'multchoicebox'
 #   msg: 'Select the tickers to analyze'
@@ -40,12 +46,17 @@ full_dbdf:
 #     - ''
 
 date_bounds:
-  box_type: 'multenterbox'
-  msg: 'Please specify the initial date, the final date and the lookback for rolling analysis?'
-  title: 'Dates input'
-  fields:
-    - 'initial date'
-    - 'final date'
+  metas:
+    box_type: 'multenterbox'
+    # trans_func: ''
+    #   - 'date_i'
+    #   - 'date_f'
+  attrs:
+    msg: 'Please specify the initial date, the final date and the lookback for rolling analysis?'
+    title: 'Dates input'
+    fields:
+      - 'initial date'
+      - 'final date'
 
 # date_i:
 #   msg: ''
@@ -57,65 +68,106 @@ date_bounds:
 
 # approach_args:
 approach:
-  box_type: 'choicebox'
-  msg: 'Please specify which approach you would like to use'
-  title: 'Approach'
-  choices:
-    - 'rolling'
-    - 'increasing'
-    - 'static'
-  preselect: 0
+  metas:
+    box_type: 'choicebox'
+    set_bool_flag:
+      - 'use_dynamic'
+      - "opt_val != 'static'"
+  attrs:
+    msg: 'Please specify which approach you would like to use'
+    title: 'Approach'
+    choices:
+      - 'rolling'
+      - 'increasing'
+      - 'static'
+    preselect: 0
 
 dynamic_parameters:
-  init_cond: "user_inputs['approach'] != 'static'"
-  box_type: 'multenterbox'
-  msg: "What is the frequency at which the tail should be analyzed (days)?"
-  title: 'lookback & frequency'
-  fields:
-    - 'lookback'
-    - 'frequency'
-  values:  # this type of box's equivalent for default
-    - 504
-    - 1
+  metas:
+    box_type: 'multenterbox'
+    creation_flags:
+      - 'init_on: use_dynamic'
+      - 'values-set_by: analyze_group'
+  attrs:
+    msg: "What is the frequency at which the tail should be analyzed (days)?"
+    title: 'lookback & frequency'
+    fields:
+      - 'lookback'
+      - 'frequency'
+    values:  # multenterbox's equivalent of default value(s)
+      -  # values for Individual mode
+        - 504
+        - 1
+      -  # values for Group mode
+        - 252
+        - 1
 
 partition:
-  init_cond: "user_inputs['analyze_group'] is True"
-  box_type: 'choicebox'
-  msg: 'How do you want to group the inputs?'
-  title: 'Partition type'
-  choices:
-    - 'Country'
-    - 'Maturity'
-    - 'Core vs Peripheral'
-    - 'All'
-    - 'Rating'
-    - 'High Yield'
-    - 'Investment Grade'
-  preselect: 0
+  metas:
+    box_type: 'choicebox'
+    creation_flags:
+      - 'init_on: analyze_group'
+  attrs:
+    msg: 'How do you want to group the inputs?'
+    title: 'Partition type'
+    choices:
+      - 'Country'
+      - 'Maturity'
+      - 'Core vs. Periphery'
+      - 'All'
+      - 'None'
+    preselect: 0
 
 returns_type:
-  box_type: 'choicebox'
-  msg: 'Please specify which type of series you want to study'
-  title: 'Input type'
-  choices:
-    - 'raw'
-    - 'relative'
-    - 'log'
-  preselect: 3
+  metas:
+    box_type: 'choicebox'
+  attrs:
+    msg: 'Please specify which type of series you want to study'
+    title: 'Input type'
+    choices:
+      - 'raw'  # TODO: change name to 'basic' or 'returns'
+      - 'relative'
+      - 'log'
+    preselect: 3
 
 tau:
-  box_type: 'integerbox'
-  msg: 'Please specify the time lag of the input series: 1 = daily, 5 = weekly, 22 = monthly'
-  title: 'delta'
+  metas:
+    box_type: 'integerbox'
+  attrs:
+    msg: 'Please specify the time lag of the input series: 1 = daily, 5 = weekly, 22 = monthly'
+    title: 'delta'
+    default: 1
+    lowerbound: 1
+    upperbound: 1_000_000
 
-# standardize:
-#   msg: ''
-#   title: ''
-#
-# absolutize:
-#   msg: ''
-#   title: ''
-#
+standardize:
+  metas:
+    box_type: 'boolbox'
+    set_bool_flag:
+      - 'normalize'
+      - 'opt_val is True'
+  attrs:
+    msg: 'Standardize the data normally?'
+    title: 'Standarization'
+    choices:
+      - '[Y]es'
+      - '[N]o'
+    default_choice: '[N]o'
+
+absolutize:
+  metas:
+    box_type: 'boolbox'
+    set_bool_flag:
+      - 'normalize'
+      - 'opt_val is True'
+  attrs:
+    msg: 'Take the absolute value of input data?'
+    title: 'Absolute value'
+    choices:
+      - '[Y]es'
+      - '[N]o'
+    default_choice: '[N]o'
+
 # msg      = "Do you want to normalize each investigated time series?"
 # choices       = ['Yes', 'No']
 # standardize   = eg.buttonbox(msg, 'Normalization', choices)
@@ -154,44 +206,59 @@ tau:
 #   title: ''
 
 anal_tails:
-  box_type: 'multchoicebox'
-  msg: 'Please specify which tail you want to plot in the alpha timeline'
-  title: 'Select one or both tails'
-  choices:
-    - 'left'
-    - 'right'
-
-# anal_right:
-#   msg: ''
-#   title: ''
-#
-# anal_left:
-#   msg: ''
-#   title: ''
+  metas:
+    box_type: 'multchoicebox'
+    # trans_func: ''
+  attrs:
+    msg: 'Please specify which tail you want to plot in the alpha timeline'
+    title: 'Select one or both tails'
+    choices:
+      - 'right'
+      - 'left'
+    preselect: 0
 
 alpha_signif:
-  box_type: 'enterbox'
-  msg: 'Please specify the significance of the confidence interval (1 - a) for the alpha parameter '
-  title: 'alpha'
+  metas:
+    box_type: 'enterbox'
+    # callafter: 'float'
+  attrs:
+    msg: 'Please specify the significance of the confidence interval (1 - a) for the alpha parameter '
+    title: 'alpha'
+    default: 0.05
 
 data_is_continuous:
-  box_type: 'boolbox'
-  msg: 'What is the nature of your data?'
-  title: 'Data type'
-  choices:
-    - 'continuous'
-    - 'discrete'
-  cancel_choice: 'continuous'
+  metas:
+    box_type: 'boolbox'
+  attrs:
+    msg: 'What is the nature of your data?'
+    title: 'Data type'
+    choices:
+      - '[c]ontinuous'
+      - '[d]iscrete'
+    default_choice: '[c]ontinuous'
+    # cancel_choice: 'continuous'
 
-xmin_args:
-  box_type: 'choicebox'
-  msg: 'What is the criteria for picking xmin'
-  title: 'xmin rule'
-  choices:
-    - 'clauset'
-    - 'manual'
-    - 'percentile'
-    - 'file'
+xmin_rule:
+  metas:
+    box_type: 'choicebox'
+    creation_flags:
+      - 'choices-set_by: analyze_group'
+    # trans_func: ''
+  attrs:
+    msg: 'What is the criteria for picking xmin'
+    title: 'xmin rule'
+    choices:
+      -  # choices for Individual mode
+        - 'clauset'
+        - 'manual'
+        - 'percentile'
+        - 'file'
+      -  # choices for Group mode
+        - 'average'
+        - 'clauset'
+        - 'manual'
+        - 'percentile'
+        - 'file'
 
 # if xmin_rule == 'Manual':
 #         msg   = "What is the value for xmin?"
@@ -206,27 +273,79 @@ xmin_args:
 #         msg     = "How many lags do you want in your average?"
 #         rolling_lags = int(eg.enterbox(msg, title="rolling days", default="0"))
 
-# run_ks_test:
-#   msg: ''
-#   title: ''
+run_ks_test:
+  metas:
+    box_type: 'boolbox'
+    creation_flags:
+      - 'default_choice-set_by: analyze_group'
+    set_bool_flag:
+      - 'run_ks'
+      - 'opt_val is True'
+  attrs:
+    msg: 'Run or Skip KS-test for p-values'
+    title: 'KS-Test'
+    choices:
+      - '[R]un'
+      - '[S]kip'
+    default_choice:
+      - '[R]un'   # default for Individual mode 
+      - '[S]kip'  # default for Group mode
 
 ks_iter:
-  box_type: 'integerbox'
-  msg: 'What is the number of iterations for the Clauset p-value algorithm?'
-  title: 'iterations'
+  metas:
+    box_type: 'integerbox'
+    creation_flags:
+      - 'init_on: run_ks'
+      - 'default-set_by: analyze_group'
+  attrs:
+    msg: 'What is the number of iterations for the Clauset p-value algorithm?'
+    title: 'iterations'
+    default:
+      - 100   # default for Individual mode
+      - 2     # default for Group mode
+    lowerbound: 0
+    upperbound: 1_000_000
 
-# compare_distros:
-#   msg: ''
-#   title: ''
-#
-# nproc:
-#   msg: ''
-#   title: ''
-#
-# plot_results:
-#   msg: ''
-#   title: ''
-#
+compare_distros:
+  metas:
+    box_type: 'boolbox'
+    creation_flags:
+      - 'default_choice-set_by: analyze_group'
+  attrs:
+    msg: 'Compare fitted power law to other distribution types?'
+    title: 'Compare distributions'
+    choices:
+      - '[Y]es'
+      - '[N]o'
+    default_choice:
+      - '[Y]es' # default for Individual mode 
+      - '[N]o'  # default for Group mode
+
+nproc:
+  metas:
+    box_type: 'integerbox'
+    creation_flags:
+      - 'default-set_by: evaluation'
+  attrs:
+    msg: '# of concurrent processes to run for analysis'
+    title: '# procs'
+    default: 'os.cpu_count()'
+    lowerbound: 1
+    upperbound: 1024
+
+plot_results:
+  metas:
+    box_type: 'boolbox'
+    # creation_flags:
+    #   - 'default_by_mode'
+  attrs:
+    msg: 'Plot the analyzed data?'
+    title: 'Plot'
+    choices:
+      - '[Y]es'
+      - '[N]o'
+    default_choice: '[N]o'
+
 # show_plots:
 #   msg: ''
 #   title: ''
