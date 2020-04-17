@@ -6,10 +6,21 @@
 
 analyze_group: true
 
+approach_args:
+  rolling:
+    - '252'
+    - '1'
+  increasing:
+    - '252'
+    - '1'
+  static:
+    - null
+    - null
+
+lb_override: 252
+
 partition: 'country'
 # TODO: --tickers like option for selecting group(s) to analyze (i.e. specify 'DE' when in country)
-
-lookback: 252
 
 norm_before: false
 norm_after: false  # TODO: can set default value directly here?

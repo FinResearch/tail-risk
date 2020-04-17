@@ -91,8 +91,7 @@ approach_args:
   callback: 'validate_approach_args'
   # metavar:  # NOTE: this attr is set by _set_vnargs_choice_metahelp_()
   help: >
-    opt args for 'rolling' or 'increasing': <(ℤ⁺, ℤ⁺)| # days: (lookback,
-    analysis-frequency)>  [defaults: (504, 1)]
+    optional args to 'rolling' / 'increasing': lookback & analysis-frequency (ℤ⁺, ℤ⁺) [ex. "-a rolling 30 2"]
 
 lb_override:
   param_decls:
@@ -100,10 +99,11 @@ lb_override:
     - '--lookback'
     - 'lb_override'
   type: 'int'
-  # default: null
+  default: 504
+  show_default: false
   metavar: '<ℤ⁺>'
-  # hidden: true  # TODO: hide??
-  help: 'set to override lookback value given to --approach'
+  callback: 'determine_lookback_override'
+  help: 'set to override lookback given to --approach (dynamic only)'
 
 partition:  # NOTE: opt only available in group tail analysis mode
   param_decls:

@@ -118,17 +118,24 @@ def _get_param_from_ctx(ctx, param_name):
 # func that mutates ctx to correctly set metavar & help attrs of VnargsOption's
 def _set_vnargs_choice_metahelp_(ctx):
     xmin_extra_help = (('* average : enter window & lag days (ℤ⁺, ℤ)  '
-                        '[defaults: (66, 0)]\n')
+                        '[defaults: (66, 0)]\n')  # TODO: don't hardcode dflt
                        if ctx._analyze_group else '')
 
     vnargs_choice_opts = ('approach_args', 'xmin_args',)
-    for opt_name in vnargs_choice_opts:
-        opt_obj = _get_param_from_ctx(ctx, opt_name)
-        opt_choices = tuple(opt_obj.default)
-        opt_obj.metavar = (f"[{'|'.join(opt_choices)}]  "
-                           f"[default: {opt_choices[0]}]")
-        extra_help = xmin_extra_help if opt_name == 'xmin_args' else ''
-        opt_obj.help = extra_help + opt_obj.help
+    for opt in vnargs_choice_opts:
+        param = _get_param_from_ctx(ctx, opt)
+        choices = tuple(param.default)
+        param.metavar = (f"[{'|'.join(choices)}]  [default: {choices[0]}]")
+        extra_help = xmin_extra_help if opt == 'xmin_args' else ''
+        param.help = extra_help + param.help
+
+    _set_approach_args_show_default(ctx)
+
+
+def _set_approach_args_show_default(ctx):
+    appr_args = _get_param_from_ctx(ctx, 'approach_args')
+    lkbk_dflt = _get_param_from_ctx(ctx, 'lb_override').default
+    appr_args.help += f'  [defaults: ({lkbk_dflt}, 1)]'  # TODO: don't hrdcode
 
 
 # TODO: checkout default_map & auto_envvar_prefix for click.Context
@@ -361,6 +368,15 @@ def confirm_group_flag_set(ctx, param, val):
         assert not ctx._analyze_group
     return val
 
+
+def determine_lookback_override(ctx, param, lb_ov):
+    lb_src = ctx.get_parameter_source(param.name)
+    if lb_src == 'DEFAULT' or ctx._approach == 'static':
+        if lb_src == 'COMMANDLINE':
+            warnings.warn("'--lb / --lookback' N/A to STATIC approach; "
+                          f"ignoring passed value of {lb_ov}")
+        lb_ov = None
+    return lb_ov
 
 #  # callback for the --tau option
 #  def cast_tau(ctx, param, tau_str):
