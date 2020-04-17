@@ -392,8 +392,8 @@ def validate_norm_target(ctx, param, target):
         if tgt_src == 'COMMANDLINE':
             # TODO: use warnings.showwarning() to write to sys.stdout??
             warnings.warn('Normalization target is only applicable to STATIC '
-                          "approach in INDIVIDUAL mode, i.e. w/ '-a static' & "
-                          f"no '-G' set. Ignoring flag {tmap[target]}")
+                          'approach in INDIVIDUAL mode, i.e. w/ "-a static" & '
+                          f'no "-G" set. Ignoring flag {tmap[target]}')
         return None
     return target
 
@@ -480,7 +480,7 @@ def __validate_norm_timings_(ctx, yaml_opts):
         for opt, src in smap.items():
             if src == 'COMMANDLINE':
                 warnings.warn('Normalization timing only applicable in GROUP '
-                              'analysis mode, i.e. w/ the -G flag set. '
+                              'analysis mode, i.e. w/ the "-G" flag set. '
                               f"Ignoring flag --{'-'.join(opt.split('_'))}")
             yaml_opts[opt] = None
     return smap  # return mapping of norm-timing opts sources for convenience
@@ -489,13 +489,14 @@ def __validate_norm_timings_(ctx, yaml_opts):
 def conditionalize_normalization_options_(ctx, yaml_opts):
     timing_srcs = __validate_norm_timings_(ctx, yaml_opts)
     use_default_timing = all(src == 'DEFAULT' for src in timing_srcs.values())
+    norm_srcs = {**timing_srcs,  # TODO: make top-level ctx attr for all srcs?
+                 'norm_target': ctx.get_parameter_source('norm_target')}
 
     normalize = yaml_opts['standardize'] or yaml_opts['absolutize']
     if not normalize:
         # the default case of no normalization at all
         for opt in ('norm_target', 'norm_before', 'norm_after'):
-            if not (yaml_opts[opt] is None or
-                    timing_srcs.get(opt) == 'DEFAULT'):
+            if yaml_opts[opt] is not None and norm_srcs[opt] != "DEFAULT":
                 warnings.warn(f"Norm option '{opt}' only applicable w/ --std "
                               f"and/or --abs set; ignoring option {opt}")
                 yaml_opts[opt] = None
