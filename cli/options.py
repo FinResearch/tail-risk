@@ -7,7 +7,6 @@ import click
 import yaml
 import pandas as pd
 import os
-import warnings
 
 from pathlib import Path
 
@@ -248,6 +247,19 @@ def _config_show_help_default_(ctx):  # mutates the ctx object
         _customize_show_default_boolcond(param, param.default, dflt_tup)
 
 
+# TODO: make top-level ctx attr for srcs to all options for convenience??
+def __nullify_and_warn_if_usr_set_opt(ctx, opt, val, nullify_cond, warn_msg,
+                                      warn_conjunct_cond=True):
+    src = ctx.get_parameter_source(opt)
+    if nullify_cond:
+        if src == 'COMMANDLINE':
+            from warnings import warn
+            warn(warn_msg)
+            # TODO: use warnings.showwarning() to write to sys.stdout??
+        val = None
+    return val
+
+
 # # # Eager Options CBs # # #
 
 # TODO: present possible DB_FILE options if not passed & no defaults set
@@ -370,13 +382,11 @@ def confirm_group_flag_set(ctx, param, val):
 
 
 def determine_lookback_override(ctx, param, lb_ov):
-    lb_src = ctx.get_parameter_source(param.name)
-    if lb_src == 'DEFAULT' or ctx._approach == 'static':
-        if lb_src == 'COMMANDLINE':
-            warnings.warn("'--lb / --lookback' N/A to STATIC approach; "
-                          f"ignoring passed value of {lb_ov}")
-        lb_ov = None
-    return lb_ov
+    opt = param.name
+    cond = (ctx.get_parameter_source(opt) == 'DEFAULT'
+            or ctx._approach == 'static')
+    msg = f"'--lookback' N/A to STATIC approach; ignoring '--lb {lb_ov}'"
+    return __nullify_and_warn_if_usr_set_opt(ctx, opt, lb_ov, cond, msg)
 
 #  # callback for the --tau option
 #  def cast_tau(ctx, param, tau_str):
@@ -384,18 +394,13 @@ def determine_lookback_override(ctx, param, lb_ov):
 #      return _convert_str_to_num(tau_str, must_be_int=True)
 
 
-def validate_norm_target(ctx, param, target):
+def validate_norm_target(ctx, param, trgt):
     tmap = {True: '--norm-series', False: '--norm-tail'}
-    tgt_src = ctx.get_parameter_source(param.name)
     # norm_target only applies to individual tail analysis w/ static approach
-    if ctx._analyze_group or ctx._approach != 'static':
-        if tgt_src == 'COMMANDLINE':
-            # TODO: use warnings.showwarning() to write to sys.stdout??
-            warnings.warn('Normalization target is only applicable to STATIC '
-                          'approach in INDIVIDUAL mode, i.e. w/ "-a static" & '
-                          f'no "-G" set. Ignoring flag {tmap[target]}')
-        return None
-    return target
+    cond = ctx._analyze_group or ctx._approach != 'static'
+    msg = ('Normalization target only applicable to INDIVIDUAL mode w/ STATIC '
+           f'approach, i.e. "-a static" & no "-G". Ignoring flag {tmap[trgt]}')
+    return __nullify_and_warn_if_usr_set_opt(ctx, param.name, trgt, cond, msg)
 
 
 # callback for the xmin_args (-x, --xmin) option
@@ -473,38 +478,34 @@ def gset_nproc_default(ctx, param, nproc):
 # # also note that they mutate yaml_opts (denoted by _-suffix)
 
 # called in conditionalize_normalization_options_ below
-def __validate_norm_timings_(ctx, yaml_opts):
-    smap = {opt: ctx.get_parameter_source(opt) for
-            opt in ('norm_before', 'norm_after')}
-    if not ctx._analyze_group:
-        for opt, src in smap.items():
-            if src == 'COMMANDLINE':
-                warnings.warn('Normalization timing only applicable in GROUP '
-                              'analysis mode, i.e. w/ the "-G" flag set. '
-                              f"Ignoring flag --{'-'.join(opt.split('_'))}")
-            yaml_opts[opt] = None
-    return smap  # return mapping of norm-timing opts sources for convenience
+def validate_norm_timings_(ctx, yaml_opts):
+    cond = not ctx._analyze_group
+    for opt in ('norm_before', 'norm_after'):
+        msg = ('Normalization timing only applicable in GROUP mode, i.e. w/ '
+               f"'-G' flag set. Ignoring flag --{'-'.join(opt.split('_'))}")
+        yaml_opts[opt] = __nullify_and_warn_if_usr_set_opt(ctx, opt,
+                                                           yaml_opts[opt],
+                                                           cond, msg)
 
 
 def conditionalize_normalization_options_(ctx, yaml_opts):
-    timing_srcs = __validate_norm_timings_(ctx, yaml_opts)
-    use_default_timing = all(src == 'DEFAULT' for src in timing_srcs.values())
-    norm_srcs = {**timing_srcs,  # TODO: make top-level ctx attr for all srcs?
-                 'norm_target': ctx.get_parameter_source('norm_target')}
-
     normalize = yaml_opts['standardize'] or yaml_opts['absolutize']
-    if not normalize:
-        # the default case of no normalization at all
-        for opt in ('norm_target', 'norm_before', 'norm_after'):
-            if yaml_opts[opt] is not None and norm_srcs[opt] != "DEFAULT":
-                warnings.warn(f"Norm option '{opt}' only applicable w/ --std "
-                              f"and/or --abs set; ignoring option {opt}")
-                yaml_opts[opt] = None
-    elif normalize and ctx._analyze_group and use_default_timing:
+
+    for opt in ('norm_target', 'norm_before', 'norm_after'):
+        msg = f"opt '{opt}' only applicable w/ --std &| --abs set; ignoring"
+        val = yaml_opts[opt]
+        # for the default case of no normalization at all
+        yaml_opts[opt] = __nullify_and_warn_if_usr_set_opt(
+            ctx, opt, val, not normalize, msg,
+            warn_conjunct_cond=val is not None)
+
+    use_default_timing = all(src == 'DEFAULT' for src
+                             in (ctx.get_parameter_source(nt) for nt
+                                 in ('norm_before', 'norm_after')))
+    if normalize and ctx._analyze_group and use_default_timing:
         # set default norm timings if none explicitly set (but --std/--abs set)
         yaml_opts['norm_before'] = False
         yaml_opts['norm_after'] = True
-        # TODO: just set the defaults in YAML config?
 
 
 # validate then correctly set/toggle the two tail selection options
@@ -529,8 +530,9 @@ def conditionally_toggle_tail_flag_(ctx, yaml_opts):
 
     if yaml_opts['absolutize']:
         if ctx.get_parameter_source('anal_left') == 'COMMANDLINE':
-            warnings.warn("'--abs / --absolutize' flag set, only RIGHT tail "
-                          "appropriate for analysis; ignoring -L, using -R")
+            from warnings import warn
+            warn("'--abs / --absolutize' flag set, only RIGHT tail "
+                 "appropriate for analysis; ignoring -L, using -R")
         yaml_opts['anal_left'] = False
         yaml_opts['anal_right'] = True
 
@@ -554,6 +556,7 @@ def validate_df_date_indexes(ctx, yaml_opts):
         _assert_dates_in_df(ctx._xmins_df, anal_dates)
 
 
-post_proc_funcs = (conditionalize_normalization_options_,
+post_proc_funcs = (validate_norm_timings_,
+                   conditionalize_normalization_options_,
                    conditionally_toggle_tail_flag_,
                    validate_df_date_indexes,)

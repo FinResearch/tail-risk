@@ -22,8 +22,10 @@ lb_override: 252
 partition: 'country'
 # TODO: --tickers like option for selecting group(s) to analyze (i.e. specify 'DE' when in country)
 
+# NOTE: when either --std OR --abs set w/o any timing flags below, both timing opts
+# will default to value set in conditionalize_normalization_options_ of options.py
 norm_before: false
-norm_after: false  # TODO: can set default value directly here?
+norm_after: false  # true if either --std OR --abs set w/o timing specified
 
 xmin_args:
   - "average"  # TODO: defaults for 'average' set in parse_xmin_args() in options.py
