@@ -5,7 +5,7 @@
 analyze_group:
   metas:
     box_type: 'boolbox'
-    set_flag: ['analyze_group']
+    set_value_on_self: ['analyze_group']
   attrs:
     msg: 'Run individual or group tail analysis?'
     title: 'Analysis Type'
@@ -17,8 +17,8 @@ analyze_group:
 
 full_dbdf:
   metas:
-    box_type: 'fileopenbox'
-    # cb_val: ''
+    box_type: 'fileopenbox'  # TODO: add try-except for file-opening to handle wrong filetype
+    set_value_on_self: ['full_dbdf', '_read_fname_to_df(opt_val)']
   attrs:
     msg: 'What is the name of the database?'
     title: 'DB name'
@@ -28,24 +28,20 @@ full_dbdf:
       - '*.xls'
       - '*.xlsx'
 
-# msg       = "How many entries would you like to analyze?"
-# no_entries       = int(eg.enterbox(msg, title="No. entries", default="4"))
-# fieldNames       = ["# " + str(i) for i in xrange(1, no_entries + 1, 1)]
-# fieldValues   = ['DE 01Y', 'DE 03Y', 'DE 05Y', 'DE 10Y',]
-# title           = "Tickers input"
-# labels        = eg.multenterbox(msg, title, fieldNames, fieldValues)
-
-# tickers:
-#   box_type: 'multchoicebox'
-#   msg: 'Select the tickers to analyze'
-#   title: 'Tickers selection'
-#   choices:
-#     - ''
-#     - ''
+tickers:
+  metas:
+    box_type: 'multchoicebox'
+    creation_criteria: ['choices set_to: self.full_dbdf.columns']
+  attrs:
+    msg: 'Select the tickers to analyze'
+    title: 'Tickers selection'
+    choices: []
+    preselect: null
 
 date_bounds:
   metas:
     box_type: 'multenterbox'
+    creation_criteria: ['values set_to: self.full_dbdf.index[[len(self.full_dbdf)//2, -1]]']
     # trans_func: ''
     #   - 'date_i'
     #   - 'date_f'
@@ -55,20 +51,12 @@ date_bounds:
     fields:
       - 'initial date'
       - 'final date'
+    values: []
 
-# date_i:
-#   msg: ''
-#   title: ''
-#
-# date_f:
-#   msg: ''
-#   title: ''
-
-# approach_args:
 approach:
   metas:
     box_type: 'choicebox'
-    set_flag: ['use_dynamic', "opt_val != 'static'"]
+    set_value_on_self: ['use_dynamic', "opt_val != 'static'"]
   attrs:
     msg: 'Please specify which approach you would like to use'
     title: 'Approach'
@@ -81,7 +69,7 @@ approach:
 dynamic_parameters:
   metas:
     box_type: 'multenterbox'
-    creation_flags:
+    creation_criteria:
       - 'init_on: use_dynamic'
       - 'values set_by: analyze_group'
   attrs:
@@ -101,7 +89,7 @@ dynamic_parameters:
 partition:
   metas:
     box_type: 'choicebox'
-    creation_flags: ['init_on: analyze_group']
+    creation_criteria: ['init_on: analyze_group']
   attrs:
     msg: 'How do you want to group the inputs?'
     title: 'Partition type'
@@ -138,7 +126,7 @@ tau:
 normalize:
   metas:
     box_type: 'multchoicebox'
-    set_flag: ['normalize', 'bool(opt_val)']
+    set_value_on_self: ['normalize', 'bool(opt_val)']
     # trans_func: ''
   attrs:
     msg: 'Standardize and/or take Absolute value of data'
@@ -151,7 +139,7 @@ normalize:
 norm_target:
   metas:
     box_type: 'boolbox'
-    creation_flags: ['init_on: self.normalize and not self.analyze_group and not self.use_dynamic']
+    creation_criteria: ['init_on: self.normalize and not self.analyze_group and not self.use_dynamic']
   attrs:
     msg: 'What target to normalize?'
     title: 'normalization target'
@@ -163,8 +151,7 @@ norm_target:
 norm_timings:
   metas:
     box_type: 'multchoicebox'
-    creation_flags: ['init_on: self.normalize and self.analyze_group']
-    callback: ''
+    creation_criteria: ['init_on: self.normalize and self.analyze_group']
   attrs:
     msg: 'Normalize before and/or after grouping the data'
     title: 'normalization timing'
@@ -176,7 +163,6 @@ norm_timings:
 anal_tails:
   metas:
     box_type: 'multchoicebox'
-    callback: ''
   attrs:
     msg: 'Please specify which tail you want to plot in the alpha timeline'
     title: 'Select one or both tails'
@@ -190,7 +176,6 @@ anal_tails:
 alpha_signif:
   metas:
     box_type: 'enterbox'
-    callback: ''
   attrs:
     msg: 'Please specify the significance of the confidence interval (1 - a) for the alpha parameter '
     title: 'alpha'
@@ -211,8 +196,8 @@ data_is_continuous:
 xmin_rule:
   metas:
     box_type: 'choicebox'
-    creation_flags: ['choices set_by: analyze_group']
-    set_flag: ['xmin_rule']
+    creation_criteria: ['choices set_by: analyze_group']
+    set_value_on_self: ['xmin_rule']
     # trans_func: ''
   attrs:
     msg: 'What is the criteria for picking xmin'
@@ -234,10 +219,9 @@ xmin_rule:
 xmin_qnty:
   metas:
     box_type: 'enterbox'
-    creation_flags:
+    creation_criteria:
       - "init_on: self.xmin_rule in {'manual', 'percentile'}"
       - "default set_by: self.xmin_rule == 'manual'"
-    callback: ''
   attrs:
     msg: 'enter numeric argument for chosen xmin rule (manual /percentile)'
     title: 'xmin quantity'
@@ -248,8 +232,7 @@ xmin_qnty:
 xmin_average:
   metas:
     box_type: 'multenterbox'
-    creation_flags: ["init_on: self.xmin_rule == 'average'"]
-    callback: ''
+    creation_criteria: ["init_on: self.xmin_rule == 'average'"]
   attrs:
     msg: "enter the parameters for calculating the rolling average"
     title: 'rolling average xmin'
@@ -263,9 +246,8 @@ xmin_average:
 use_file_for_avg:
   metas:
     box_type: 'ynbox'
-    creation_flags: ["init_on: self.xmin_rule == 'average'"]
-    set_flag: ['use_file_for_avg']
-    callback: ''
+    creation_criteria: ["init_on: self.xmin_rule == 'average'"]
+    set_value_on_self: ['use_file_for_avg']
   attrs:
     msg: "get averaged xmins from data file?"
     title: 'use file for average'
@@ -274,8 +256,8 @@ use_file_for_avg:
 xmin_file:
   metas:
     box_type: 'fileopenbox'
-    creation_flags: ["init_on: self.xmin_rule == 'file' or getattr(self, 'use_file_for_avg', None)"]
-    callback: ''
+    creation_criteria: ["init_on: self.xmin_rule == 'file' or getattr(self, 'use_file_for_avg', None)"]
+    set_value_on_self: ['xmins_df', '_read_fname_to_df(opt_val)']
   attrs:
     msg: 'select file containing xmins data to use'
     title: 'xmins data file'
@@ -288,22 +270,22 @@ xmin_file:
 run_ks_test:
   metas:
     box_type: 'boolbox'
-    creation_flags: ['default_choice set_by: analyze_group']
-    set_flag: ['run_ks_test']
+    creation_criteria: ['default_choice set_by: analyze_group']
+    set_value_on_self: ['run_ks_test']
   attrs:
     msg: 'Run or Skip KS-test for p-values'
     title: 'KS-Test'
     choices:
-      - '[R]un'
-      - '[S]kip'
+      - '[r]un'
+      - '[s]kip'
     default_choice:
-      - '[R]un'   # default for Individual mode 
-      - '[S]kip'  # default for Group mode
+      - '[r]un'   # default for Individual mode 
+      - '[s]kip'  # default for Group mode
 
 ks_iter:
   metas:
     box_type: 'integerbox'
-    creation_flags:
+    creation_criteria:
       - 'init_on: run_ks_test'
       - 'default set_by: analyze_group'
   attrs:
@@ -318,7 +300,7 @@ ks_iter:
 compare_distros:
   metas:
     box_type: 'boolbox'
-    creation_flags: ['default_choice set_by: analyze_group']
+    creation_criteria: ['default_choice set_by: analyze_group']
   attrs:
     msg: 'Compare fitted power law to other distribution types?'
     title: 'Compare distributions'
@@ -332,7 +314,7 @@ compare_distros:
 nproc:
   metas:
     box_type: 'integerbox'
-    creation_flags: ['default set_by: evaluation']
+    creation_criteria: ['default set_by: evaluation']
   attrs:
     msg: '# of concurrent processes to run for analysis'
     title: '# procs'
@@ -343,7 +325,7 @@ nproc:
 plot_results:
   metas:
     box_type: 'boolbox'
-    # creation_flags:
+    # creation_criteria:
     #   - 'default_by_mode'
   attrs:
     msg: 'Plot the analyzed data?'

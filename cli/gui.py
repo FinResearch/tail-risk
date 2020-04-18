@@ -1,6 +1,7 @@
 import yaml
 import easygui
 
+from .options import _read_fname_to_df
 from . import ROOT_DIR
 OPT_CFG_DIR = f'{ROOT_DIR}/config/options/'  # TODO: use pathlib.Path ??
 
@@ -31,45 +32,54 @@ class GUI:
                     mom[opt] = msp[mt]
             setattr(self, mt, mom)
 
-    def __process_creation_flags(self, opt, attrs):
+    def __process_creation_criteria(self, opt, attrs):
         create_gui = True
-        flags = self.creation_flags.get(opt)
+        flags = self.creation_criteria.get(opt)
         if bool(flags):
             for fstr in flags:
-                action, cond = fstr.split(': ')
-                if len(cond.split()) == 1:
-                    ev_cond = eval(f"getattr(self, '{cond}', None)")
-                else:  # TODO: kinda janky, try to improve
-                    ev_cond = eval(cond)
-                if action == 'init_on':
-                    create_gui = ev_cond
-                elif action.endswith('set_by'):
-                    val_attr = action.split()[0]
+                criterion, action = fstr.split(': ')
+
+                if 'self' in action:
+                    ev_act = eval(action)
+                else:
+                    # TODO: add 'self' explicitly where appropriate?
+                    #       deal w/ 'evaluation' in other way
+                    ev_act = eval(f"getattr(self, '{action}', None)")
+
+                if criterion == 'init_on':
+                    create_gui = ev_act
+                elif criterion.endswith('set_by'):
+                    val_attr = criterion.split()[0]
                     assert val_attr in attrs
-                    if ev_cond is not None:
-                        idx = bool(ev_cond)
+                    if ev_act is not None:
+                        idx = bool(ev_act)
                         attrs[val_attr] = attrs[val_attr][idx]
-                    elif ev_cond is None and cond == 'evaluation':
+                    elif ev_act is None and action == 'evaluation':
                         import os  # used by eval() to get # processors
                         attrs[val_attr] = eval(attrs[val_attr])
                     else:
                         raise ValueError('this should not be reached!')
+                elif criterion.endswith('set_to'):
+                    val_attr = criterion.split()[0]
+                    assert val_attr in attrs and ev_act is not None
+                    attrs[val_attr] = ev_act
         return create_gui
 
-    def _set_bool_flags(self, opt, opt_val):
-        bool_flag = self.set_flag.get(opt)
-        if bool(bool_flag):
-            flag, *val = bool_flag
-            val = eval(val[0]) if bool(val) else opt_val
-            setattr(self, flag, val)
+    def _set_value_on_self(self, opt, opt_val):
+        val_to_set = self.set_value_on_self.get(opt)
+        if bool(val_to_set):
+            attr, *vals = val_to_set
+            value = eval(vals[0]) if bool(vals) else opt_val
+            setattr(self, attr, value)
+            # TODO: add try-except for file-opening to handle wrong filetype
 
     def _create_and_run_guis(self):
         uis = {}
         for opt, attrs in self.gui_attrs.items():
             box = getattr(easygui, self.box_type[opt])
-            if self.__process_creation_flags(opt, attrs):
+            if self.__process_creation_criteria(opt, attrs):
                 opt_val = box(**attrs)
-                self._set_bool_flags(opt, opt_val)
+                self._set_value_on_self(opt, opt_val)
                 uis[opt] = opt_val
         self.user_inputs = uis
 
