@@ -31,7 +31,7 @@ class GUI:
                     mom[opt] = msp[mt]
             setattr(self, mt, mom)
 
-    def __proc_creation_flags(self, opt, attrs):
+    def __process_creation_flags(self, opt, attrs):
         create_gui = True
         flags = self.creation_flags.get(opt)
         if bool(flags):
@@ -44,13 +44,12 @@ class GUI:
                 if action == 'init_on':
                     create_gui = ev_cond
                 elif action.endswith('set_by'):
-                    val_attr = action.split('-')[0]
+                    val_attr = action.split()[0]
                     assert val_attr in attrs
-                    if cond == 'analyze_group':
+                    if ev_cond is not None:
                         idx = bool(ev_cond)
                         attrs[val_attr] = attrs[val_attr][idx]
-                    elif cond == 'evaluation':
-                        assert ev_cond is None
+                    elif ev_cond is None and cond == 'evaluation':
                         import os  # used by eval() to get # processors
                         attrs[val_attr] = eval(attrs[val_attr])
                     else:
@@ -58,16 +57,17 @@ class GUI:
         return create_gui
 
     def _set_bool_flags(self, opt, opt_val):
-        bool_flag = self.set_bool_flag.get(opt)
+        bool_flag = self.set_flag.get(opt)
         if bool(bool_flag):
-            fname, value = bool_flag
-            setattr(self, fname, eval(value))
+            flag, *val = bool_flag
+            val = eval(val[0]) if bool(val) else opt_val
+            setattr(self, flag, val)
 
     def _create_and_run_guis(self):
         uis = {}
         for opt, attrs in self.gui_attrs.items():
             box = getattr(easygui, self.box_type[opt])
-            if self.__proc_creation_flags(opt, attrs):
+            if self.__process_creation_flags(opt, attrs):
                 opt_val = box(**attrs)
                 self._set_bool_flags(opt, opt_val)
                 uis[opt] = opt_val

@@ -78,15 +78,9 @@ approach_args:
   default:
     # NOTE: this default map is NOT actually used by the click.Option,
     #       but is instead here for convenient serialization/encoding
-    rolling:
-      - '504'
-      - '1'
-    increasing:
-      - '504'
-      - '1'
-    static:
-      - null
-      - null
+    rolling: ['504', '1']
+    increasing: ['504', '1']
+    static: [null, null]
   show_default: false
   callback: 'validate_approach_args'
   # metavar:  # NOTE: this attr is set by _set_vnargs_choice_metahelp_()
