@@ -61,7 +61,7 @@ class GUI:
                         raise ValueError('this should not be reached!')
                 elif criterion.endswith('set_to'):
                     val_attr = criterion.split()[0]
-                    assert val_attr in attrs and ev_act is not None
+                    assert val_attr in attrs and ev_act is not None and not bool(attrs[val_attr])
                     attrs[val_attr] = ev_act
         return create_gui
 
@@ -74,15 +74,14 @@ class GUI:
             # TODO: add try-except for file-opening to handle wrong filetype
 
     def _create_and_run_guis(self):
-        uis = {}
+        self.cli_str_ls = []
         for opt, attrs in self.gui_attrs.items():
             box = getattr(easygui, self.box_type[opt])
             if self.__process_creation_criteria(opt, attrs):
                 opt_val = box(**attrs)
                 self._set_value_on_self(opt, opt_val)
-                uis[opt] = opt_val
-        self.user_inputs = uis
+                self.cli_str_ls.append(eval(self.cli_str_comp.get(opt, "''")))
 
-    def get_user_inputs(self):
+    def get_cli_input(self):
         self._create_and_run_guis()
-        return self.user_inputs
+        return ' '.join(self.cli_str_ls)

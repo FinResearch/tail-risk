@@ -6,6 +6,7 @@ analyze_group:
   metas:
     box_type: 'boolbox'
     set_value_on_self: ['analyze_group']
+    cli_str_comp: "f\"{'--group' if opt_val else '--individual'}\""
   attrs:
     msg: 'Run individual or group tail analysis?'
     title: 'Analysis Type'
@@ -19,6 +20,7 @@ full_dbdf:
   metas:
     box_type: 'fileopenbox'  # TODO: add try-except for file-opening to handle wrong filetype
     set_value_on_self: ['full_dbdf', '_read_fname_to_df(opt_val)']
+    cli_str_comp: "opt_val"
   attrs:
     msg: 'What is the name of the database?'
     title: 'DB name'
@@ -32,6 +34,7 @@ tickers:
   metas:
     box_type: 'multchoicebox'
     creation_criteria: ['choices set_to: self.full_dbdf.columns']
+    cli_str_comp: "'' if opt_val is None else f\"--tickers={', '.join(opt_val)}\""
   attrs:
     msg: 'Select the tickers to analyze'
     title: 'Tickers selection'
@@ -42,9 +45,7 @@ date_bounds:
   metas:
     box_type: 'multenterbox'
     creation_criteria: ['values set_to: self.full_dbdf.index[[len(self.full_dbdf)//2, -1]]']
-    # trans_func: ''
-    #   - 'date_i'
-    #   - 'date_f'
+    cli_str_comp: "f'--di={opt_val[0]} --df={opt_val[1]}'"
   attrs:
     msg: 'Please specify the initial date, the final date and the lookback for rolling analysis?'
     title: 'Dates input'
@@ -57,6 +58,7 @@ approach:
   metas:
     box_type: 'choicebox'
     set_value_on_self: ['use_dynamic', "opt_val != 'static'"]
+    cli_str_comp: "f'--approach {opt_val}'"
   attrs:
     msg: 'Please specify which approach you would like to use'
     title: 'Approach'
@@ -66,19 +68,20 @@ approach:
       - 'static'
     preselect: 0
 
-dynamic_parameters:
+dynamic_appr_params:
   metas:
     box_type: 'multenterbox'
     creation_criteria:
       - 'init_on: use_dynamic'
       - 'values set_by: analyze_group'
+    cli_str_comp: "' '.join(opt_val)"
   attrs:
     msg: "What is the frequency at which the tail should be analyzed (days)?"
     title: 'lookback & frequency'
     fields:
       - 'lookback'
       - 'frequency'
-    values:  # multenterbox's equivalent of default value(s)
+    values:
       -  # values for Individual mode
         - 504
         - 1
@@ -90,13 +93,14 @@ partition:
   metas:
     box_type: 'choicebox'
     creation_criteria: ['init_on: analyze_group']
+    cli_str_comp: "f'--partition {opt_val.lower()}'"
   attrs:
     msg: 'How do you want to group the inputs?'
     title: 'Partition type'
     choices:
       - 'Country'
       - 'Maturity'
-      - 'Core vs. Periphery'
+      - 'Core vs. Periphery'  # TODO: need to map this to 'region'
       - 'All'
       - 'None'
     preselect: 0
@@ -104,6 +108,7 @@ partition:
 returns_type:
   metas:
     box_type: 'choicebox'
+    cli_str_comp: "f'--returns-type {opt_val}'"
   attrs:
     msg: 'Please specify which type of series you want to study'
     title: 'Input type'
@@ -116,6 +121,7 @@ returns_type:
 tau:
   metas:
     box_type: 'integerbox'
+    cli_str_comp: "f'--tau {opt_val}'"
   attrs:
     msg: 'Please specify the time lag of the input series: 1 = daily, 5 = weekly, 22 = monthly'
     title: 'delta'
@@ -127,31 +133,33 @@ normalize:
   metas:
     box_type: 'multchoicebox'
     set_value_on_self: ['normalize', 'bool(opt_val)']
-    # trans_func: ''
+    cli_str_comp: "'' if opt_val is None else ' '.join(f'--{nopt}' for nopt in opt_val)"
   attrs:
     msg: 'Standardize and/or take Absolute value of data'
     title: 'Normalization'
     choices:
-      - 'standardize (normally)'
-      - 'absolute value'
+      - 'standardize'
+      - 'absolutize'
     preselect: null
 
 norm_target:
   metas:
-    box_type: 'boolbox'
+    box_type: 'buttonbox'
     creation_criteria: ['init_on: self.normalize and not self.analyze_group and not self.use_dynamic']
+    cli_str_comp: "f'--norm-{opt_val}'"
   attrs:
     msg: 'What target to normalize?'
     title: 'normalization target'
     choices:
-      - '[s]eries'
-      - '[t]ail'
-    default_choice: '[s]eries'
+      - 'series'
+      - 'tail'
+    default_choice: 'series'
 
 norm_timings:
   metas:
     box_type: 'multchoicebox'
     creation_criteria: ['init_on: self.normalize and self.analyze_group']
+    cli_str_comp: "'' if opt_val is None else ' '.join(f'--{topt}' for topt in opt_val)"
   attrs:
     msg: 'Normalize before and/or after grouping the data'
     title: 'normalization timing'
@@ -163,12 +171,13 @@ norm_timings:
 anal_tails:
   metas:
     box_type: 'multchoicebox'
+    cli_str_comp: "'' if opt_val is None else ' '.join(f'-{tail[0]}' for tail in opt_val)"
   attrs:
     msg: 'Please specify which tail you want to plot in the alpha timeline'
     title: 'Select one or both tails'
     choices:
-      - 'right'
-      - 'left'
+      - 'Right'
+      - 'Left'
     preselect:
       - 0
       - 1
@@ -176,6 +185,7 @@ anal_tails:
 alpha_signif:
   metas:
     box_type: 'enterbox'
+    cli_str_comp: "f'--alpha {opt_val}'"
   attrs:
     msg: 'Please specify the significance of the confidence interval (1 - a) for the alpha parameter '
     title: 'alpha'
@@ -183,14 +193,15 @@ alpha_signif:
 
 data_is_continuous:
   metas:
-    box_type: 'boolbox'
+    box_type: 'buttonbox'
+    cli_str_comp: "f'--{opt_val}'"
   attrs:
     msg: 'What is the nature of your data?'
     title: 'Data type'
     choices:
-      - '[c]ontinuous'
-      - '[d]iscrete'
-    default_choice: '[c]ontinuous'
+      - 'continuous'
+      - 'discrete'
+    default_choice: 'continuous'
     # cancel_choice: 'continuous'
 
 xmin_rule:
@@ -198,7 +209,7 @@ xmin_rule:
     box_type: 'choicebox'
     creation_criteria: ['choices set_by: analyze_group']
     set_value_on_self: ['xmin_rule']
-    # trans_func: ''
+    cli_str_comp: "f\"--xmin {'clauset' if opt_val == 'clauset' else ''}\"" 
   attrs:
     msg: 'What is the criteria for picking xmin'
     title: 'xmin rule'
@@ -222,6 +233,7 @@ xmin_qnty:
     creation_criteria:
       - "init_on: self.xmin_rule in {'manual', 'percentile'}"
       - "default set_by: self.xmin_rule == 'manual'"
+    cli_str_comp: "opt_val"
   attrs:
     msg: 'enter numeric argument for chosen xmin rule (manual /percentile)'
     title: 'xmin quantity'
@@ -229,10 +241,11 @@ xmin_qnty:
       - '90%'   # default value for rule 'percentile'
       - '0.0'   # default value for rule 'manual'
 
-xmin_average:
+xmin_avg_params:
   metas:
     box_type: 'multenterbox'
     creation_criteria: ["init_on: self.xmin_rule == 'average'"]
+    cli_str_comp: "' '.join(opt_val)"
   attrs:
     msg: "enter the parameters for calculating the rolling average"
     title: 'rolling average xmin'
@@ -258,6 +271,7 @@ xmin_file:
     box_type: 'fileopenbox'
     creation_criteria: ["init_on: self.xmin_rule == 'file' or getattr(self, 'use_file_for_avg', None)"]
     set_value_on_self: ['xmins_df', '_read_fname_to_df(opt_val)']
+    cli_str_comp: "opt_val"
   attrs:
     msg: 'select file containing xmins data to use'
     title: 'xmins data file'
@@ -269,18 +283,19 @@ xmin_file:
 
 run_ks_test:
   metas:
-    box_type: 'boolbox'
+    box_type: 'buttonbox'
     creation_criteria: ['default_choice set_by: analyze_group']
     set_value_on_self: ['run_ks_test']
+    cli_str_comp: "f'--ks-{opt_val}'"
   attrs:
     msg: 'Run or Skip KS-test for p-values'
     title: 'KS-Test'
     choices:
-      - '[r]un'
-      - '[s]kip'
+      - 'run'
+      - 'skip'
     default_choice:
-      - '[r]un'   # default for Individual mode 
-      - '[s]kip'  # default for Group mode
+      - 'run'   # default for Individual mode 
+      - 'skip'  # default for Group mode
 
 ks_iter:
   metas:
@@ -288,6 +303,7 @@ ks_iter:
     creation_criteria:
       - 'init_on: run_ks_test'
       - 'default set_by: analyze_group'
+    cli_str_comp: "f'--ks-iter {opt_val}'"
   attrs:
     msg: 'What is the number of iterations for the Clauset p-value algorithm?'
     title: 'iterations'
@@ -299,22 +315,21 @@ ks_iter:
 
 compare_distros:
   metas:
-    box_type: 'boolbox'
+    box_type: 'ynbox'
     creation_criteria: ['default_choice set_by: analyze_group']
+    cli_str_comp: "f\"--{'' if opt_val else 'no-'}compare\""
   attrs:
     msg: 'Compare fitted power law to other distribution types?'
     title: 'Compare distributions'
-    choices:
-      - '[Y]es'
-      - '[N]o'
     default_choice:
-      - '[Y]es' # default for Individual mode 
-      - '[N]o'  # default for Group mode
+      - '[<F1>]Yes'   # default for Individual mode 
+      - '[<F2>]No'    # default for Group mode
 
 nproc:
   metas:
     box_type: 'integerbox'
     creation_criteria: ['default set_by: evaluation']
+    cli_str_comp: "f'--nproc {opt_val}'"
   attrs:
     msg: '# of concurrent processes to run for analysis'
     title: '# procs'
@@ -324,16 +339,12 @@ nproc:
 
 plot_results:
   metas:
-    box_type: 'boolbox'
-    # creation_criteria:
-    #   - 'default_by_mode'
+    box_type: 'ynbox'
+    cli_str_comp: "f\"--{'' if opt_val else 'no-'}plot\""
   attrs:
     msg: 'Plot the analyzed data?'
     title: 'Plot'
-    choices:
-      - '[Y]es'
-      - '[N]o'
-    default_choice: '[N]o'
+    default_choice: '[<F2>]No'
 
 # show_plots:
 #   msg: ''
