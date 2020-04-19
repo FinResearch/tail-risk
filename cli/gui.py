@@ -74,14 +74,20 @@ class GUI:
             # TODO: add try-except for file-opening to handle wrong filetype
 
     def _create_and_run_guis(self):
-        self.cli_str_ls = []
+        raw_gui_args_ls = []
         for opt, attrs in self.gui_attrs.items():
             box = getattr(easygui, self.box_type[opt])
             if self.__process_creation_criteria(opt, attrs):
                 opt_val = box(**attrs)
                 self._set_value_on_self(opt, opt_val)
-                self.cli_str_ls.append(eval(self.cli_str_comp.get(opt, "''")))
+                raw_gui_args_ls.append(eval(self.cli_str_comp.get(opt, "''")))
+        self.raw_args_str = ' '.join(raw_gui_args_ls)
 
-    def get_cli_input(self):
+    def get_cli_input_args(self):
         self._create_and_run_guis()
-        return ' '.join(self.cli_str_ls)
+        args_split = [arg.strip() for arg in self.raw_args_str.split(sep='--')]
+        argv_pairs = [args_split[0]] + [f'--{ovp}' for ovp in args_split[1:]]
+        input_args = [arg for in_arg in [[ovp] if '=' in ovp else ovp.split()
+                                         for ovp in argv_pairs]
+                      for arg in in_arg]
+        return input_args

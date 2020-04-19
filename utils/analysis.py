@@ -49,7 +49,7 @@ class _Analyzer(ABC):
     def __get_xmin(self):
         if self.sa.xmin_rule in {"clauset", "manual"}:
             xmin = self.sa.xmin_qnty  # ie. {None, user-input-ℝ} respectively
-        elif self.sa.xmin_rule == "percentile":
+        elif self.sa.xmin_rule == "percent":
             xmin = np.percentile(self.curr_input_array, self.sa.xmin_qnty)
         elif self.sa.xmin_rule in {"file", "average"}:
             assert self.sa.use_dynamic,\

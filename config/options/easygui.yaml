@@ -2,20 +2,6 @@
 
 # parameters specifications for EasyGUI
 
-analyze_group:
-  metas:
-    box_type: 'boolbox'
-    set_value_on_self: ['analyze_group']
-    cli_str_comp: "f\"{'--group' if opt_val else '--individual'}\""
-  attrs:
-    msg: 'Run individual or group tail analysis?'
-    title: 'Analysis Type'
-    choices:
-      - '[G]roup'
-      - '[I]ndividual'
-    default_choice: null
-    # cancel_choice: '[I]ndividual'
-
 full_dbdf:
   metas:
     box_type: 'fileopenbox'  # TODO: add try-except for file-opening to handle wrong filetype
@@ -53,6 +39,20 @@ date_bounds:
       - 'initial date'
       - 'final date'
     values: []
+
+analyze_group:
+  metas:
+    box_type: 'boolbox'
+    set_value_on_self: ['analyze_group']
+    cli_str_comp: "f\"{'--group' if opt_val else '--individual'}\""
+  attrs:
+    msg: 'Run individual or group tail analysis?'
+    title: 'Analysis Type'
+    choices:
+      - '[G]roup'
+      - '[I]ndividual'
+    default_choice: null
+    # cancel_choice: '[I]ndividual'
 
 approach:
   metas:
@@ -93,7 +93,7 @@ partition:
   metas:
     box_type: 'choicebox'
     creation_criteria: ['init_on: analyze_group']
-    cli_str_comp: "f'--partition {opt_val.lower()}'"
+    cli_str_comp: "f'--partition={opt_val.lower()}'"
   attrs:
     msg: 'How do you want to group the inputs?'
     title: 'Partition type'
@@ -108,7 +108,7 @@ partition:
 returns_type:
   metas:
     box_type: 'choicebox'
-    cli_str_comp: "f'--returns-type {opt_val}'"
+    cli_str_comp: "f'--returns-type={opt_val}'"
   attrs:
     msg: 'Please specify which type of series you want to study'
     title: 'Input type'
@@ -121,7 +121,7 @@ returns_type:
 tau:
   metas:
     box_type: 'integerbox'
-    cli_str_comp: "f'--tau {opt_val}'"
+    cli_str_comp: "f'--tau={opt_val}'"
   attrs:
     msg: 'Please specify the time lag of the input series: 1 = daily, 5 = weekly, 22 = monthly'
     title: 'delta'
@@ -171,13 +171,13 @@ norm_timings:
 anal_tails:
   metas:
     box_type: 'multchoicebox'
-    cli_str_comp: "'' if opt_val is None else ' '.join(f'-{tail[0]}' for tail in opt_val)"
+    cli_str_comp: "'' if opt_val is None else ' '.join(f'--{tail}' for tail in opt_val)"
   attrs:
     msg: 'Please specify which tail you want to plot in the alpha timeline'
     title: 'Select one or both tails'
     choices:
-      - 'Right'
-      - 'Left'
+      - 'right'
+      - 'left'
     preselect:
       - 0
       - 1
@@ -185,7 +185,7 @@ anal_tails:
 alpha_signif:
   metas:
     box_type: 'enterbox'
-    cli_str_comp: "f'--alpha {opt_val}'"
+    cli_str_comp: "f'--alpha={opt_val}'"
   attrs:
     msg: 'Please specify the significance of the confidence interval (1 - a) for the alpha parameter '
     title: 'alpha'
@@ -217,13 +217,13 @@ xmin_rule:
       -  # choices for Individual mode
         - 'clauset'
         - 'manual'
-        - 'percentile'
+        - 'percent'
         - 'file'
       -  # choices for Group mode
         - 'average'
         - 'clauset'
         - 'manual'
-        - 'percentile'
+        - 'percent'
         - 'file'
     # preselect: null
 
@@ -231,14 +231,14 @@ xmin_qnty:
   metas:
     box_type: 'enterbox'
     creation_criteria:
-      - "init_on: self.xmin_rule in {'manual', 'percentile'}"
+      - "init_on: self.xmin_rule in {'manual', 'percent'}"
       - "default set_by: self.xmin_rule == 'manual'"
     cli_str_comp: "opt_val"
   attrs:
-    msg: 'enter numeric argument for chosen xmin rule (manual /percentile)'
+    msg: 'enter numeric argument for chosen xmin rule (manual /percent)'
     title: 'xmin quantity'
     default:
-      - '90%'   # default value for rule 'percentile'
+      - '90%'   # default value for rule 'percent'
       - '0.0'   # default value for rule 'manual'
 
 xmin_avg_params:
@@ -303,7 +303,7 @@ ks_iter:
     creation_criteria:
       - 'init_on: run_ks_test'
       - 'default set_by: analyze_group'
-    cli_str_comp: "f'--ks-iter {opt_val}'"
+    cli_str_comp: "f'--ks-iter={opt_val}'"
   attrs:
     msg: 'What is the number of iterations for the Clauset p-value algorithm?'
     title: 'iterations'
@@ -329,7 +329,7 @@ nproc:
   metas:
     box_type: 'integerbox'
     creation_criteria: ['default set_by: evaluation']
-    cli_str_comp: "f'--nproc {opt_val}'"
+    cli_str_comp: "f'--nproc={opt_val}'"
   attrs:
     msg: '# of concurrent processes to run for analysis'
     title: '# procs'

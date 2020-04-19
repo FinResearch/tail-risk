@@ -190,7 +190,8 @@ norm_after:  # NOTE: opt only available in group tail analysis mode
 
 anal_right:
   param_decls:
-    - '-R/--right-skip'
+    - '-R'
+    - '--right/--right-skip'
     - 'anal_right'
   is_flag: true
   default: true  # default to True so if neither tail set, then both analyzed
@@ -198,7 +199,8 @@ anal_right:
 
 anal_left:
   param_decls:
-    - '-L/--left-skip'
+    - '-L'
+    - '--left/--left-skip'
     - 'anal_left'
   is_flag: true
   default: true  # default to True so if neither tail set, then both analyzed
