@@ -86,14 +86,12 @@ def _read_fname_to_df(fname):
 
     if fpath.is_file():
         # TODO: move below mapping into some config file???
-        ext2reader_map = {'.csv': 'csv',  # TODO: add kwargs like 'sep' & 'engine'
-                          '.txt': 'table',  # 'read_table' uses \t as col-delimiter by default
-                          '.xls': 'excel',  # TODO: add mult-sheet support? drop .xls support, allowing 'openpyxl' usage only
-                          '.xlsx': 'excel', }
-        # TODO: switch parsing engine from 'xlrd' to 'openpyxl', as former will
-        # be deprecated; see: https://github.com/pandas-dev/pandas/issues/28547
+        ext2reader_map = {'.csv': ('read_csv', {}),
+                          '.txt': ('read_table', {}),
+                          '.xlsx': ('read_excel', {'engine': 'openpyxl'})}
         if fext in ext2reader_map.keys():
-            reader = getattr(pd, f'read_{ext2reader_map[fext]}')
+            read_method, reader_kwargs = ext2reader_map[fext]
+            reader = getattr(pd, read_method)
         else:
             raise TypeError(f"Only [{', '.join(ext2reader_map.keys())}] files "
                             f"are currently supported; given: {fpath.name}")
@@ -101,7 +99,7 @@ def _read_fname_to_df(fname):
         raise FileNotFoundError(f"Cannot find file '{fpath.resolve()}'")
 
     # TODO: make index_col case-insensitive? i.e. 'Date' or 'date'
-    return reader(fpath, index_col='Date')  # TODO:pd.DatetimeIndex
+    return reader(fpath, index_col='Date', **reader_kwargs)
 
 
 # TODO: optimize using list.index(value)?
