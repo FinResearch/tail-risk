@@ -165,6 +165,7 @@ class Settings:
             #  part_map['leftovers'] = [tick for tick in self.tickers if
             #                                all(tick not in group for group
             #                                    in part_map.values())]
+        # TODO: All & None
 
         # set partition groups as the top-level column label
         # TODO: use slice+loc to org ticks then set toplvl-idx to rm pd depend
@@ -211,7 +212,7 @@ class Settings:
         return labels
 
     def _gset_output_filename(self):
-        mode = ('group-by-{self.partition}' if self.analyze_group else
+        mode = (f'group-by-{self.partition}' if self.analyze_group else
                 'individual')
         lb = '' if self._lookback is None else f'-{self._lookback}-lkbk'
         self.output_fname = f'tail-stats_{mode}_{self.approach}{lb}.xlsx'

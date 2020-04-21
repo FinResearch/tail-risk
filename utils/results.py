@@ -63,3 +63,5 @@ class Results:
     def write_df_to_file(self, filetype='xlsx'):
         self.prettify_df()
         self._write_dynamic() if self.sa.use_dynamic else self._write_static()
+
+    # TODO: add formatter to output file in same clunky way as what they had before

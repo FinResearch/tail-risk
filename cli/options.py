@@ -457,6 +457,7 @@ def parse_xmin_args(ctx, param, xmin_args):
         percent = _convert_str_to_num(x[:-1], min_allowed=0, max_allowed=100,
                                       range_errmsg=range_errmsg)
         return ('percent', percent)
+        # TODO: accept file of percents
     else:
         try:
             return ('manual', _convert_str_to_num(x))

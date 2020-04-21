@@ -113,9 +113,9 @@ returns_type:
     msg: 'Please specify which type of series you want to study'
     title: 'Input type'
     choices:
-      - 'raw'  # TODO: change name to 'basic' or 'returns'
-      - 'relative'
-      - 'log'
+      - 'raw returns'
+      - 'relative returns'
+      - 'log returns'
     preselect: 2
 
 tau:
