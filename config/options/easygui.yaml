@@ -93,14 +93,14 @@ partition:
   metas:
     box_type: 'choicebox'
     creation_criteria: ['init_on: analyze_group']
-    cli_str_comp: "f'--partition={opt_val.lower()}'"
+    cli_str_comp: "f\"--partition={'region' if opt_val == 'Core vs. Periphery' else opt_val.lower()}\""
   attrs:
     msg: 'How do you want to group the inputs?'
     title: 'Partition type'
     choices:
       - 'Country'
       - 'Maturity'
-      - 'Core vs. Periphery'  # TODO: need to map this to 'region'
+      - 'Core vs. Periphery'
       - 'All'
       - 'None'
     preselect: 0
