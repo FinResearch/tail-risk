@@ -5,7 +5,6 @@ import pandas as pd
 class Results:
 
     def __init__(self, settings):
-        #  self.sc = settings.ctrl  # doesn't appear to need
         self.sd = settings.data
         self.sa = settings.anal
 
@@ -20,7 +19,6 @@ class Results:
                      self._gixn.pluralize())
         ridx_labs = (self.sd.anal_dates if self.sa.use_dynamic
                      else self.sd.grouping_labs)
-        #  ridx = pd.Index(ridx_labs, name=ridx_name.lower())
         ridx = pd.Index(ridx_labs, name=ridx_name)
         # cidx: COLUMN index below
         cidx = pd.MultiIndex.from_tuples(self.sd.stats_collabs,
@@ -46,10 +44,22 @@ class Results:
         return (self._init_dynamic() if self.sa.use_dynamic else
                 self._init_static())
 
-    def prettify_df(self):
-        self._drop_blank_column_level()
-
-    def _drop_blank_column_level(self):
+    def _drop_empty_column_level(self):
         lvls2drop = [l for l, lvl in enumerate(self.df.columns.levels)
                      if all(lab == '' for lab in lvl)]
         self.df.columns = self.df.columns.droplevel(lvls2drop)
+    def prettify_df(self):
+        self._drop_empty_column_level()
+
+    def _write_static(self, filetype='xlsx'):
+        sheet_name = f'{self.sd.date_i} -> {self.sd.date_f}'.replace('/', '-')
+        self.df.to_excel(self.sd.output_fname, sheet_name=sheet_name)
+
+    def _write_dynamic(self, filetype='xlsx'):
+        with pd.ExcelWriter(self.sd.output_fname) as writer:
+            for grp in self.sd.grouping_labs:
+                self.df[grp].to_excel(writer, sheet_name=grp)
+
+    def write_df_to_file(self, filetype='xlsx'):
+        self.prettify_df()
+        self._write_dynamic() if self.sa.use_dynamic else self._write_static()

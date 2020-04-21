@@ -22,6 +22,7 @@ data:
   - grouping_labs
   - stats_colname
   - stats_collabs
+  - output_fname
 
 ## analysis settings: determines how the data is analyzed
 anal:

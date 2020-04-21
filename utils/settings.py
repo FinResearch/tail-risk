@@ -22,6 +22,7 @@ class Settings:
         # domain-, functionality- & usecase- specific settings
         self._gset_grouping_info()  # must be called after _gset_dbdf_attrs()
         self._load_set_stats_columns_labels()
+        self._gset_output_filename()
         if self.plot_results:
             self._gset_plot_settings()
         if isinstance(self.xmin_qnty, pd.DataFrame):  # only w/ {file, average}
@@ -208,6 +209,12 @@ class Settings:
         else:
             labels = [lab for lab in labels if not lab.startswith('ll_')]
         return labels
+
+    def _gset_output_filename(self):
+        mode = ('group-by-{self.partition}' if self.analyze_group else
+                'individual')
+        lb = '' if self._lookback is None else f'-{self._lookback}-lkbk'
+        self.output_fname = f'tail-stats_{mode}_{self.approach}{lb}.xlsx'
 
     # # methods relevant to settings needed by plotter # #
 
