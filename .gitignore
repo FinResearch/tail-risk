@@ -1,5 +1,5 @@
 __pycache__
 *.json
-TailStatistics_*
+tail-stats_*
 profile*.svg
 *.log

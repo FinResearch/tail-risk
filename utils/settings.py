@@ -58,6 +58,8 @@ class Settings:
     # # methods needed for the core general settings # #
 
     def _postprocess_specific_options(self):
+        self.analyze_group = (False if self.partition == 'none' else
+                              self.analyze_group)
         self._full_dates = self.full_dbdf.index
         self.approach, self._lookback, self._frq = self.approach_args
         self._lookback = self.lb_override or self._lookback
@@ -165,7 +167,8 @@ class Settings:
             #  part_map['leftovers'] = [tick for tick in self.tickers if
             #                                all(tick not in group for group
             #                                    in part_map.values())]
-        # TODO: All & None
+        elif self.partition == 'all':
+            part_map = {'all tickers': self.tickers}
 
         # set partition groups as the top-level column label
         # TODO: use slice+loc to org ticks then set toplvl-idx to rm pd depend

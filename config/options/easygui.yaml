@@ -93,16 +93,16 @@ partition:
   metas:
     box_type: 'choicebox'
     creation_criteria: ['init_on: analyze_group']
-    cli_str_comp: "f\"--partition={'region' if opt_val == 'Core vs. Periphery' else opt_val.lower()}\""
+    cli_str_comp: "f\"--partition={'region' if opt_val == 'core vs. periphery' else opt_val}\""
   attrs:
     msg: 'How do you want to group the inputs?'
     title: 'Partition type'
     choices:
-      - 'Country'
-      - 'Maturity'
-      - 'Core vs. Periphery'
-      - 'All'
-      - 'None'
+      - 'country'
+      - 'maturity'
+      - 'core vs. periphery'
+      - 'all'
+      - 'none'
     preselect: 0
 
 returns_type:
@@ -235,7 +235,7 @@ xmin_qnty:
       - "default set_by: self.xmin_rule == 'manual'"
     cli_str_comp: "opt_val"
   attrs:
-    msg: 'enter numeric argument for chosen xmin rule (manual /percent)'
+    msg: 'enter numeric argument for chosen xmin rule (manual | percent)'
     title: 'xmin quantity'
     default:
       - '90%'   # default value for rule 'percent'

@@ -215,8 +215,6 @@ alpha_signif:
   metavar: '<ℝ ∊ [0, 1]>'
   help: 'significance of the confidence interval: 1-α'
 
-# TODO/ASK: remove below option? since nature of data can be inferred from database
-#           also confirm result of using discrete-fit on continous data; vice versa
 data_is_continuous:
   param_decls:
     - '--continuous/--discrete'
