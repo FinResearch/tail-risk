@@ -161,6 +161,10 @@ class _Analyzer(ABC):
         self.res.prettify_df()
         return self.res.df
 
+    #  def write_results_to_file(self):
+    #      self.res.prettify_df()
+    #      self.res.write_df_to_file()
+
 
 class StaticAnalyzer(_Analyzer):
 

@@ -28,9 +28,10 @@ class Results:
                                index=ridx, columns=cidx, dtype=float)
 
         # TODO: use the special str-subclass w/ .pluralize for tail name below?
-        tidx_name = 'tails' if len(self.sa.tails_to_anal) == 2 else 'tail'
+        self._tidx_name = ('tails' if len(self.sa.tails_to_anal) == 2 else
+                           'tail')
         return pd.concat({t: df_tail for t in self.sa.tails_to_anal},
-                         axis=1, names=(tidx_name,))
+                         axis=1, names=(self._tidx_name,))
 
     # TODO look into pd.concat alternatives
     # https://pandas.pydata.org/pandas-docs/stable/user_guide/merging.html
@@ -48,6 +49,11 @@ class Results:
         lvls2drop = [l for l, lvl in enumerate(self.df.columns.levels)
                      if all(lab == '' for lab in lvl)]
         self.df.columns = self.df.columns.droplevel(lvls2drop)
+
+    def _translate_Tail_to_tname(self):
+        #  tail_cols =
+        pass
+
     def prettify_df(self):
         self._drop_empty_column_level()
 
