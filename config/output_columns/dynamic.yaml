@@ -6,6 +6,10 @@
 #   - date
 
 statistics:
+  - mmt_mean
+  - mmt_variance
+  - mmt_skewness
+  - mmt_kurtosis
   - alpha
   - xmin
   # - xmin_used

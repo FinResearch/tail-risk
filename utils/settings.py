@@ -202,9 +202,12 @@ class Settings:
 
     # helper func called in _load_set_stats_columns_labels
     def __structure_column_labels(self, labels):
+        labels = [('moments', lab[4:]) if lab.startswith('mmt_') else lab
+                  for lab in labels]  # this groups the 4 moments in 1 up-idx
         if self.compare_distros:
             ll_labs = [(i, lab) for i, lab in enumerate(labels)
-                       if lab.startswith('ll_')]
+                       if isinstance(lab, str) and lab.startswith('ll_')]
+            # FIXME: kinda janky to have to check type of 'lab' above, improve?
             for i, lab in reversed(ll_labs):
                 # insert & pop in reverse order to preserve validity of idx, i
                 labels.insert(i + 1, (lab, 'p'))
