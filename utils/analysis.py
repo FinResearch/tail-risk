@@ -60,6 +60,12 @@ class _Analyzer(ABC):
             win_size = (f' {self.sa.rws}'
                         if self.sa.xmin_rule == 'average' else '')
             xmin = self.sa.xmin_qnty.loc[date, f"{tst} {grp}{win_size}"]
+            if isinstance(xmin, str):  # result of xmins file containing '%'
+                if xmin.endswith("%"):
+                    percent = float(xmin[:-1])
+                    xmin = np.percentile(self.curr_input_array, percent)
+                else:
+                    xmin = float(xmin)
         else:
             raise AttributeError("this should never be reached!")
         return xmin
