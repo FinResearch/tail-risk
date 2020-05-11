@@ -214,7 +214,8 @@ class Settings:
                 labels.insert(i + 1, (lab, 'R'))
                 labels.pop(i)
         else:
-            labels = [lab for lab in labels if not lab.startswith('ll_')]
+            labels = [lab for lab in labels
+                      if isinstance(lab, tuple) or not lab.startswith('ll_')]
         return labels
 
     def _gset_output_filename(self):
