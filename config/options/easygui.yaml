@@ -108,7 +108,7 @@ partition:
 returns_type:
   metas:
     box_type: 'choicebox'
-    cli_str_comp: "f'--returns-type={opt_val}'"
+    cli_str_comp: "f'--returns-type={opt_val.split()[0]}'"
   attrs:
     msg: 'Please specify which type of series you want to study'
     title: 'Input type'
