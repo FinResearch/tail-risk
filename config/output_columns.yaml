@@ -1,0 +1,28 @@
+---
+
+# statistics to be printed as columns in the output file
+
+statistics:
+
+  moments:
+    - mean
+    - variance
+    - skewness
+    - kurtosis
+
+  tail-statistics:
+    - alpha
+    - xmin
+    # - xmin_used   # TODO: only relevant for Group analysis
+    # - xmin_today  # contained in clauset_xmins_df <-- ASK/CNFRM: not add to results_df??
+    - sigma
+    - abs_len
+    - ks_pv
+
+  log-likelihoods:  # NOTE: 3 distro comparisons below are post-processed in settings.py to add R & p columns
+    - tpl_R
+    - tpl_p
+    - exp_R
+    - exp_p
+    - lgn_R
+    - lgn_p

@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 # NOTE: if pd.Series replaced, then module no longer depends on pandas
+import scipy.stats
 
 from abc import ABC, abstractmethod
 from itertools import product
@@ -24,6 +25,14 @@ class _Analyzer(ABC):
 
         self.cfg = DataConfigurer(settings)
         self.res = Results(settings)
+
+        self._moments_calc_fnmap = {'mean': np.mean,
+                                    'variance': np.var,
+                                    'skewness': scipy.stats.skew,
+                                    'kurtosis': scipy.stats.kurtosis}
+        self._distros_to_compare = {'tpl': 'truncated_power_law',
+                                    'exp': 'exponential',
+                                    'lgn': 'lognormal'}
 
     # # # state DEPENDENT (or aware) methods # # #
 
@@ -77,7 +86,13 @@ class _Analyzer(ABC):
         self.curr_fit = Fit(data=data, xmin=xmin,
                             discrete=self.sa.fit_discretely)
 
-    def _get_curr_iter_stats(self):  # super cls mtd here only calcs tail-stats
+    def __get_curr_moments_stats(self):
+        calcd_moments = {mstat: fn(self.curr_input_array)
+                         for mstat, fn in self._moments_calc_fnmap.items()}
+        return {("moments", ms): mv for ms, mv in calcd_moments.items()}
+
+    # TODO: add getting xmin_today data when doing group tail analysis
+    def __get_curr_tail_stats(self):
         alpha, xmin, sigma = (getattr(self.curr_fit.power_law, prop)
                               for prop in ('alpha', 'xmin', 'sigma'))
         abs_len = sum(self.curr_input_array >= xmin)
@@ -86,11 +101,31 @@ class _Analyzer(ABC):
             ks_pv, _ = _plpva(self.curr_input_array, xmin, 'reps',
                               self.sa.ks_iter, 'silent')
         locs = locals()
-        return {(stat, ''): locs.get(stat) for stat, _ in
-                self.sd.stats_collabs if stat in locs}
+        return {('tail-statistics', stat): locs.get(stat) for st_type, stat
+                in self.sd.stats_collabs if stat in locs}
+
+    def __get_curr_logl_stats(self):
+        # compute (R, p) using powerlaw.Fit.distribution_compare
+        logl_stats = {key:
+                      {stat: val for stat, val in
+                       zip(('R', 'p'),
+                           self.curr_fit.distribution_compare(
+                               'power_law', distro,
+                               normalized_ratio=True))}
+                      for key, distro in self._distros_to_compare.items()}
+        return {('log-likelihoods', f"{dist}_{st}"): val for dist, stats
+                in logl_stats.items() for st, val in stats.items()}
+
+    # TODO: add getting xmin_today data when doing group tail analysis
+    def __get_curr_iter_stats(self):
+        mmnt_stats = self.__get_curr_moments_stats()
+        tail_stats = self.__get_curr_tail_stats()
+        logl_stats = (self.__get_curr_logl_stats()
+                      if self.sa.compare_distros else {})
+        return {**mmnt_stats, **tail_stats, **logl_stats}
 
     def _store_partial_results(self):
-        curr_tstat_series = pd.Series(self._get_curr_iter_stats())
+        curr_tstat_series = pd.Series(self.__get_curr_iter_stats())
         assert len(curr_tstat_series) == len(self.sd.stats_collabs)
         idx, col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
         self.res.df.loc[idx, col].update(curr_tstat_series)
@@ -99,7 +134,7 @@ class _Analyzer(ABC):
 
     def __get_iter_results(self):  # return results tuple for one tail
         # TODO: use np.ndarray instead of pd.Series (wasteful) --> order later
-        curr_tstat_series = pd.Series(self._get_curr_iter_stats())
+        curr_tstat_series = pd.Series(self.__get_curr_iter_stats())
         assert len(curr_tstat_series) == len(self.sd.stats_collabs)
         idx, col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
         return (idx, col), curr_tstat_series  # (df_posn, df_value) of results
@@ -197,47 +232,12 @@ class DynamicAnalyzer(_Analyzer):
                                     self.sd.anal_dates,
                                     self.sa.tails_to_anal)
         # TODO: see TODO & NOTE regarding Tail in __init__ of StaticAnalyzer
-        import scipy.stats
-        self._moments_calc_fnmap = {'mean': np.mean,
-                                    'variance': np.var,
-                                    'skewness': scipy.stats.skew,
-                                    'kurtosis': scipy.stats.kurtosis}
-        self._distros_to_compare = {'ll_tpl': 'truncated_power_law',
-                                    'll_exp': 'exponential',
-                                    'll_lgn': 'lognormal'}
 
     # TODO: consider vectorizing operations on all tickers
     def _set_curr_input_array(self):  # TODO: pass curr_iter_id as arg???
         sub, date, tail = self.curr_iter_id
         self.curr_df_pos = date, (sub, tail)
         self.curr_input_array = self.cfg.get_data((sub, date)) * tail.value
-
-    def _get_curr_moments_stats(self):
-        calcd_moments = {mstat: fn(self.curr_input_array)
-                         for mstat, fn in self._moments_calc_fnmap.items()}
-        return {("moments", mstat): mval for mstat, mval
-                in calcd_moments.items()}
-
-    def _get_curr_logl_stats(self):  # TODO: add higher level index labeling "tail-stats"
-        # compute (R, p) using powerlaw.Fit.distribution_compare
-        logl_stats = {key:
-                      {stat: val for stat, val in
-                       zip(('R', 'p'),
-                           self.curr_fit.distribution_compare(
-                               'power_law', distro,
-                               normalized_ratio=True))}
-                      for key, distro in self._distros_to_compare.items()}
-
-        return {(key, stat): logl_stats.get(key, {}).get(stat) for
-                key, stat in self.sd.stats_collabs if key.startswith('ll_')}
-
-    # TODO: add getting xmin_today data when doing group tail analysis
-    def _get_curr_iter_stats(self):
-        mmnt_stats = self._get_curr_moments_stats()
-        tail_stats = super()._get_curr_iter_stats()
-        logl_stats = (self._get_curr_logl_stats()
-                      if self.sa.compare_distros else {})
-        return {**mmnt_stats, **tail_stats, **logl_stats}
 
 
 # wrapper func: instantiate correct Analyzer type and run tail analysis

@@ -4,6 +4,7 @@ import pandas as pd
 import enum
 from types import SimpleNamespace  # TODO: consider switching to namedtuple?
 from statistics import NormalDist
+from itertools import product
 
 
 class Settings:
@@ -188,35 +189,20 @@ class Settings:
 
     def _load_set_stats_columns_labels(self):
         # TODO/NOTE: -G, --group dynamic cols differs slightly (xmin_today)
-        cfg_bn = 'dynamic' if self.use_dynamic else 'static'
-        DIR = 'config/output_columns/'  # TODO: improve package/path system
-        with open(f'{DIR}/{cfg_bn}.yaml', encoding='utf8') as cfg:
-            self.stats_colname, labels = tuple(
+        cfg_fpath = 'config/output_columns.yaml'  # TODO: improve pkg/path sys
+        with open(f'{cfg_fpath}', encoding='utf8') as cfg:
+            self.stats_colname, sub_stats_maps = tuple(
                 yaml.load(cfg, Loader=yaml.SafeLoader).items())[0]
 
         if self.run_ks_test is False:
-            labels.remove('ks_pv')
+            sub_stats_maps['tail-statistics'].remove('ks_pv')
 
-        self.stats_collabs = [(lab, '') if isinstance(lab, str) else lab for
-                              lab in self.__structure_column_labels(labels)]
+        momnt, tstat, loglh = [list(product((ss[0],), ss[1])) for ss
+                               in sub_stats_maps.items()]
 
-    # helper func called in _load_set_stats_columns_labels
-    def __structure_column_labels(self, labels):
-        labels = [('moments', lab[4:]) if lab.startswith('mmt_') else lab
-                  for lab in labels]  # this groups the 4 moments in 1 up-idx
+        self.stats_collabs = momnt + tstat
         if self.compare_distros:
-            ll_labs = [(i, lab) for i, lab in enumerate(labels)
-                       if isinstance(lab, str) and lab.startswith('ll_')]
-            # FIXME: kinda janky to have to check type of 'lab' above, improve?
-            for i, lab in reversed(ll_labs):
-                # insert & pop in reverse order to preserve validity of idx, i
-                labels.insert(i + 1, (lab, 'p'))
-                labels.insert(i + 1, (lab, 'R'))
-                labels.pop(i)
-        else:
-            labels = [lab for lab in labels
-                      if isinstance(lab, tuple) or not lab.startswith('ll_')]
-        return labels
+            self.stats_collabs += loglh
 
     def _gset_output_filename(self):
         mode = (f'group-by-{self.partition}' if self.analyze_group else
@@ -338,7 +324,6 @@ class Settings:
     def _validate_xmins_df_statcols(self):  # only called if xmin_qnty is DF
         assert self.xmin_rule in {'file', 'average'}
 
-        from itertools import product
         win_size_info = f' {self.rws}' if self.xmin_rule == 'average' else ''
         needed_cols = [f"{st} {grp}{win_size_info}" for st, grp in
                        product([self.tst_map[t] for t in self.tails_to_anal],
