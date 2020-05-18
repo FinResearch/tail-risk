@@ -6,7 +6,7 @@ statistics:
 
   moments:
     - mean
-    - variance
+    - std-dev
     - skewness
     - kurtosis
 

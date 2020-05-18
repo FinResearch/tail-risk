@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 # NOTE: if pd.Series replaced, then module no longer depends on pandas
+
+import statistics as st
 import scipy.stats
 
 from abc import ABC, abstractmethod
@@ -26,8 +28,8 @@ class _Analyzer(ABC):
         self.cfg = DataConfigurer(settings)
         self.res = Results(settings)
 
-        self._moments_calc_fnmap = {'mean': np.mean,
-                                    'variance': np.var,
+        self._moments_calc_fnmap = {'mean': st.fmean,
+                                    'std-dev': st.stdev,
                                     'skewness': scipy.stats.skew,
                                     'kurtosis': scipy.stats.kurtosis}
         self._distros_to_compare = {'tpl': 'truncated_power_law',
