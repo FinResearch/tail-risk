@@ -2,6 +2,8 @@
 
 # parameters specifications for EasyGUI
 
+# TODO: unify input choices for GUI & CLI systems when appropriate
+
 full_dbdf:
   metas:
     box_type: 'fileopenbox'  # TODO: add try-except for file-opening to handle wrong filetype

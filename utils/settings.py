@@ -303,8 +303,8 @@ class Settings:
                            'compare_distros': False,
                            'plot_results': False}
         self._user_inputs.update(overridden_opts)
-        pcs = Settings(self._user_inputs).settings
-        pcs.data.stats_collabs = [('xmin', '')]
+        pcs = Settings(self._user_inputs).settings  # pcs: PreCompute Settings
+        pcs.data.stats_collabs = [('xmin', '')]  # TODO: stats_collabs -> tstats_collabs
         pcs.data.stats_colname = "Clauset xmins"
 
         # TODO: add below printing to appropriate verbosity logging

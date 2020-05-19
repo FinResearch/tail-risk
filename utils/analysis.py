@@ -134,6 +134,7 @@ class _Analyzer(ABC):
     #      else:
     #          raise AttributeError("this should never be reached!")
 
+    # TODO: need to avoid redundant calculations when analyzing both tails
     def _gset_curr_returns_moments(self, action):  # same for both tails
         idx, tail_col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
         col = (tail_col[0], 'moments') if self.sa.use_dynamic else 'moments'

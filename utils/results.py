@@ -63,6 +63,7 @@ class Results:
 
     def prettify_df(self):
         self._drop_empty_column_level()
+        # TODO: merge the 2x4 block containing label 'moments'
 
     def _write_static(self, filetype='xlsx'):
         sheet_name = f'{self.sd.date_i} -> {self.sd.date_f}'.replace('/', '-')
