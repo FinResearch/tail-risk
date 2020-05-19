@@ -21,7 +21,8 @@ data:
   - grouping_type
   - grouping_labs
   - stats_colname
-  - stats_collabs
+  - mstats_collabs  # mstats: moment statistics
+  - tstats_collabs  # tstats: tail statistics
   - output_fname
 
 ## analysis settings: determines how the data is analyzed

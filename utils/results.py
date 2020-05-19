@@ -11,6 +11,7 @@ class Results:
         self.df = self.initialize()
 
     def _init_static(self):
+
         # gixn: grouping index name
         self._gixn = self.sd.grouping_type
         # ridx: ROW index
@@ -20,18 +21,24 @@ class Results:
         ridx_labs = (self.sd.anal_dates if self.sa.use_dynamic
                      else self.sd.grouping_labs)
         ridx = pd.Index(ridx_labs, name=ridx_name)
-        # cidx: COLUMN index below
-        cidx = pd.MultiIndex.from_tuples(self.sd.stats_collabs,
+
+        # midx: COLUMN index for moments
+        assert len(self.sd.mstats_collabs) == 4,\
+            "only the first 4 moment statistics are currently supported"
+        midx = pd.MultiIndex.from_tuples(self.sd.mstats_collabs,
+                                         names=('', '', self.sd.stats_colname))
+        df_mmnts = pd.DataFrame(np.full((len(ridx), len(midx)), np.nan),
+                                index=ridx, columns=midx, dtype=float)
+
+        # tidx: COLUMN index for tail-statistics
+        tidx = pd.MultiIndex.from_tuples(self.sd.tstats_collabs,
                                          names=(self.sd.stats_colname, ''))
+        df_tail = pd.DataFrame(np.full((len(ridx), len(tidx)), np.nan),
+                               index=ridx, columns=tidx, dtype=float)
+        df_tails = pd.concat({t: df_tail for t in self.sa.tails_to_anal}, axis=1)
+        # TODO: add col_idx name 'category' for moments, tails, tstat, logl lvl
 
-        df_tail = pd.DataFrame(np.full((len(ridx), len(cidx)), np.nan),
-                               index=ridx, columns=cidx, dtype=float)
-
-        # TODO: use the special str-subclass w/ .pluralize for tail name below?
-        self._tidx_name = ('tails' if len(self.sa.tails_to_anal) == 2 else
-                           'tail')
-        return pd.concat({t: df_tail for t in self.sa.tails_to_anal},
-                         axis=1, names=(self._tidx_name,))
+        return pd.concat([df_mmnts, df_tails], axis=1)
 
     # TODO look into pd.concat alternatives
     # https://pandas.pydata.org/pandas-docs/stable/user_guide/merging.html

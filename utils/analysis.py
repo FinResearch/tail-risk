@@ -89,9 +89,9 @@ class _Analyzer(ABC):
                             discrete=self.sa.fit_discretely)
 
     def __get_curr_moments_stats(self):
-        calcd_moments = {mstat: fn(self.curr_input_array)
+        calcd_moments = {mstat: fn(self.curr_returns_array)
                          for mstat, fn in self._moments_calc_fnmap.items()}
-        return {("moments", ms): mv for ms, mv in calcd_moments.items()}
+        return {('moments', '', ms): mv for ms, mv in calcd_moments.items()}
 
     # TODO: add getting xmin_today data when doing group tail analysis
     def __get_curr_tail_stats(self):
@@ -104,7 +104,7 @@ class _Analyzer(ABC):
                               self.sa.ks_iter, 'silent')
         locs = locals()
         return {('tail-statistics', stat): locs.get(stat) for st_type, stat
-                in self.sd.stats_collabs if stat in locs}
+                in self.sd.tstats_collabs if stat in locs}
 
     def __get_curr_logl_stats(self):
         # compute (R, p) using powerlaw.Fit.distribution_compare
@@ -119,27 +119,50 @@ class _Analyzer(ABC):
                 in logl_stats.items() for st, val in stats.items()}
 
     # TODO: add getting xmin_today data when doing group tail analysis
-    def __get_curr_iter_stats(self):
-        mmnt_stats = self.__get_curr_moments_stats()
+    def __get_curr_per_tail_stats(self):
         tail_stats = self.__get_curr_tail_stats()
         logl_stats = (self.__get_curr_logl_stats()
                       if self.sa.compare_distros else {})
-        return {**mmnt_stats, **tail_stats, **logl_stats}
+        return {**tail_stats, **logl_stats}
 
-    def _store_partial_results(self):
-        curr_tstat_series = pd.Series(self.__get_curr_iter_stats())
-        assert len(curr_tstat_series) == len(self.sd.stats_collabs)
-        idx, col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
-        self.res.df.loc[idx, col].update(curr_tstat_series)
-        # TODO: consider using pd.DataFrame.replace(, inplace=True) instead
-        # TODO: can also order stats results first, then assign to DF row
+    #  def _postproc_by_action(self, action, part_res, df_pos):
+    #      idx, col = df_pos
+    #      if action == 'store':
+    #          self.res.df.loc[idx, col].update(part_res)
+    #      elif action == 'return':
+    #          return (idx, col), part_res  # (df_posn, df_value) of res
+    #      else:
+    #          raise AttributeError("this should never be reached!")
 
-    def __get_iter_results(self):  # return results tuple for one tail
+    def _gset_curr_returns_moments(self, action):  # same for both tails
+        idx, tail_col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
+        col = (tail_col[0], 'moments') if self.sa.use_dynamic else 'moments'
+
+        curr_mstat_series = pd.Series(self.__get_curr_moments_stats()).moments
+
+        if action == 'store':
+            self.res.df.loc[idx, col].update(curr_mstat_series)
+            # TODO: consider using pd.DataFrame.replace(, inplace=True) instead
+            # TODO: can also order stats results first, then assign to DF row
+        elif action == 'return':
+            return (idx, col), curr_mstat_series  # (df_posn, df_value) of res
+        else:
+            raise AttributeError("this should never be reached!")
+
+    def _gset_curr_partial_results(self, action):
         # TODO: use np.ndarray instead of pd.Series (wasteful) --> order later
-        curr_tstat_series = pd.Series(self.__get_curr_iter_stats())
-        assert len(curr_tstat_series) == len(self.sd.stats_collabs)
+        curr_tstat_series = pd.Series(self.__get_curr_per_tail_stats())
+        assert len(curr_tstat_series) == len(self.sd.tstats_collabs)
         idx, col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
-        return (idx, col), curr_tstat_series  # (df_posn, df_value) of results
+
+        if action == 'store':
+            self.res.df.loc[idx, col].update(curr_tstat_series)
+            # TODO: consider using pd.DataFrame.replace(, inplace=True) instead
+            # TODO: can also order stats results first, then assign to DF row
+        elif action == 'return':
+            return (idx, col), curr_tstat_series  # (df_posn, df_value) of res
+        else:
+            raise AttributeError("this should never be reached!")
 
     # # # orchestration / driver methods # # #
 
@@ -153,7 +176,8 @@ class _Analyzer(ABC):
     def _analyze_next(self):  # TODO: combine _analyze_next & _analyze_iter??
         self.curr_iter_id = next(self.iter_id_keys)  # set in subclasses
         self._run_curr_iter_fitting()
-        self._store_partial_results()
+        self._gset_curr_returns_moments('store')
+        self._gset_curr_partial_results('store')
 
     # runs analysis from start to finish, in 1-process + single-threaded mode
     def analyze_sequential(self):
@@ -168,7 +192,8 @@ class _Analyzer(ABC):
         print(f"### DEBUG: PID {getpid()} analyzing iter {iter_id}", file=sys.stderr)
         self.curr_iter_id = iter_id
         self._run_curr_iter_fitting()
-        return self.__get_iter_results()
+        return self._gset_curr_partial_results('return')
+        # TODO: make self._gset_curr_returns_moments('return') work
 
     # runs analysis in multiprocessing mode
     def analyze_multiproc(self):
@@ -222,7 +247,8 @@ class StaticAnalyzer(_Analyzer):
 
     def _set_curr_input_array(self):  # TODO: pass curr_iter_id as arg???
         lab, tail = self.curr_df_pos = self.curr_iter_id
-        self.curr_input_array = self.cfg.get_data(lab) * tail.value
+        self.curr_returns_array = self.cfg.get_data(lab)
+        self.curr_input_array = self.curr_returns_array * tail.value
 
 
 class DynamicAnalyzer(_Analyzer):
@@ -239,7 +265,8 @@ class DynamicAnalyzer(_Analyzer):
     def _set_curr_input_array(self):  # TODO: pass curr_iter_id as arg???
         sub, date, tail = self.curr_iter_id
         self.curr_df_pos = date, (sub, tail)
-        self.curr_input_array = self.cfg.get_data((sub, date)) * tail.value
+        self.curr_returns_array = self.cfg.get_data((sub, date))
+        self.curr_input_array = self.curr_returns_array * tail.value
 
 
 # wrapper func: instantiate correct Analyzer type and run tail analysis

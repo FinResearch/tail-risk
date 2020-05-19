@@ -200,9 +200,8 @@ class Settings:
         momnt, tstat, loglh = [list(product((ss[0],), ss[1])) for ss
                                in sub_stats_maps.items()]
 
-        self.stats_collabs = momnt + tstat
-        if self.compare_distros:
-            self.stats_collabs += loglh
+        self.mstats_collabs = [(tl, '', sl) for tl, sl in momnt]
+        self.tstats_collabs = tstat + loglh if self.compare_distros else tstat
 
     def _gset_output_filename(self):
         mode = (f'group-by-{self.partition}' if self.analyze_group else
