@@ -25,6 +25,9 @@ class _Analyzer(ABC):
         self.sd = settings.data
         self.sa = settings.anal
 
+        self._use_pct_file = any('PCT' in col_hdr for col_hdr
+                                 in self.sa.txmin_map.values())
+
         self.cfg = DataConfigurer(settings)
         self.res = Results(settings)
 
@@ -67,16 +70,22 @@ class _Analyzer(ABC):
                 ("static approach does NOT currently support passing "
                  "xmin data by file")  # TODO: add file support for -a static?
             grp, date, tail = self.curr_iter_id
-            tst = self.sa.tst_map[tail]
-            win_size = (f' {self.sa.rws}'
-                        if self.sa.xmin_rule == 'average' else '')
-            xmin = self.sa.xmin_qnty.loc[date, f"{tst} {grp}{win_size}"]
-            if isinstance(xmin, str):  # result of xmins file containing '%'
-                if xmin.endswith("%"):
-                    percent = float(xmin[:-1])
-                    xmin = np.percentile(self.curr_input_array, percent)
-                else:
-                    xmin = float(xmin)
+            txmin = self.sa.txmin_map[tail]
+            xmin = self.sa.xmin_qnty.loc[date, f"{txmin} {grp}"]  # TODO: make selecting 'grp' optional
+            if isinstance(xmin, str) and xmin.endswith("%"):
+                # b/c values containing '%' in xmins_df must be str
+                percent = float(xmin[:-1])
+            elif isinstance(xmin, (int, float)) and self._use_pct_file:
+                if not (0 <= xmin <= 1):
+                    raise TypeError("xmin percentile threshold value for "
+                                    f"{self.iter_id_keys} is outside of 0-100")
+                percent = xmin * 100
+            else:
+                raise TypeError("should not be here")
+            try:
+                xmin = np.percentile(self.curr_input_array, percent)
+            except NameError:
+                xmin = float(xmin)
         else:
             raise AttributeError("this should never be reached!")
         return xmin

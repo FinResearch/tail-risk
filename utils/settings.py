@@ -69,7 +69,8 @@ class Settings:
         self.fit_discretely = True if not self.data_is_continuous else False
 
         self.xmin_rule, self.xmin_qnty = self.xmin_args
-        self.tst_map = {Tail.right: 'STP', Tail.left: 'STN'}  # for xmins_file
+        self._tst_map = {Tail.right: 'STP', Tail.left: 'STN'}  # for xmins_file
+        self._tpct_map = {Tail.right: 'PCTP', Tail.left: 'PCTN'}  # pct xmins_f
         if self.xmin_rule == 'average':
             self._gset_xmins_df_for_average()
             # TODO: consider performing averaging of xmins from passed file
@@ -276,18 +277,18 @@ class Settings:
     __gdiab = __get_date_i_aligned_bound  # alias for convenience
 
     def _gset_xmins_df_for_average(self):
-        self.rws, lag, xmins_df = self.xmin_qnty  # rws: rolling window size
+        rws, lag, xmins_df = self.xmin_qnty  # rws: rolling window size
         # NOTE: if _frq>1, then real num day for params window & lag are scaled
         # by freq, b/c window & lag actually refer to data pts, NOT actual days
         # NOTE: the above caveat applies equally to the tau parameter
 
         if xmins_df is None:
-            self._n_bound_i = self.rws + lag + self._lookback - 1
+            self._n_bound_i = rws + lag + self._lookback - 1
             print("AVERAGE xmins to be calculated w/ rolling window size of "
-                  f"{self.rws} days & lag days of {lag}")  # add to -V logging
+                  f"{rws} days & lag days of {lag}")  # add to -V logging
             clauset_xmins_df = self.__precompute_clauset_xmins_df()
             # TODO: save the above to file for later re-use
-            xmins_df = clauset_xmins_df.rolling(self.rws).mean()
+            xmins_df = clauset_xmins_df.rolling(rws).mean()
 
         self.xmin_qnty = xmins_df.shift(lag).loc[self.date_i:self.date_f]
 
@@ -315,7 +316,7 @@ class Settings:
         analyzer = DynamicAnalyzer(pcs)
         analyzer.analyze()
         clauset_xmins_df = analyzer.get_resdf()
-        clauset_xmins_df.columns = [f"{self.tst_map[t]} {grp} {self.rws}" for
+        clauset_xmins_df.columns = [f"{self._tst_map[t]} {grp}" for
                                     grp, t, _ in clauset_xmins_df.columns]
         return clauset_xmins_df
 
@@ -323,15 +324,30 @@ class Settings:
     def _validate_xmins_df_statcols(self):  # only called if xmin_qnty is DF
         assert self.xmin_rule in {'file', 'average'}
 
-        win_size_info = f' {self.rws}' if self.xmin_rule == 'average' else ''
-        needed_cols = [f"{st} {grp}{win_size_info}" for st, grp in
-                       product([self.tst_map[t] for t in self.tails_to_anal],
-                               self.grouping_labs)]
-        missing_cols = [nc for nc in needed_cols
-                        if nc not in self.xmin_qnty.columns]
-        if bool(missing_cols):
-            raise ValueError(f"xmin columns {missing_cols} are needed but "
-                             "not found in loaded xmins data")
+        needed_st_cols = [f"{st} {grp}" for st, grp in
+                          product([self._tst_map[t] for t in self.tails_to_anal],
+                                  self.grouping_labs)]
+        missing_st_cols = [nc for nc in needed_st_cols
+                           if nc not in self.xmin_qnty.columns]
+        # TODO: refactor above and below to more DRY form
+        needed_pct_cols = [f"{pct} {grp}" for pct, grp in
+                           product([self._tpct_map[t] for t in self.tails_to_anal],
+                                   self.grouping_labs)]
+        missing_pct_cols = [nc for nc in needed_pct_cols
+                            if nc not in self.xmin_qnty.columns]
+
+        if bool(missing_st_cols and missing_pct_cols):
+            raise ValueError(f"xmin columns {missing_st_cols} OR {missing_pct_cols} "
+                             "are needed but not found in loaded xmins data;\n\t\t"
+                             f"only found columns: {list(self.xmin_qnty.columns)}")
+        elif not bool(missing_st_cols) and bool(missing_pct_cols):
+            self.txmin_map = self._tst_map
+        elif not bool(missing_pct_cols) and bool(missing_st_cols):
+            self.txmin_map = self._tpct_map
+        elif not bool(missing_st_cols or missing_pct_cols):
+            pass  # TODO: implement this case, where both types of cols are present
+        else:
+            raise ValueError("should never reach here!")
 
     # # method exported to analysis.py, used strictly for logging # #
     def get_dyn_lbd(self, date):  # get dynamic lookback date

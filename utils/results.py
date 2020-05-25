@@ -78,4 +78,4 @@ class Results:
         self.prettify_df()
         self._write_dynamic() if self.sa.use_dynamic else self._write_static()
 
-    # TODO: add formatter to output file in same clunky way as what they had before
+    # TODO: add formatter to convert output file to their old style?
