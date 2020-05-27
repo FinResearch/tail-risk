@@ -25,8 +25,10 @@ class _Analyzer(ABC):
         self.sd = settings.data
         self.sa = settings.anal
 
-        self._use_pct_file = any('PCT' in col_hdr for col_hdr
-                                 in self.sa.txmin_map.values())
+        # TODO: factor setting of these boolean flags into own method
+        if self.sa.txmin_map:
+            self._use_pct_file = any('PCT' in col_hdr for col_hdr
+                                     in self.sa.txmin_map.values())
 
         self.cfg = DataConfigurer(settings)
         self.res = Results(settings)
