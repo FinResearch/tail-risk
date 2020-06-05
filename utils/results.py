@@ -37,6 +37,7 @@ class Results:
                                index=ridx, columns=tidx, dtype=float)
         df_tails = pd.concat({t: df_tail for t in self.sa.tails_to_anal}, axis=1)
         # TODO: add col_idx name 'category' for moments, tails, tstat, logl lvl
+        #       consider using input filename as col_idx name; e.g. dbMarkitUS
 
         return pd.concat([df_mmnts, df_tails], axis=1)
 

@@ -17,7 +17,7 @@ data:
   - date_i
   - date_f
   - anal_dates
-  - raw_dbdf
+  - price_dbdf
   - grouping_type
   - grouping_labs
   - stats_colname

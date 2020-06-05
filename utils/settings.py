@@ -132,8 +132,8 @@ class Settings:
         # - _tickers_dbdf: filtered by tickers (columns); has all dates (index)
         # - static_dbdf: filtered _tickers_dbdf w/ given date range to analyze
         # - dynamic_dbdf: has data going back to the earliest lookback date
-        # - raw_dbdf: either dynamic_dbdf OR static_dbdf based on use_dynamic;
-        #             this is the actual dbdf passed onto Analyzer
+        # - price_dbdf: eithr dynamic_dbdf OR static_dbdf based on use_dynamic;
+        #   this is the actual dbdf passed onto Analyzer/DataConfigurer
         self._tickers_dbdf = self.full_dbdf[self.tickers]
         if self.analyze_group:
             self._partition_tickers_dbdf()
@@ -146,7 +146,7 @@ class Settings:
             # set min. dynamic window size based on lkb, frq & tau
             q, r = divmod(self._lookback, self._frq)
             self.dyn_win_size = q + bool(r) - self.tau
-        self.raw_dbdf = dynamic_dbdf if self.use_dynamic else static_dbdf
+        self.price_dbdf = dynamic_dbdf if self.use_dynamic else static_dbdf
 
     # # methods relevant to group tail analysis behaviors # #
 
@@ -205,10 +205,12 @@ class Settings:
         self.tstats_collabs = tstat + loglh if self.compare_distros else tstat
 
     def _gset_output_filename(self):
+        input_fname = self.full_dbdf.columns.name
         mode = (f'group-by-{self.partition}' if self.analyze_group else
                 'individual')
         lb = '' if self._lookback is None else f'-{self._lookback}-lkbk'
-        self.output_fname = f'tail-stats_{mode}_{self.approach}{lb}.xlsx'
+        self.output_fname = (f"tail-stats_{input_fname}_{mode}_"
+                             f"{self.approach}{lb}.xlsx")
 
     # # methods relevant to settings needed by plotter # #
 

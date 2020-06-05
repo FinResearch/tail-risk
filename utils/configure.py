@@ -32,16 +32,16 @@ class DataConfigurer:
                 returns = np.log(pt_f/pt_i)
             return np.hstack((nan_pad, returns))
 
-        p_len = len(self.sd.raw_dbdf)
+        p_len = len(self.sd.price_dbdf)
         assert p_len > tau,\
             ('cannot calculate returns from time series price data of length '
              f'{p_len} using tau/delta of {tau} days')
 
-        returns_df = self.sd.raw_dbdf.apply(get_returns, raw=True).dropna()
+        returns_df = self.sd.price_dbdf.apply(get_returns, raw=True).dropna()
 
         # TODO: can add below info as DEBUG logging
         #  # construct a new column repr dates used to calc each return
-        #  idx0 = self.sd.raw_dbdf.index
+        #  idx0 = self.sd.price_dbdf.index
         #  irng = range(tau, idx0.get_loc(idx0[-1]) + 1)
         #  idx1 = [f"{idx0[i-tau]} ⟶  {idx0[i]}" for i in irng]
         #  assert len(returns_df) == len(idx1)

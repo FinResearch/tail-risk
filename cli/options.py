@@ -99,7 +99,9 @@ def _read_fname_to_df(fname):
         raise FileNotFoundError(f"Cannot find file '{fpath.resolve()}'")
 
     # TODO: make index_col case-insensitive? i.e. 'Date' or 'date'
-    return reader(fpath, index_col='Date', **reader_kwargs)
+    data_df = reader(fpath, index_col='Date', **reader_kwargs)
+    data_df.columns.name = fpath.stem
+    return data_df
 
 
 # TODO: optimize using list.index(value)?
