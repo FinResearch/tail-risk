@@ -37,30 +37,30 @@ class GUI:
         flags = self.creation_criteria.get(opt)
         if bool(flags):
             for fstr in flags:
-                criterion, action = fstr.split(': ')
+                action, criterion = fstr.split(': ')
 
-                if 'self' in action:
-                    ev_act = eval(action)
+                if 'self' in criterion:
+                    ev_act = eval(criterion)
                 else:
                     # TODO: add 'self' explicitly where appropriate?
                     #       deal w/ 'evaluation' in other way
-                    ev_act = eval(f"getattr(self, '{action}', None)")
+                    ev_act = eval(f"getattr(self, '{criterion}', None)")
 
-                if criterion == 'init_on':
+                if action == 'init_on':
                     create_gui = ev_act
-                elif criterion.endswith('set_by'):
-                    val_attr = criterion.split()[0]
+                elif action.endswith('set_by'):
+                    val_attr = action.split()[0]
                     assert val_attr in attrs
                     if ev_act is not None:
                         idx = bool(ev_act)
                         attrs[val_attr] = attrs[val_attr][idx]
-                    elif ev_act is None and action == 'evaluation':
+                    elif ev_act is None and criterion == 'evaluation':
                         import os  # used by eval() to get # processors
                         attrs[val_attr] = eval(attrs[val_attr])
                     else:
                         raise ValueError('this should not be reached!')
-                elif criterion.endswith('set_to'):
-                    val_attr = criterion.split()[0]
+                elif action.endswith('set_to'):
+                    val_attr = action.split()[0]
                     assert val_attr in attrs and ev_act is not None and not bool(attrs[val_attr])
                     attrs[val_attr] = ev_act
         return create_gui

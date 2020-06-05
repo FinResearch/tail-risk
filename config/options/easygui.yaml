@@ -303,7 +303,7 @@ ks_iter:
   metas:
     box_type: 'integerbox'
     creation_criteria:
-      - 'init_on: run_ks_test'
+      - "init_on: self.run_ks_test == 'run'"
       - 'default set_by: analyze_group'
     cli_str_comp: "f'--ks-iter={opt_val}'"
   attrs:
