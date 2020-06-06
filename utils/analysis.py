@@ -99,11 +99,14 @@ class _Analyzer(ABC):
         self.curr_fit = Fit(data=data, xmin=xmin,
                             discrete=self.sa.fit_discretely)
 
-    def __get_curr_moments_stats(self):
+    def __get_curr_rtrn_stats(self):
         calcd_moments = {mstat: fn(self.curr_returns_array)
                          for mstat, fn in self._moments_calc_fnmap.items()}
-        return {('returns-statistics', 'moments', ms): mv
-                for ms, mv in calcd_moments.items()}
+        mstat_map = {('moments', ms): mv for ms, mv in calcd_moments.items()}
+        rtrn_stats = {('', 'N_returns'): len(self.curr_returns_array),
+                      **mstat_map}
+        return {('returns-statistics',) + tuple(rsk): rsv for rsk, rsv
+                in rtrn_stats.items()}
 
     # TODO: add getting xmin_today data when doing group tail analysis
     def __get_curr_tail_stats(self):
@@ -137,44 +140,28 @@ class _Analyzer(ABC):
                       if self.sa.compare_distros else {})
         return {**tail_stats, **logl_stats}
 
-    #  def _postproc_by_action(self, action, part_res, df_pos):
-    #      idx, col = df_pos
-    #      if action == 'store':
-    #          self.res.df.loc[idx, col].update(part_res)
-    #      elif action == 'return':
-    #          return (idx, col), part_res  # (df_posn, df_value) of res
-    #      else:
-    #          raise AttributeError("this should never be reached!")
-
-    # TODO: need to avoid redundant calculations when analyzing both tails
-    #       i.e. only calculate the returns stats/moments once
-    def _gset_curr_returns_moments(self, action):  # same for both tails
-        idx, col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
-        col = ((col[0],) if self.sa.use_dynamic else ())
-
-        curr_rstat_series = pd.Series(self.__get_curr_moments_stats())
-
-        if action == 'store':
-            self.res.df.loc[idx, col].update(curr_rstat_series)
-            # TODO: consider using pd.DataFrame.replace(, inplace=True) instead
-            # TODO: can also order stats results first, then assign to DF row
-        elif action == 'return':
-            return (idx, col), curr_rstat_series  # (df_posn, df_value) of res
-        else:
-            raise AttributeError("this should never be reached!")
-
     def _gset_curr_partial_results(self, action):
-        # TODO: use np.ndarray instead of pd.Series (wasteful) --> order later
-        curr_tstat_series = pd.Series(self.__get_curr_per_tail_stats())
-        assert len(curr_tstat_series) == len(self.sd.tstats_collabs)
         idx, col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
+        tstats_map = {col + tuple(tsk): tsv for tsk, tsv
+                      in self.__get_curr_per_tail_stats().items()}
+
+        col = (col[0],) if self.sa.use_dynamic else ()
+        need_rst = self.res.df.loc[idx, col + ('returns-statistics',)].hasnans
+        rstats_map = ({col + tuple(rsk): rsv for rsk, rsv
+                       in self.__get_curr_rtrn_stats().items()}
+                      if need_rst else {})
+        # FIXME: NaN-check on (<grp>, 'returns-stats') to avoid redundant calcs
+        # only works for 1-proc, b/c multiproc doesn't update res_df until end
+
+        # TODO: use np.ndarray instead of pd.Series (wasteful) --> order later
+        curr_part_res_series = pd.Series({**tstats_map, **rstats_map})
 
         if action == 'store':
-            self.res.df.loc[idx, col].update(curr_tstat_series)
+            self.res.df.loc[idx].update(curr_part_res_series)
             # TODO: consider using pd.DataFrame.replace(, inplace=True) instead
             # TODO: can also order stats results first, then assign to DF row
         elif action == 'return':
-            return (idx, col), curr_tstat_series  # (df_posn, df_value) of res
+            return idx, curr_part_res_series
         else:
             raise AttributeError("this should never be reached!")
 
@@ -190,7 +177,6 @@ class _Analyzer(ABC):
     def _analyze_next(self):  # TODO: combine _analyze_next & _analyze_iter??
         self.curr_iter_id = next(self.iter_id_keys)  # set in subclasses
         self._run_curr_iter_fitting()
-        self._gset_curr_returns_moments('store')
         self._gset_curr_partial_results('store')
 
     # runs analysis from start to finish, in 1-process + single-threaded mode
@@ -207,7 +193,6 @@ class _Analyzer(ABC):
         self.curr_iter_id = iter_id
         self._run_curr_iter_fitting()
         return self._gset_curr_partial_results('return')
-        # TODO: make self._gset_curr_returns_moments('return') work
 
     # runs analysis in multiprocessing mode
     def analyze_multiproc(self):
@@ -223,8 +208,8 @@ class _Analyzer(ABC):
         # TODO: update results_df more efficiently, ex. pd.DataFrame.replace(),
         #       np.ndarray, etc.; see TODO note under __get_tdir_iter_restup)
         for restup in restup_ls:
-            (idx, col), res = restup  # if use '+' NOTE that DFs init'd w/ NaNs
-            self.res.df.loc[idx, col].update(res)
+            idx, res = restup  # if use '+' NOTE that DFs init'd w/ NaNs
+            self.res.df.loc[idx].update(res)
 
     # top-level convenience method that autodetects how to run tail analysis
     def analyze(self):
