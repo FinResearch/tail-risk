@@ -4,7 +4,8 @@
 
 statistics:
 
-  moments:
+  returns-statistics:
+    - N_returns
     - mean
     - std-dev
     - skewness

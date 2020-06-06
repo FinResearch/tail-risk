@@ -102,7 +102,8 @@ class _Analyzer(ABC):
     def __get_curr_moments_stats(self):
         calcd_moments = {mstat: fn(self.curr_returns_array)
                          for mstat, fn in self._moments_calc_fnmap.items()}
-        return {('moments', '', ms): mv for ms, mv in calcd_moments.items()}
+        return {('returns-statistics', 'moments', ms): mv
+                for ms, mv in calcd_moments.items()}
 
     # TODO: add getting xmin_today data when doing group tail analysis
     def __get_curr_tail_stats(self):
@@ -146,18 +147,19 @@ class _Analyzer(ABC):
     #          raise AttributeError("this should never be reached!")
 
     # TODO: need to avoid redundant calculations when analyzing both tails
+    #       i.e. only calculate the returns stats/moments once
     def _gset_curr_returns_moments(self, action):  # same for both tails
-        idx, tail_col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
-        col = (tail_col[0], 'moments') if self.sa.use_dynamic else 'moments'
+        idx, col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
+        col = ((col[0],) if self.sa.use_dynamic else ())
 
-        curr_mstat_series = pd.Series(self.__get_curr_moments_stats()).moments
+        curr_rstat_series = pd.Series(self.__get_curr_moments_stats())
 
         if action == 'store':
-            self.res.df.loc[idx, col].update(curr_mstat_series)
+            self.res.df.loc[idx, col].update(curr_rstat_series)
             # TODO: consider using pd.DataFrame.replace(, inplace=True) instead
             # TODO: can also order stats results first, then assign to DF row
         elif action == 'return':
-            return (idx, col), curr_mstat_series  # (df_posn, df_value) of res
+            return (idx, col), curr_rstat_series  # (df_posn, df_value) of res
         else:
             raise AttributeError("this should never be reached!")
 

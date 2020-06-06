@@ -21,7 +21,7 @@ data:
   - grouping_type
   - grouping_labs
   - stats_colname
-  - mstats_collabs  # mstats: moment statistics
+  - rstats_collabs  # rstats: returns statistics
   - tstats_collabs  # tstats: tail statistics
   - output_fname
 

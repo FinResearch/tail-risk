@@ -198,10 +198,13 @@ class Settings:
         if self.run_ks_test is False:
             sub_stats_maps['tail-statistics'].remove('ks_pv')
 
-        momnt, tstat, loglh = [list(product((ss[0],), ss[1])) for ss
-                               in sub_stats_maps.items()]
+        rstats, tstat, loglh = [list(product((ss[0],), ss[1])) for ss
+                                in sub_stats_maps.items()]
 
-        self.mstats_collabs = [(tl, '', sl) for tl, sl in momnt]
+        moments = {'mean', 'std-dev', 'skewness', 'kurtosis'}
+        self.rstats_collabs = [(top, 'moments' if bot in moments else '', bot)
+                               for top, bot in rstats]
+
         self.tstats_collabs = tstat + loglh if self.compare_distros else tstat
 
     def _gset_output_filename(self):

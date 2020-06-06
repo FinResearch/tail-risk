@@ -22,24 +22,26 @@ class Results:
                      else self.sd.grouping_labs)
         ridx = pd.Index(ridx_labs, name=ridx_name)
 
-        # midx: COLUMN index for moments
-        assert len(self.sd.mstats_collabs) == 4,\
-            "only the first 4 moment statistics are currently supported"
-        midx = pd.MultiIndex.from_tuples(self.sd.mstats_collabs,
+        # Ridx: COLUMN index for returns-statistics
+        assert len(self.sd.rstats_collabs) == 5,\
+            ("only the first 4 moment statistics plus number of returns "
+             "observations (5 stats in total) are currently supported")
+        Ridx = pd.MultiIndex.from_tuples(self.sd.rstats_collabs,
                                          names=('', '', self.sd.stats_colname))
-        df_mmnts = pd.DataFrame(np.full((len(ridx), len(midx)), np.nan),
-                                index=ridx, columns=midx, dtype=float)
+        df_rtrn = pd.DataFrame(np.full((len(ridx), len(Ridx)), np.nan),
+                               index=ridx, columns=Ridx, dtype=float)
 
         # tidx: COLUMN index for tail-statistics
         tidx = pd.MultiIndex.from_tuples(self.sd.tstats_collabs,
-                                         names=(self.sd.stats_colname, ''))
+                                         names=('', self.sd.stats_colname))
         df_tail = pd.DataFrame(np.full((len(ridx), len(tidx)), np.nan),
                                index=ridx, columns=tidx, dtype=float)
-        df_tails = pd.concat({t: df_tail for t in self.sa.tails_to_anal}, axis=1)
+        df_tails = pd.concat({t: df_tail for t in self.sa.tails_to_anal},
+                             axis=1)
         # TODO: add col_idx name 'category' for moments, tails, tstat, logl lvl
         #       consider using input filename as col_idx name; e.g. dbMarkitUS
 
-        return pd.concat([df_mmnts, df_tails], axis=1)
+        return pd.concat([df_rtrn, df_tails], axis=1)
 
     # TODO look into pd.concat alternatives
     # https://pandas.pydata.org/pandas-docs/stable/user_guide/merging.html
