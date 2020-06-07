@@ -4,7 +4,7 @@
 
 statistics:
 
-  returns-statistics:
+  returns-statistics:  # NOTE: this column label heading sits at a level higher than the two headings below
     - N_returns
     - mean
     - std-dev
@@ -20,7 +20,7 @@ statistics:
     - abs_len
     - ks_pv
 
-  log-likelihoods:  # NOTE: 3 distro comparisons below are post-processed in settings.py to add R & p columns
+  log-likelihoods:
     - tpl_R
     - tpl_p
     - exp_R

@@ -33,6 +33,9 @@ class _Analyzer(ABC):
         self.cfg = DataConfigurer(settings)
         self.res = Results(settings)
 
+        # FIXME: consider DataFrame methods instead: {mean, std, skew, kurt}
+        # Rolling/Expanding obj also have the above, and also .count & .apply
+        # Especially since mean & std can be calc'd when self.cfg is init'd
         self._moments_calc_fnmap = {'mean': st.fmean,
                                     'std-dev': st.stdev,
                                     'skewness': scipy.stats.skew,
@@ -142,8 +145,8 @@ class _Analyzer(ABC):
 
     def _gset_curr_partial_results(self, action):
         idx, col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
-        tstats_map = {col + tuple(tsk): tsv for tsk, tsv
-                      in self.__get_curr_per_tail_stats().items()}
+        tstats_map = {(col if self.sa.use_dynamic else (col,))+tuple(tsk): tsv
+                      for tsk, tsv in self.__get_curr_per_tail_stats().items()}
 
         col = (col[0],) if self.sa.use_dynamic else ()
         need_rst = self.res.df.loc[idx, col + ('returns-statistics',)].hasnans

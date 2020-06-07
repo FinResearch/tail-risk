@@ -37,7 +37,7 @@ class DataConfigurer:
             ('cannot calculate returns from time series price data of length '
              f'{p_len} using tau/delta of {tau} days')
 
-        returns_df = self.sd.price_dbdf.apply(get_returns, raw=True).dropna()
+        returns_df = self.sd.price_dbdf.apply(get_returns, raw=True).iloc[tau:]
 
         # TODO: can add below info as DEBUG logging
         #  # construct a new column repr dates used to calc each return
@@ -81,6 +81,7 @@ class _Normalizer(ABC):
 
         # TODO optimize below: no need to .flatten() when not analyze_group??
         data = self._norm_tickers(iter_id).to_numpy().flatten()
+        data = data[~np.isnan(data)]
 
         # normalize after grouping in -G mode
         if self.sa.norm_after:
@@ -96,11 +97,12 @@ class StaticNormalizer(_Normalizer):
         super().__init__(settings, returns_df)
         assert not self.sa.use_dynamic
 
-        # means & stds should be Pandas Series here
-        self.means = self.returns_df.mean()
-        self.stds = self.returns_df.std() if len(self.returns_df) > 1 else None
-
-        self.stdzd_cols_df = (self.returns_df - self.means) / self.stds
+        if self.sa.standardize:  # TODO: calc always if getting moments here
+            # means & stds should be Pandas Series here (1 moment per ticker)
+            self.means = self.returns_df.mean()  # NOTE: NaNs ignored by dflt
+            self.stds = (self.returns_df.std()   # NOTE: NaNs ignored by dflt
+                         if len(self.returns_df) > 1 else None)
+            self.stdzd_cols_df = (self.returns_df - self.means) / self.stds
 
     # NOTE: for non-G, std/abs only applies to static when target is 'series'
     def _norm_tickers(self, norm_id):
@@ -128,10 +130,11 @@ class DynamicNormalizer(_Normalizer):
         self.data_window = getattr(self.returns_df,
                                    self._win_type)(self.sa.dyn_win_size)
 
-        # means & stds should be Pandas DataFrame here
-        self.means = self.__get_window_stat('mean')
-        self.stds = (self.__get_window_stat('std')
-                     if len(self.returns_df) > 1 else None)
+        if self.sa.standardize:  # TODO: calc always if getting moments here
+            # means & stds should be Pandas DataFrame here (1 moment per date)
+            self.means = self.__get_window_stat('mean')
+            self.stds = (self.__get_window_stat('std')
+                         if len(self.returns_df) > 1 else None)
 
     def __get_window_stat(self, stat):
         window_stat = getattr(self.data_window, stat)().dropna()
