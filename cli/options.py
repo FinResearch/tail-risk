@@ -309,9 +309,9 @@ def validate_approach_args(ctx, param, approach_args):
         else:
             raise ValueError(err)
 
-    if approach == 'static':
+    if approach in {'static', 'monthly'}:
         assert lookback is None and anal_freq is None,\
-            ("approach 'static' does not take 'lookback' & "
+            (f"approach {approach} does not take 'lookback' & "
              "'analysis-frequency' arguments")
     elif (approach in {'rolling', 'increasing'} and
           all(isinstance(val, str) for val in (lookback, anal_freq))):
@@ -346,8 +346,11 @@ def gset_full_dbdf(ctx, param, db_fname):
     full_dbdf = _read_fname_to_df(db_fname)
 
     full_dates = full_dbdf.index
-    # inferred index of date_i; only used when 'default' attr not set in YAML
-    di_iix = 0 if ctx._approach == 'static' else ctx._lookback - 1
+    # inferred index of date_i; only used when 'default' date_i not set in YAML
+    di_iix = (ctx._lookback - 1
+              if ctx._approach in {'rolling', 'increasing'} else 0)
+    # FIXME/TODO: infer di_iix for monthly appr from passed in MMYYYY date_i;
+    #       if date_i/f passed in is DDMMYYYY, then use that exact date_i/f
 
     dbdf_attrs = {'tickers': list(full_dbdf.columns),  # TODO: rm NaNs/nulls??
                   'date_i': full_dates[di_iix],
@@ -384,8 +387,9 @@ def confirm_group_flag_set(ctx, param, val):
 def determine_lookback_override(ctx, param, lb_ov):
     opt = param.name
     cond = (ctx.get_parameter_source(opt) == 'DEFAULT'
-            or ctx._approach == 'static')
-    msg = f"'--lookback' N/A to STATIC approach; ignoring '--lb {lb_ov}'"
+            or ctx._approach in {'static', 'monthly'})
+    msg = (f"'--lookback' N/A to {ctx._approach.upper()} approach; "
+           f"ignoring '--lb {lb_ov}'")
     return __nullify_and_warn_if_usr_set_opt(ctx, opt, lb_ov, cond, msg)
 
 #  # callback for the --tau option
@@ -419,7 +423,8 @@ def parse_xmin_args(ctx, param, xmin_args):
     x, *y = xmin_args
 
     if bool(y):  # this can only possibly be the average method
-        assert ctx._analyze_group and ctx._approach != 'static',\
+        assert (ctx._analyze_group and
+                ctx._approach in {'rolling', 'increasing'}),\
             (f"{xmin_args} passed to '--xmin', thus method 'average' inferred;"
              "\nAVERAGE only applicable w/ DYNAMIC approaches & in GROUP mode")
         if len(y) == 2:

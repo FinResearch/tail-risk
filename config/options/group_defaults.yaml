@@ -10,6 +10,7 @@ approach_args:
   rolling: ['252', '1']
   increasing: ['252', '1']
   static: [null, null]
+  monthly: [null, null]
 
 lb_override: 252
 

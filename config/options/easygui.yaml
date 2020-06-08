@@ -59,7 +59,7 @@ analyze_group:
 approach:
   metas:
     box_type: 'choicebox'
-    set_value_on_self: ['use_dynamic', "opt_val != 'static'"]
+    set_value_on_self: ['approach']
     cli_str_comp: "f'--approach {opt_val}'"
   attrs:
     msg: 'Please specify which approach you would like to use'
@@ -68,13 +68,14 @@ approach:
       - 'rolling'
       - 'increasing'
       - 'static'
+      - 'monthly'
     preselect: 0
 
 dynamic_appr_params:
   metas:
     box_type: 'multenterbox'
     creation_criteria:
-      - 'init_on: use_dynamic'
+      - "init_on: self.approach in {'rolling', 'increasing'}"
       - 'values set_by: analyze_group'
     cli_str_comp: "' '.join(opt_val)"
   attrs:
@@ -123,6 +124,7 @@ returns_type:
 tau:
   metas:
     box_type: 'integerbox'
+    creation_criteria: ["init_on: self.approach != 'monthly'"]
     cli_str_comp: "f'--tau={opt_val}'"
   attrs:
     msg: 'Please specify the time lag of the input series: 1 = daily, 5 = weekly, 22 = monthly'
@@ -147,7 +149,7 @@ normalize:
 norm_target:
   metas:
     box_type: 'buttonbox'
-    creation_criteria: ['init_on: self.normalize and not self.analyze_group and not self.use_dynamic']
+    creation_criteria: ["init_on: self.normalize and not self.analyze_group and self.approach == 'static'"]
     cli_str_comp: "f'--norm-{opt_val}'"
   attrs:
     msg: 'What target to normalize?'
