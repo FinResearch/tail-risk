@@ -141,7 +141,7 @@ class Settings:
         # - static_dbdf: filtered _tickers_dbdf w/ given date range to analyze
         # - dynamic_dbdf: has data going back to the earliest lookback date
         # - price_dbdf: eithr dynamic_dbdf OR static_dbdf based on use_dynamic;
-        #   this is the actual dbdf passed onto Analyzer/DataConfigurer
+        #   this is the actual dbdf passed onto Analyzer/Returns
         self._tickers_dbdf = self.full_dbdf[self.tickers]
         if self.analyze_group:
             self._partition_tickers_dbdf()
@@ -221,7 +221,7 @@ class Settings:
         input_fname = self.full_dbdf.columns.name
         mode = (f'group-by-{self.partition}' if self.analyze_group else
                 'individual')
-        lb = '' if self._lookback is None else f'-{self._lookback}-lkbk'
+        lb = '' if self._lookback is None else f'-{self._lookback}-lookback'
         self.output_fname = (f"tail-stats_{input_fname}_{mode}_"
                              f"{self.approach}{lb}.xlsx")
 

@@ -113,7 +113,7 @@ class StaticNormalizer(_Normalizer):
             self.stdzd_cols_df = (self.returns_df - self.means) / self.stds
 
     # NOTE: for non-G, std/abs only applies to static when target is 'series'
-    def _norm_rtrn_per_tick(self, norm_id):
+    def _norm_rtrn_per_tick(self, norm_id):  # TODO/FIXME: rename to _get_rtrn_per_tick ??
         group = norm_id
         rtrn = self.returns_df[group]
         if self.sr.standardize:

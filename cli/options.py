@@ -396,6 +396,7 @@ def determine_lookback_override(ctx, param, lb_ov):
 #  def cast_tau(ctx, param, tau_str):
 #      # NOTE: the must_be_int flag is unneeded since using click.Choice
 #      return _convert_str_to_num(tau_str, must_be_int=True)
+# TODO: consider using cb to limit tau to 1 if approach is monthly & warn
 
 
 def validate_norm_target(ctx, param, trgt):
@@ -605,7 +606,7 @@ def _assert_dates_in_df(df, dates_to_check):
 def validate_df_date_indexes(ctx, yaml_opts):
     di, df = yaml_opts['date_i'], yaml_opts['date_f']
     full_dbdf = ctx.params['full_dbdf']
-    _assert_dates_in_df(full_dbdf, (di, df))
+    _assert_dates_in_df(full_dbdf, (di, df))  # ensure date_i & date_f in dbdf
 
     if hasattr(ctx, '_xmins_df') and isinstance(ctx._xmins_df, pd.DataFrame):
         anal_freq = yaml_opts['approach_args'][2]
