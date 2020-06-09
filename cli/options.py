@@ -417,14 +417,16 @@ def parse_xmin_args(ctx, param, xmin_args):
     * ℝ (manual)   : "$ ... -x 0.5" OR "$ ... -x _2" (_ denotes negatives)
     """
 
+    # group analysis + dynamic approach (convenient conditional)
+    grp_dyn = ctx._analyze_group and ctx._approach in {'rolling', 'increasing'}
+
     if ctx.get_parameter_source(param.name) == "DEFAULT":
-        xmin_args = ('66', '0',) if ctx._analyze_group else ('clauset',)
+        xmin_args = ('66', '0',) if grp_dyn else ('clauset',)
 
     x, *y = xmin_args
 
     if bool(y):  # this can only possibly be the average method
-        assert (ctx._analyze_group and
-                ctx._approach in {'rolling', 'increasing'}),\
+        assert grp_dyn,\
             (f"{xmin_args} passed to '--xmin', thus method 'average' inferred;"
              "\nAVERAGE only applicable w/ DYNAMIC approaches & in GROUP mode")
         if len(y) == 2:
