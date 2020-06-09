@@ -11,8 +11,14 @@ class Returns:
         self.sa = settings.anal
 
         returns_df = self.__compute_returns_df()
-        Normalizer = (DynamicNormalizer if self.sa.use_dynamic else
-                      StaticNormalizer)
+
+        # FIXME: make these conditional branches cleaner
+        if self.sa.use_monthly:
+            Normalizer = MonthlyNormalizer
+        else:
+            Normalizer = (DynamicNormalizer if self.sa.use_dynamic else
+                          StaticNormalizer)
+
         self.normalizer = Normalizer(settings, returns_df)
 
     def __compute_returns_df(self):
@@ -164,6 +170,43 @@ class DynamicNormalizer(_Normalizer):
             rtrn = (rtrn - self.means.loc[stat_loc]) / self.stds.loc[stat_loc]
         if self.sr.absolutize:
             rtrn = np.abs(rtrn)
+
+        return rtrn
+
+
+class MonthlyNormalizer(_Normalizer):
+
+    def __init__(self, settings, returns_df):
+        super().__init__(settings, returns_df)
+        assert self.sa.use_monthly
+
+        self.dates = self.returns_df.index
+
+        #  if self.sr.standardize:  # TODO: calc always if getting moments here
+        #      # means & stds should be Pandas Series here (1 moment per ticker)
+        #      self.means = self.returns_df.mean()  # NOTE: NaNs ignored by dflt
+        #      self.stds = (self.returns_df.std()   # NOTE: NaNs ignored by dflt
+        #                   if len(self.returns_df) > 1 else None)
+        #      self.stdzd_cols_df = (self.returns_df - self.means) / self.stds
+
+    def __get_lookback_label(self, date, lbv):
+        lkb = self.dates.get_loc(date) - lbv
+        assert lkb >= 0  # this necessarily must be True, otherwise bug
+        return self.dates[lkb]
+
+    def _norm_rtrn_per_tick(self, norm_id):
+        group, date = norm_id
+        lbv = self.sr.lb_per_month[date] - 2
+        # TODO/FIXME: why is it -2 and not -1 in line above??
+        lkbd = self.__get_lookback_label(date, lbv)  # lookback date
+
+        rtrn = self.returns_df.loc[lkbd:date, group]
+
+        #  if self.sr.standardize:
+        #      stat_loc = (date, group)
+        #      rtrn = (rtrn - self.means.loc[stat_loc]) / self.stds.loc[stat_loc]
+        #  if self.sr.absolutize:
+        #      rtrn = np.abs(rtrn)
 
         return rtrn
 

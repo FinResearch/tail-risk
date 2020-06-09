@@ -544,6 +544,56 @@ def conditionally_toggle_tail_flag_(ctx, yaml_opts):
         yaml_opts['anal_right'] = True
 
 
+# helper for get/setting monthly lookback values
+def gset_monthly_dates_params_(ctx, yaml_opts):
+    if ctx._approach == 'monthly':
+        di, df = yaml_opts['date_i'], yaml_opts['date_f']
+        full_dbdf = ctx.params['full_dbdf']
+        full_dates = full_dbdf.index
+
+        user_dates = full_dbdf.loc[di:df].index
+        anal_months = []
+        for dt in user_dates:
+            if dt[3:] not in anal_months:  # FIXME: make more efficient, copying every iteration
+                anal_months.append(dt[3:])
+
+        anal_months_set = {dt[3:] for dt in user_dates}
+        assert len(anal_months) == len(anal_months_set)
+
+        m2d_map = {mo: [] for mo in anal_months}  # months to dates map
+        for dt in full_dates:
+            mmyyyy = dt[3:]
+            if mmyyyy in m2d_map:
+                m2d_map[mmyyyy].append(dt)
+
+        monthly_anal_dates = tuple(ds[-1] for ds in m2d_map.values())
+        #  monthly_lkbk_map = {m: len(ds) + 1 for m, ds in m2d_map.items()}
+
+        #  mi, mf = di[3:], df[3:]  # NOTE: this requires dates of form DD-MM-YYYY
+        mi = di[3:]  # NOTE: this requires dates of form DD-MM-YYYY
+        first_return_date = m2d_map[mi][0]
+        d0 = full_dates.get_loc(first_return_date) - 1  # -1 to take last date of month prior to 1st analyzed month, to obtain stock return for the 1st date of 1st month
+        new_di = full_dates[d0 if d0 > 0 else 0]
+
+        monthly_lkbk_map = {ld: len(m2d_map[ld[3:]]) + 1 for ld in monthly_anal_dates}  # +1 to include return for 1st day of each month
+        if d0 <= 0:
+            monthly_lkbk_map[monthly_anal_dates[0]] -= 1
+            # if d0 is 0 or less, then there are no more values to lookback to; so undo the +1 from above
+
+        yaml_opts['monthly_anal_dates'] = pd.Index(monthly_anal_dates, name='Date')
+        yaml_opts['date_i'] = new_di
+        yaml_opts['date_f'] = monthly_anal_dates[-1]
+
+        #  approach, _, freq = yaml_opts['approach_args']
+        #  yaml_opts['approach_args'] = approach, monthly_lkbk_map, freq
+        yaml_opts['lb_per_month'] = monthly_lkbk_map
+
+    # FIXME/TODO: tidy-up and make more efficient & concise
+    #  print(lb_map)
+    #  print(monthly_anal_dates)
+    #  print(new_di)
+
+
 # helper for validating analysis dates
 def _assert_dates_in_df(df, dates_to_check):
     missing_dates = [dt for dt in dates_to_check if dt not in df.index]
@@ -563,12 +613,8 @@ def validate_df_date_indexes(ctx, yaml_opts):
         _assert_dates_in_df(ctx._xmins_df, anal_dates)
 
 
-post_proc_funcs = (validate_norm_timings_,
-                   conditionalize_normalization_options_,
-                   conditionally_toggle_tail_flag_,
-                   validate_df_date_indexes,)
-
 post_parse_funcs = (validate_norm_timings_,
                     conditionalize_normalization_options_,
                     conditionally_toggle_tail_flag_,
+                    gset_monthly_dates_params_,
                     validate_df_date_indexes,)

@@ -58,14 +58,21 @@ class Settings:
 
     # # methods needed for the core general settings # #
 
+    def _postprocess_approach_args_(self):
+        self.approach, self._lookback, self._frq = self.approach_args
+        self._lookback = self.lb_override or self._lookback
+        self.use_dynamic = (True if self.approach in
+                            {'rolling', 'increasing', 'monthly'} else False)
+        self.use_monthly = self.approach == 'monthly'
+        self._smooth_dynamic = self.use_dynamic and not self.use_monthly
+        # FIXME/TODO: rename?? e.g. use_dynamic -> use_temporal; smooth_dynamic -> use_dynamic
+        #  self.lb_per_month = self.lb_per_month
+
     def _postprocess_specific_options(self):
         self.analyze_group = (False if self.partition == 'none' else
                               self.analyze_group)
         self._full_dates = self.full_dbdf.index
-        self.approach, self._lookback, self._frq = self.approach_args
-        self._lookback = self.lb_override or self._lookback
-        self.use_dynamic = (True if self.approach in {'rolling', 'increasing'}
-                            else False)
+        self._postprocess_approach_args_()
         self.fit_discretely = True if not self.data_is_continuous else False
 
         self.xmin_rule, self.xmin_qnty = self.xmin_args
@@ -116,7 +123,8 @@ class Settings:
 
     # helper for correctly extending back DF's date-range when use_dynamic
     def __dynamize_ts_df(self, ts_df, back_date, end_date=None):
-        assert self.use_dynamic
+        #  assert self.use_dynamic
+        assert self._smooth_dynamic
         end_date = end_date or self.date_f
         dynamized_df = ts_df.loc[back_date:end_date]
         if self._frq > 1:
@@ -138,15 +146,17 @@ class Settings:
         if self.analyze_group:
             self._partition_tickers_dbdf()
         static_dbdf = self._tickers_dbdf.loc[self.date_i:self.date_f:self._frq]
-        self.anal_dates = static_dbdf.index
-        if self.use_dynamic:
+
+        self.anal_dates = self.monthly_anal_dates if self.use_monthly else static_dbdf.index
+
+        if self._smooth_dynamic:
             dynamic_dbdf = self.__dynamize_ts_df(self._tickers_dbdf,
                                                  self.__gbdl(self._lookback,
                                                              incl_date0=True))
             # set min. dynamic window size based on lkb, frq & tau
             q, r = divmod(self._lookback, self._frq)
             self.dyn_win_size = q + bool(r) - self.tau
-        self.price_dbdf = dynamic_dbdf if self.use_dynamic else static_dbdf
+        self.price_dbdf = dynamic_dbdf if self._smooth_dynamic else static_dbdf
 
     # # methods relevant to group tail analysis behaviors # #
 
@@ -356,8 +366,9 @@ class Settings:
 
     # # method exported to analysis.py, used strictly for logging # #
     def get_dyn_lbd(self, date):  # get dynamic lookback date
-        date0 = date if self.approach == 'rolling' else self.date_i
-        return self.__gbdl(self._lookback, date0=date0, incl_date0=True)
+        date = date if self.approach in {'rolling', 'monthly'} else self.date_i
+        n_bck = self.lb_per_month[date] if self.use_monthly else self._lookback
+        return self.__gbdl(n_bck, date0=date, incl_date0=True)
 
     # # methods for creating the settings SimpleNamespace object(s) # #
 
