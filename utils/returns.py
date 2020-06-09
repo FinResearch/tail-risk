@@ -3,7 +3,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 
 
-class DataConfigurer:
+class Returns:
 
     def __init__(self, settings):
         self.sd = settings.data
@@ -164,3 +164,13 @@ class DynamicNormalizer(_Normalizer):
             data = np.abs(data)
 
         return data
+
+
+class ReturnsIter:
+
+    def __init__(self, configurer, identifier):
+        self.cfg = configurer
+        self.id = identifier
+
+        # instantiate a new Returns obj for each analysis iteration
+        # make returns_array, mean, std-dev, skew, kurt, n_returns into attrs
