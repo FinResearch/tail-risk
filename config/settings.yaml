@@ -25,6 +25,17 @@ data:
   - tstats_collabs  # tstats: tail statistics
   - output_fname
 
+## returns settings: used to calculate/preprocess the returns to be analyzed
+rtrn:
+  - returns_type
+  - tau  # aka delta
+  - dyn_win_size
+  - standardize
+  - absolutize
+  - norm_target
+  - norm_before
+  - norm_after
+
 ## analysis settings: determines how the data is analyzed
 anal:
   - approach  # TODO: needless to export if rolling_window_type known/constructed in settings.py
@@ -33,11 +44,6 @@ anal:
   - tau
   - dyn_win_size
   - get_dyn_lbd  # bound method used in analysis.py for getting the lookback date label to log
-  - standardize  # TODO: move normalization options into own section?
-  - absolutize
-  - norm_target
-  - norm_before
-  - norm_after
   - tails_to_anal
   - fit_discretely
   - xmin_rule
