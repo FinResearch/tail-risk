@@ -51,8 +51,8 @@ class Returns:
         return returns_df
 
     # the public method to be called by an Analyzer instance
-    def get_data(self, iter_id):
-        return self.normalizer.get_normed_data(iter_id)
+    def get_returns_array(self, iter_id):
+        return self.normalizer.get_normed_rtrn_arr(iter_id)
 
 
 class _Normalizer(ABC):
@@ -68,7 +68,7 @@ class _Normalizer(ABC):
         self.returns_df = returns_df
 
     @abstractmethod
-    def _norm_tickers(self, iter_id):
+    def _norm_rtrn_per_tick(self, iter_id):
         pass
 
     def __normalize_numpy(self, X):  # X must be a numpy.ndarray
@@ -78,19 +78,19 @@ class _Normalizer(ABC):
             X = np.abs(X)
         return X
 
-    def get_normed_data(self, iter_id):
+    def get_normed_rtrn_arr(self, iter_id):
         # TODO: implement std/abs for when target is 'tail' in individual mode
 
         # TODO optimize below: no need to .flatten() when not analyze_group??
-        data = self._norm_tickers(iter_id).to_numpy().flatten()
-        data = data[~np.isnan(data)]
+        rtrn = self._norm_rtrn_per_tick(iter_id).to_numpy().flatten()
+        rtrn = rtrn[~np.isnan(rtrn)]
 
         # normalize after grouping in -G mode
         if self.sr.norm_after:
             # TODO/ASK: take care of when to absolutize for -G, since --norm_after is the default
             # ASK/TODO: do --std & --abs necessarily have the same timing when both are specified???
-            data = self.__normalize_numpy(data)
-        return data
+            rtrn = self.__normalize_numpy(rtrn)
+        return rtrn
 
 
 class StaticNormalizer(_Normalizer):
@@ -107,14 +107,14 @@ class StaticNormalizer(_Normalizer):
             self.stdzd_cols_df = (self.returns_df - self.means) / self.stds
 
     # NOTE: for non-G, std/abs only applies to static when target is 'series'
-    def _norm_tickers(self, norm_id):
+    def _norm_rtrn_per_tick(self, norm_id):
         group = norm_id
-        data = self.returns_df[group]
+        rtrn = self.returns_df[group]
         if self.sr.standardize:
-            data = self.stdzd_cols_df[group]
+            rtrn = self.stdzd_cols_df[group]
         if self.sr.absolutize:
-            data = np.abs(data)
-        return data
+            rtrn = np.abs(rtrn)
+        return rtrn
 
     # FIXME/TODO: implement std/abs when target is 'tail' in individual mode
 
@@ -129,7 +129,7 @@ class DynamicNormalizer(_Normalizer):
 
         self._win_type = {'rolling': 'rolling', 'increasing': 'expanding'}.\
             get(self.sa.approach)
-        self.data_window = getattr(self.returns_df,
+        self.rtrn_window = getattr(self.returns_df,
                                    self._win_type)(self.sr.dyn_win_size)
 
         if self.sr.standardize:  # TODO: calc always if getting moments here
@@ -139,7 +139,7 @@ class DynamicNormalizer(_Normalizer):
                          if len(self.returns_df) > 1 else None)
 
     def __get_window_stat(self, stat):
-        window_stat = getattr(self.data_window, stat)().dropna()
+        window_stat = getattr(self.rtrn_window, stat)().dropna()
         assert len(window_stat) == len(self.sd.anal_dates),\
             (f'cannot calculate suitable {stat.upper()}s for analysis dates '
              f"[{', '.join(self.sd.anal_dates)}] from {self._win_type} "
@@ -153,19 +153,19 @@ class DynamicNormalizer(_Normalizer):
         assert lkb >= 0  # this necessarily must be True, otherwise bug
         return self.dates[lkb]
 
-    def _norm_tickers(self, norm_id):
+    def _norm_rtrn_per_tick(self, norm_id):
         group, date = norm_id
         lkbd = self.__get_lookback_label(date)  # lookback date
 
-        data = self.returns_df.loc[lkbd:date, group]
+        rtrn = self.returns_df.loc[lkbd:date, group]
 
         if self.sr.standardize:
             stat_loc = (date, group)
-            data = (data - self.means.loc[stat_loc]) / self.stds.loc[stat_loc]
+            rtrn = (rtrn - self.means.loc[stat_loc]) / self.stds.loc[stat_loc]
         if self.sr.absolutize:
-            data = np.abs(data)
+            rtrn = np.abs(rtrn)
 
-        return data
+        return rtrn
 
 
 class ReturnsIter:

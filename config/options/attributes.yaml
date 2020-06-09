@@ -80,8 +80,8 @@ approach_args:
     #       but is instead here for convenient serialization/encoding
     rolling: ['504', '1']
     increasing: ['504', '1']
+    monthly: [null, 1]
     static: [null, null]
-    monthly: [null, null]
   show_default: false
   callback: 'validate_approach_args'
   # metavar:  # NOTE: this attr is set by _set_vnargs_choice_metahelp_()

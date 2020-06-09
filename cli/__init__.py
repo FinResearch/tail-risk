@@ -3,7 +3,7 @@ import os
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # TODO: add ROOT_DIR to sys.path in entrypoint/top-level when packaged
 
-from .options import gset_full_dbdf, attach_yaml_opts, post_proc_funcs
+from .options import gset_full_dbdf, attach_yaml_opts, post_parse_funcs
 
 
 @click.command(context_settings=dict(default_map=None,
@@ -30,7 +30,7 @@ from .options import gset_full_dbdf, attach_yaml_opts, post_proc_funcs
 @click.version_option('0.7dev', '-v', '--version')
 @click.pass_context
 def get_user_inputs(ctx, full_dbdf, **yaml_opts):
-    for ppf in post_proc_funcs:
+    for ppf in post_parse_funcs:
         ppf(ctx, yaml_opts)
     return dict(full_dbdf=full_dbdf, **yaml_opts)
 # TODO add subcommands: plot & resume_calculation (given full/partial data),

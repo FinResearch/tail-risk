@@ -310,7 +310,7 @@ def validate_approach_args(ctx, param, approach_args):
             raise ValueError(err)
 
     if approach in {'static', 'monthly'}:
-        assert lookback is None and anal_freq is None,\
+        assert lookback is None and anal_freq in {None, 1},\
             (f"approach {approach} does not take 'lookback' & "
              "'analysis-frequency' arguments")
     elif (approach in {'rolling', 'increasing'} and
@@ -567,3 +567,8 @@ post_proc_funcs = (validate_norm_timings_,
                    conditionalize_normalization_options_,
                    conditionally_toggle_tail_flag_,
                    validate_df_date_indexes,)
+
+post_parse_funcs = (validate_norm_timings_,
+                    conditionalize_normalization_options_,
+                    conditionally_toggle_tail_flag_,
+                    validate_df_date_indexes,)

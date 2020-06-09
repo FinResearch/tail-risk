@@ -10,7 +10,7 @@ from itertools import product
 
 from powerlaw import Fit  # TODO: consider import entire module?
 from ._plpva import plpva as _plpva
-from .configure import DataConfigurer
+from .returns import Returns
 from .results import Results
 
 import sys  # TODO: remove after debugging uses done
@@ -30,12 +30,13 @@ class _Analyzer(ABC):
             self._use_pct_file = any('PCT' in col_hdr for col_hdr
                                      in self.sa.txmin_map.values())
 
-        self.cfg = DataConfigurer(settings)
+        self.rtn = Returns(settings)
         self.res = Results(settings)
 
         # FIXME: consider DataFrame methods instead: {mean, std, skew, kurt}
         # Rolling/Expanding obj also have the above, and also .count & .apply
-        # Especially since mean & std can be calc'd when self.cfg is init'd
+        # Especially since mean & std can be calc'd when self.rtn is init'd
+        # though mean & std-dev are calc'd per ticker, not grouping
         self._moments_calc_fnmap = {'mean': st.fmean,
                                     'std-dev': st.stdev,
                                     'skewness': scipy.stats.skew,
@@ -249,7 +250,7 @@ class StaticAnalyzer(_Analyzer):
 
     def _set_curr_input_array(self):  # TODO: pass curr_iter_id as arg???
         lab, tail = self.curr_df_pos = self.curr_iter_id
-        self.curr_returns_array = self.cfg.get_data(lab)
+        self.curr_returns_array = self.rtn.get_returns_array(lab)
         self.curr_input_array = self.curr_returns_array * tail.value
 
 
@@ -267,7 +268,7 @@ class DynamicAnalyzer(_Analyzer):
     def _set_curr_input_array(self):  # TODO: pass curr_iter_id as arg???
         sub, date, tail = self.curr_iter_id
         self.curr_df_pos = date, (sub, tail)
-        self.curr_returns_array = self.cfg.get_data((sub, date))
+        self.curr_returns_array = self.rtn.get_returns_array((sub, date))
         self.curr_input_array = self.curr_returns_array * tail.value
 
 
