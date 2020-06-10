@@ -10,15 +10,14 @@ class Returns:
         self.sr = settings.rtrn
         self.sa = settings.anal
 
-        returns_df = self.__compute_returns_df()
-
-        # FIXME: make these conditional branches cleaner
-        if self.sa.approach == 'monthly':
+        if self.sa.approach == 'static':
+            Normalizer = StaticNormalizer
+        elif self.sa.approach == 'monthly':
             Normalizer = MonthlyNormalizer
         else:
-            Normalizer = (DynamicNormalizer if self.sa.use_dynamic else
-                          StaticNormalizer)
+            Normalizer = DynamicNormalizer
 
+        returns_df = self.__compute_returns_df()
         self.normalizer = Normalizer(settings, returns_df)
 
     def __compute_returns_df(self):
@@ -57,8 +56,8 @@ class Returns:
         return returns_df
 
     # the public method to be called by an Analyzer instance
-    def get_returns_array(self, iter_id):
-        return self.normalizer.get_normed_rtrn_arr(iter_id)
+    def get_returns_by_iterId(self, iterId):
+        return self.normalizer.get_returns_array(iterId)
 
 
 class _Normalizer(ABC):
@@ -74,7 +73,7 @@ class _Normalizer(ABC):
         self.returns_df = returns_df
 
     @abstractmethod
-    def _norm_rtrn_per_tick(self, iter_id):
+    def _get_returns_PdObj(self, iterId):
         pass
 
     def __normalize_numpy(self, X):  # X must be a numpy.ndarray
@@ -84,11 +83,11 @@ class _Normalizer(ABC):
             X = np.abs(X)
         return X
 
-    def get_normed_rtrn_arr(self, iter_id):
+    def get_returns_array(self, iterId):
         # TODO: implement std/abs for when target is 'tail' in individual mode
 
         # TODO optimize below: no need to .flatten() when not analyze_group??
-        rtrn = self._norm_rtrn_per_tick(iter_id).to_numpy().flatten()
+        rtrn = self._get_returns_PdObj(iterId).to_numpy().flatten()
         rtrn = rtrn[~np.isnan(rtrn)]
 
         # normalize after grouping in -G mode
@@ -113,8 +112,8 @@ class StaticNormalizer(_Normalizer):
             self.stdzd_cols_df = (self.returns_df - self.means) / self.stds
 
     # NOTE: for non-G, std/abs only applies to static when target is 'series'
-    def _norm_rtrn_per_tick(self, norm_id):  # TODO/FIXME: rename to _get_rtrn_per_tick ??
-        group = norm_id
+    def _get_returns_PdObj(self, iterId):
+        group = iterId
         rtrn = self.returns_df[group]
         if self.sr.standardize:
             rtrn = self.stdzd_cols_df[group]
@@ -129,7 +128,7 @@ class DynamicNormalizer(_Normalizer):
 
     def __init__(self, settings, returns_df):
         super().__init__(settings, returns_df)
-        assert self.sa.use_dynamic
+        assert self.sa.use_dynamic and self.sa.approach != 'monthly'
 
         self.dates = self.returns_df.index
 
@@ -159,8 +158,8 @@ class DynamicNormalizer(_Normalizer):
         assert lkb >= 0  # this necessarily must be True, otherwise bug
         return self.dates[lkb]
 
-    def _norm_rtrn_per_tick(self, norm_id):
-        group, date = norm_id
+    def _get_returns_PdObj(self, iterId):
+        group, date = iterId
         lkbd = self.__get_lookback_label(date)  # lookback date
 
         rtrn = self.returns_df.loc[lkbd:date, group]
@@ -189,8 +188,8 @@ class MonthlyNormalizer(_Normalizer):
         #                   if len(self.returns_df) > 1 else None)
         #      self.stdzd_cols_df = (self.returns_df - self.means) / self.stds
 
-    def _norm_rtrn_per_tick(self, norm_id):
-        group, date = norm_id
+    def _get_returns_PdObj(self, iterId):
+        group, date = iterId
         lkbd = self.sr.monthly_bounds[date[3:]][1]
         rtrn = self.returns_df.loc[lkbd:date, group]
 

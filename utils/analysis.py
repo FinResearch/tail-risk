@@ -251,7 +251,7 @@ class StaticAnalyzer(_Analyzer):
 
     def _set_curr_input_array(self):  # TODO: pass curr_iter_id as arg???
         lab, tail = self.curr_df_pos = self.curr_iter_id
-        self.curr_returns_array = self.rtn.get_returns_array(lab)
+        self.curr_returns_array = self.rtn.get_returns_by_iterId(lab)
         self.curr_input_array = self.curr_returns_array * tail.value
 
 
@@ -269,7 +269,7 @@ class DynamicAnalyzer(_Analyzer):
     def _set_curr_input_array(self):  # TODO: pass curr_iter_id as arg???
         sub, date, tail = self.curr_iter_id
         self.curr_df_pos = date, (sub, tail)
-        self.curr_returns_array = self.rtn.get_returns_array((sub, date))
+        self.curr_returns_array = self.rtn.get_returns_by_iterId((sub, date))
         self.curr_input_array = self.curr_returns_array * tail.value
 
 
