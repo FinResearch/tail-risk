@@ -573,7 +573,8 @@ def gset_monthly_approach_bounds_(ctx, yaml_opts):
                     cmm.append(date)
                 else:  # continuously update dN to the newest date of the month
                     cmm[2] = date
-
+        yaml_opts['monthly_bounds'] = {mm: tuple(mb) for mm, mb in
+                                       monthly_bounds.items() if len(mb) == 3}
         #  from collections import namedtuple
         #  # Each Month :: d0: last date prev month, d1: 1st date, dN: last date
         #  MonthlyBounds = namedtuple('Monthly_Bounds', ['d0', 'd1', 'dN'])
@@ -581,8 +582,11 @@ def gset_monthly_approach_bounds_(ctx, yaml_opts):
         # need to workaround non-pickle-able restriction of instance methods
         # see: https://stackoverflow.com/a/1816969/5437918
 
-        yaml_opts['monthly_bounds'] = {mm: tuple(mb) for mm, mb in
-                                       monthly_bounds.items() if len(mb) == 3}
+        # adjust initial & final dates appropriately; they'll be validated next
+        anal_months = list(monthly_bounds.keys())
+        month_i, month_f = anal_months[0], anal_months[-1]
+        yaml_opts['date_i'] = monthly_bounds[month_i][0]
+        yaml_opts['date_f'] = monthly_bounds[month_f][-1]
 
 
 # helper for validating analysis dates
