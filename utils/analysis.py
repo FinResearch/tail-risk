@@ -88,7 +88,7 @@ class _Analyzer(ABC):
                                     f"{self.iter_id_keys} is outside of 0-100")
                 percent = xmin * 100
             else:
-                raise TypeError("should not be here")
+                pass  # numerical xmin data reaches this branch
             try:
                 xmin = np.percentile(self.curr_input_array, percent)
             except NameError:
@@ -150,13 +150,16 @@ class _Analyzer(ABC):
         tstats_map = {(col if self.sa.use_dynamic else (col,))+tuple(tsk): tsv
                       for tsk, tsv in self.__get_curr_plfit_stats().items()}
 
-        col = (col[0],) if self.sa.use_dynamic else ()
-        need_rst = self.res.df.loc[idx, col + ('returns-statistics',)].hasnans
-        rstats_map = ({col + tuple(rsk): rsv for rsk, rsv
-                       in self.__get_curr_rtrn_stats().items()}
-                      if need_rst else {})
-        # FIXME: NaN-check on (<grp>, 'returns-stats') to avoid redundant calcs
-        # only works for 1-proc, b/c multiproc doesn't update res_df until end
+        if self.sa.calc_rtrn_stats:
+            col = (col[0],) if self.sa.use_dynamic else ()
+            need_rst = self.res.df.loc[idx, col + ('returns-statistics',)].hasnans
+            # FIXME: NaN-check on (<grp>, 'rtrn-stats') to avoid redundant calc
+            # only works for 1-proc b/c multiproc doesn't update res_df til end
+            rstats_map = ({col + tuple(rsk): rsv for rsk, rsv
+                           in self.__get_curr_rtrn_stats().items()}
+                          if need_rst else {})
+        else:
+            rstats_map = {}
 
         # TODO: use np.ndarray instead of pd.Series (wasteful) --> order later
         curr_part_res_series = pd.Series({**tstats_map, **rstats_map})

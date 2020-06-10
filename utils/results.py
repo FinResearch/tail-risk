@@ -41,7 +41,10 @@ class Results:
         # TODO: add col_idx name 'category' for moments, tails, tstat, logl lvl
         #       consider using input filename as col_idx name; e.g. dbMarkitUS
 
-        return pd.concat([df_rtrn, df_tails], axis=1)
+        single_sheet_df = [df_tails]
+        if self.sa.calc_rtrn_stats:  # add df_rtrn if returns-statistics req'd
+            single_sheet_df.insert(0, df_rtrn)
+        return pd.concat(single_sheet_df, axis=1)
 
     # TODO look into pd.concat alternatives
     # https://pandas.pydata.org/pandas-docs/stable/user_guide/merging.html
@@ -76,6 +79,8 @@ class Results:
         with pd.ExcelWriter(self.sd.output_fname) as writer:
             for grp in self.sd.grouping_labs:
                 self.df[grp].to_excel(writer, sheet_name=grp)
+            if isinstance(self.sd.pccxdf, pd.DataFrame):
+                self.sd.pccxdf.to_excel(writer, sheet_name='Clauset xmins')
 
     def write_df_to_file(self, filetype='xlsx'):
         self.prettify_df()

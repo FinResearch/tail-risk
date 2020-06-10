@@ -27,8 +27,11 @@ class Settings:
         if self.plot_results:
             self._gset_plot_settings()
         if isinstance(self.xmin_qnty, pd.DataFrame):  # only w/ {file, average}
-            # validation must be after _gset_grouping_info()
-            self._validate_xmins_df_statcols()
+            self._validate_xmins_df_statcols()  # val after _gset_grouping_info
+            if hasattr(self, 'pccxdf'):  # create new cidx w/ lb-info after val
+                self.pccxdf.columns = pd.MultiIndex.from_product(
+                    [(f"lookback = {self._lookback} days",),
+                     self.pccxdf.columns])
 
         # instantiate the settings SimpleNamespace objects
         self._load_set_settings_config()
@@ -306,9 +309,9 @@ class Settings:
             self._n_bound_i = rws + lag + self._lookback - 1
             print("AVERAGE xmins to be calculated w/ rolling window size of "
                   f"{rws} days & lag days of {lag}")  # add to -V logging
-            clauset_xmins_df = self.__precompute_clauset_xmins_df()
-            # TODO: save the above to file for later re-use
-            xmins_df = clauset_xmins_df.rolling(rws).mean()
+            # pccxdf: Pre-Computed Clauset Xmins DataFrame
+            self.pccxdf = self.__precompute_clauset_xmins_df()
+            xmins_df = self.pccxdf.rolling(rws).mean()
 
         self.xmin_qnty = xmins_df.shift(lag).loc[self.date_i:self.date_f]
 
@@ -320,13 +323,13 @@ class Settings:
         overridden_opts = {'date_i': bound_i,
                            'date_f': self.date_f,
                            'xmin_args': ('clauset', None),
+                           'calc_rtrn_stats': False,
                            'run_ks_test': False,
                            'compare_distros': False,
                            'plot_results': False}
         self._user_inputs.update(overridden_opts)
         pcs = Settings(self._user_inputs).settings  # pcs: PreCompute Settings
-        pcs.data.stats_collabs = [('xmin', '')]  # TODO: stats_collabs -> tstats_collabs
-        pcs.data.stats_colname = "Clauset xmins"
+        pcs.data.tstats_collabs = [('tail-statistics', 'xmin')]
 
         # TODO: add below printing to appropriate verbosity logging
         print("first need to pre-compute Clauset xmins b/w "
@@ -337,7 +340,7 @@ class Settings:
         analyzer.analyze()
         clauset_xmins_df = analyzer.get_resdf()
         clauset_xmins_df.columns = [f"{self._tst_map[t]} {grp}" for
-                                    grp, t, _ in clauset_xmins_df.columns]
+                                    grp, t, *_ in clauset_xmins_df.columns]
         return clauset_xmins_df
 
     # ensures xmins for chosen ticker(s)/group(s) & tail(s) exist

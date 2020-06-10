@@ -247,6 +247,14 @@ xmin_args:
     * ℝ (manual) : enter any ℝ number  [ex. "-x -0.5"]                  
     * XMINS_FILE : pass file w/ date-indexed xmin data
 
+calc_rtrn_stats:
+  param_decls:
+    - '--rstats/--no-rstats'
+    - 'calc_rtrn_stats'
+  default: true
+  # metavar: ''
+  help: 'calculate statistics for returns'
+
 run_ks_test:
   param_decls:
     - '--ks-run/--ks-skip'
