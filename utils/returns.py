@@ -124,36 +124,6 @@ class StaticNormalizer(_Normalizer):
     # FIXME/TODO: implement std/abs when target is 'tail' in individual mode
 
 
-# TODO: consider making MonthlyNormalizer a subclass of DynamicNormalizer
-class MonthlyNormalizer(_Normalizer):
-
-    def __init__(self, settings, returns_df):
-        super().__init__(settings, returns_df)
-        assert self.sa.approach == 'monthly'
-
-        if self.sr.standardize:  # TODO: calc always if getting moments here
-            # means & stds should be Pandas DFs (1 per date & per ticker)
-            # initialize 2 DFs for storing the means & std-devs
-            self.means = self.returns_df.loc[self.sd.anal_dates]
-            self.stds = self.returns_df.loc[self.sd.anal_dates]
-            for date in self.sd.anal_dates:
-                _, d_i, d_f = self.sr.monthly_bounds[date[3:]]
-                # NOTE: by default, DF mean() & std() ignore NaNs & use axis 0
-                self.means.loc[date] = self.returns_df.loc[d_i:d_f].mean()
-                self.stds.loc[date] = self.returns_df.loc[d_i:d_f].std()
-
-    def _get_returns_PdObj(self, iterId):
-        group, date = iterId
-        lkbd = self.sr.monthly_bounds[date[3:]][1]
-        rtrn = self.returns_df.loc[lkbd:date, group]
-        if self.sr.standardize:
-            stat_loc = (date, group)
-            rtrn = (rtrn - self.means.loc[stat_loc]) / self.stds.loc[stat_loc]
-        if self.sr.absolutize:
-            rtrn = np.abs(rtrn)
-        return rtrn
-
-
 class DynamicNormalizer(_Normalizer):
 
     def __init__(self, settings, returns_df):
@@ -182,7 +152,7 @@ class DynamicNormalizer(_Normalizer):
              f'from DataFrame below:\n\n{self.returns_df}\n')
         return window_stat
 
-    def __get_lookback_label(self, date):
+    def _get_lookback_label(self, date):
         lkb = (self.dates.get_loc(date) - self.sr.dyn_win_size + 1
                if self.sa.approach == 'rolling' else 0)
         assert lkb >= 0  # this necessarily must be True, otherwise bug
@@ -190,7 +160,7 @@ class DynamicNormalizer(_Normalizer):
 
     def _get_returns_PdObj(self, iterId):
         group, date = iterId
-        lkbd = self.__get_lookback_label(date)  # lookback date
+        lkbd = self._get_lookback_label(date)  # lookback date for returns_win
         rtrn = self.returns_df.loc[lkbd:date, group]
         if self.sr.standardize:
             stat_loc = (date, group)
@@ -198,6 +168,26 @@ class DynamicNormalizer(_Normalizer):
         if self.sr.absolutize:
             rtrn = np.abs(rtrn)
         return rtrn
+
+
+class MonthlyNormalizer(DynamicNormalizer):
+
+    def __init__(self, settings, returns_df):
+        _Normalizer.__init__(self, settings, returns_df)
+        assert self.sa.approach == 'monthly'
+
+        if self.sr.standardize:  # TODO: calc always if getting moments here
+            # initialize 2 DFs for storing the means & std-devs
+            self.means = self.returns_df.loc[self.sd.anal_dates]
+            self.stds = self.returns_df.loc[self.sd.anal_dates]
+            for date in self.sd.anal_dates:
+                _, d_i, d_f = self.sr.monthly_bounds[date[3:]]
+                # NOTE: by default, DF mean() & std() ignore NaNs & use axis 0
+                self.means.loc[date] = self.returns_df.loc[d_i:d_f].mean()
+                self.stds.loc[date] = self.returns_df.loc[d_i:d_f].std()
+
+    def _get_lookback_label(self, date):
+        return self.sr.monthly_bounds[date[3:]][1]
 
 
 class ReturnsIter:
