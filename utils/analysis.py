@@ -108,7 +108,7 @@ class _Analyzer(ABC):
         calcd_moments = {mstat: fn(self.curr_returns_array)
                          for mstat, fn in self._moments_calc_fnmap.items()}
         mstat_map = {('moments', ms): mv for ms, mv in calcd_moments.items()}
-        rtrn_stats = {('', 'N_returns'): len(self.curr_returns_array),
+        rtrn_stats = {('', 'count'): len(self.curr_returns_array),
                       **mstat_map}
         return {('returns-statistics',) + tuple(rsk): rsv for rsk, rsv
                 in rtrn_stats.items()}
@@ -139,7 +139,7 @@ class _Analyzer(ABC):
                 in logl_stats.items() for st, val in stats.items()}
 
     # TODO: add getting xmin_today data when doing group tail analysis
-    def __get_curr_per_tail_stats(self):
+    def __get_curr_plfit_stats(self):
         tail_stats = self.__get_curr_tail_stats()
         logl_stats = (self.__get_curr_logl_stats()
                       if self.sa.compare_distros else {})
@@ -148,7 +148,7 @@ class _Analyzer(ABC):
     def _gset_curr_partial_results(self, action):
         idx, col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
         tstats_map = {(col if self.sa.use_dynamic else (col,))+tuple(tsk): tsv
-                      for tsk, tsv in self.__get_curr_per_tail_stats().items()}
+                      for tsk, tsv in self.__get_curr_plfit_stats().items()}
 
         col = (col[0],) if self.sa.use_dynamic else ()
         need_rst = self.res.df.loc[idx, col + ('returns-statistics',)].hasnans

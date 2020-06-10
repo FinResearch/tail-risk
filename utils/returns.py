@@ -182,9 +182,9 @@ class MonthlyNormalizer(DynamicNormalizer):
             self.stds = self.returns_df.loc[self.sd.anal_dates]
             for date in self.sd.anal_dates:
                 _, d_i, d_f = self.sr.monthly_bounds[date[3:]]
-                # NOTE: by default, DF mean() & std() ignore NaNs & use axis 0
-                self.means.loc[date] = self.returns_df.loc[d_i:d_f].mean()
-                self.stds.loc[date] = self.returns_df.loc[d_i:d_f].std()
+                rtdf_by_month = self.returns_df.loc[d_i:d_f]
+                self.means.loc[date] = rtdf_by_month.mean(axis=0)
+                self.stds.loc[date] = rtdf_by_month.std(axis=0)
 
     def _get_lookback_label(self, date):
         return self.sr.monthly_bounds[date[3:]][1]
@@ -192,9 +192,9 @@ class MonthlyNormalizer(DynamicNormalizer):
 
 class ReturnsIter:
 
-    def __init__(self, configurer, identifier):
-        self.cfg = configurer
-        self.id = identifier
+    def __init__(self, returns, iterId):
+        self.cfg = returns
+        self.iid = iterId
 
         # instantiate a new Returns obj for each analysis iteration
         # make returns_array, mean, std-dev, skew, kurt, n_returns into attrs

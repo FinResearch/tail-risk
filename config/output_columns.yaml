@@ -5,7 +5,7 @@
 statistics:
 
   returns-statistics:  # NOTE: this column label heading sits at a level higher than the two headings below
-    - N_returns
+    - count
     - mean
     - std-dev
     - skewness
