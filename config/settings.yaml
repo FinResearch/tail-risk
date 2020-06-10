@@ -30,7 +30,7 @@ rtrn:
   - returns_type
   - tau  # aka delta
   - dyn_win_size
-  - lb_per_month  # only used for the 'monthly' approach
+  - monthly_bounds  # only used for the 'monthly' approach
   - standardize
   - absolutize
   - norm_target
@@ -41,7 +41,6 @@ rtrn:
 anal:
   - approach  # TODO: needless to export if rolling_window_type known/constructed in settings.py
   - use_dynamic
-  - use_monthly
   - get_dyn_lbd  # bound method used in analysis.py for getting the lookback date label for logging
   - tails_to_anal
   - fit_discretely

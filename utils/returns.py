@@ -13,7 +13,7 @@ class Returns:
         returns_df = self.__compute_returns_df()
 
         # FIXME: make these conditional branches cleaner
-        if self.sa.use_monthly:
+        if self.sa.approach == 'monthly':
             Normalizer = MonthlyNormalizer
         else:
             Normalizer = (DynamicNormalizer if self.sa.use_dynamic else
@@ -178,7 +178,7 @@ class MonthlyNormalizer(_Normalizer):
 
     def __init__(self, settings, returns_df):
         super().__init__(settings, returns_df)
-        assert self.sa.use_monthly
+        assert self.sa.approach == 'monthly'
 
         self.dates = self.returns_df.index
 
@@ -189,17 +189,9 @@ class MonthlyNormalizer(_Normalizer):
         #                   if len(self.returns_df) > 1 else None)
         #      self.stdzd_cols_df = (self.returns_df - self.means) / self.stds
 
-    def __get_lookback_label(self, date, lbv):
-        lkb = self.dates.get_loc(date) - lbv
-        assert lkb >= 0  # this necessarily must be True, otherwise bug
-        return self.dates[lkb]
-
     def _norm_rtrn_per_tick(self, norm_id):
         group, date = norm_id
-        lbv = self.sr.lb_per_month[date] - 2
-        # TODO/FIXME: why is it -2 and not -1 in line above??
-        lkbd = self.__get_lookback_label(date, lbv)  # lookback date
-
+        lkbd = self.sr.monthly_bounds[date[3:]][1]
         rtrn = self.returns_df.loc[lkbd:date, group]
 
         #  if self.sr.standardize:

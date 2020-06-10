@@ -63,10 +63,13 @@ class Settings:
         self._lookback = self.lb_override or self._lookback
         self.use_dynamic = (True if self.approach in
                             {'rolling', 'increasing', 'monthly'} else False)
-        self.use_monthly = self.approach == 'monthly'
-        self._smooth_dynamic = self.use_dynamic and not self.use_monthly
-        # FIXME/TODO: rename?? e.g. use_dynamic -> use_temporal; smooth_dynamic -> use_dynamic
-        #  self.lb_per_month = self.lb_per_month
+        self._smooth_dynamic = self.use_dynamic and self.approach != 'monthly'
+        if self.approach == 'monthly':
+            # adjust the initial & final dates as appropriate
+            anal_months = list(self.monthly_bounds.keys())
+            month_i, month_f = anal_months[0], anal_months[-1]
+            self.date_i = self.monthly_bounds[month_i][0]
+            self.date_f = self.monthly_bounds[month_f][-1]
 
     def _postprocess_specific_options(self):
         self.analyze_group = (False if self.partition == 'none' else
@@ -146,9 +149,11 @@ class Settings:
         if self.analyze_group:
             self._partition_tickers_dbdf()
         static_dbdf = self._tickers_dbdf.loc[self.date_i:self.date_f:self._frq]
-
-        self.anal_dates = self.monthly_anal_dates if self.use_monthly else static_dbdf.index
-
+        self.anal_dates = static_dbdf.index
+        if self.approach == 'monthly':  # use only the last date of each month
+            md_pos = [self.anal_dates.get_loc(mb[-1]) for mb
+                      in self.monthly_bounds.values()]
+            self.anal_dates = self.anal_dates[md_pos]
         if self._smooth_dynamic:
             dynamic_dbdf = self.__dynamize_ts_df(self._tickers_dbdf,
                                                  self.__gbdl(self._lookback,
@@ -366,9 +371,11 @@ class Settings:
 
     # # method exported to analysis.py, used strictly for logging # #
     def get_dyn_lbd(self, date):  # get dynamic lookback date
-        date = date if self.approach in {'rolling', 'monthly'} else self.date_i
-        n_bck = self.lb_per_month[date] if self.use_monthly else self._lookback
-        return self.__gbdl(n_bck, date0=date, incl_date0=True)
+        if self.approach == 'monthly':
+            return self.monthly_bounds[date[3:]][0]
+        else:
+            date = date if self.approach == 'rolling' else self.date_i
+            return self.__gbdl(self._lookback, date0=date, incl_date0=True)
 
     # # methods for creating the settings SimpleNamespace object(s) # #
 

@@ -546,53 +546,42 @@ def conditionally_toggle_tail_flag_(ctx, yaml_opts):
 
 
 # helper for get/setting monthly lookback values
-def gset_monthly_dates_params_(ctx, yaml_opts):
+def gset_monthly_approach_bounds_(ctx, yaml_opts):
     if ctx._approach == 'monthly':
+        from operator import itemgetter
         di, df = yaml_opts['date_i'], yaml_opts['date_f']
         full_dbdf = ctx.params['full_dbdf']
         full_dates = full_dbdf.index
 
-        user_dates = full_dbdf.loc[di:df].index
-        anal_months = []
-        for dt in user_dates:
-            if dt[3:] not in anal_months:  # FIXME: make more efficient, copying every iteration
-                anal_months.append(dt[3:])
+        # NOTE: all dates are assumed to be in the DD-MM-YYYY format
+        anal_months = sorted({date[3:] for date in full_dbdf.loc[di:df].index},
+                             key=itemgetter(slice(-4, None), slice(2)))
+        # the above key sorts the MM-YYYY vals first by year, then by month
 
-        anal_months_set = {dt[3:] for dt in user_dates}
-        assert len(anal_months) == len(anal_months_set)
+        # init dict to store characteristic date bounds of each month
+        monthly_bounds = {mm: [] for mm in anal_months}
+        for i, date in enumerate(full_dates):
+            mmyyyy = date[3:]
+            if mmyyyy in monthly_bounds:
+                cmm = monthly_bounds[mmyyyy]
+                if len(cmm) == 0:  # i.e. when no bounds stored
+                    d0_idx = max(i - 1, 0)  # max w/ 0 to ensure no -ve index
+                    cmm.append(full_dates[d0_idx])
+                    cmm.append(full_dates[d0_idx + 1])
+                elif len(cmm) == 2:  # i.e. when d0 & d1 are stored
+                    cmm.append(date)
+                else:  # continuously update dN to the newest date of the month
+                    cmm[2] = date
 
-        m2d_map = {mo: [] for mo in anal_months}  # months to dates map
-        for dt in full_dates:
-            mmyyyy = dt[3:]
-            if mmyyyy in m2d_map:
-                m2d_map[mmyyyy].append(dt)
+        #  from collections import namedtuple
+        #  # Each Month :: d0: last date prev month, d1: 1st date, dN: last date
+        #  MonthlyBounds = namedtuple('Monthly_Bounds', ['d0', 'd1', 'dN'])
+        # TODO/FIXME: use the collections.namedtuple construction above?
+        # need to workaround non-pickle-able restriction of instance methods
+        # see: https://stackoverflow.com/a/1816969/5437918
 
-        monthly_anal_dates = tuple(ds[-1] for ds in m2d_map.values())
-        #  monthly_lkbk_map = {m: len(ds) + 1 for m, ds in m2d_map.items()}
-
-        #  mi, mf = di[3:], df[3:]  # NOTE: this requires dates of form DD-MM-YYYY
-        mi = di[3:]  # NOTE: this requires dates of form DD-MM-YYYY
-        first_return_date = m2d_map[mi][0]
-        d0 = full_dates.get_loc(first_return_date) - 1  # -1 to take last date of month prior to 1st analyzed month, to obtain stock return for the 1st date of 1st month
-        new_di = full_dates[d0 if d0 > 0 else 0]
-
-        monthly_lkbk_map = {ld: len(m2d_map[ld[3:]]) + 1 for ld in monthly_anal_dates}  # +1 to include return for 1st day of each month
-        if d0 <= 0:
-            monthly_lkbk_map[monthly_anal_dates[0]] -= 1
-            # if d0 is 0 or less, then there are no more values to lookback to; so undo the +1 from above
-
-        yaml_opts['monthly_anal_dates'] = pd.Index(monthly_anal_dates, name='Date')
-        yaml_opts['date_i'] = new_di
-        yaml_opts['date_f'] = monthly_anal_dates[-1]
-
-        #  approach, _, freq = yaml_opts['approach_args']
-        #  yaml_opts['approach_args'] = approach, monthly_lkbk_map, freq
-        yaml_opts['lb_per_month'] = monthly_lkbk_map
-
-    # FIXME/TODO: tidy-up and make more efficient & concise
-    #  print(lb_map)
-    #  print(monthly_anal_dates)
-    #  print(new_di)
+        yaml_opts['monthly_bounds'] = {mm: tuple(mb) for mm, mb in
+                                       monthly_bounds.items() if len(mb) == 3}
 
 
 # helper for validating analysis dates
@@ -617,5 +606,5 @@ def validate_df_date_indexes(ctx, yaml_opts):
 post_parse_funcs = (validate_norm_timings_,
                     conditionalize_normalization_options_,
                     conditionally_toggle_tail_flag_,
-                    gset_monthly_dates_params_,
+                    gset_monthly_approach_bounds_,
                     validate_df_date_indexes,)
