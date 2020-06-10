@@ -136,16 +136,16 @@ tau:
   # callback: 'cast_tau'
   metavar: '<ℤ⁺>'
   # metavar: '[1 (daily) | 5 (weekly) | 22 (monthly)]'
-  help: 'specify time lag <# days> of the input series'
+  help: 'specify time lag <# days> to calculate returns'
 
 standardize: 
   param_decls:
     - '--std'
-    - '--standardize/--no-std'
+    - '--standardize/--no-std'  # TODO: shorten to get --help output onto one line
     - 'standardize'
   is_flag: true
   default: false
-  help: 'standardize [(X-μ)/σ] input data'
+  help: 'standardize [(X-μ)/σ] calculated returns'
 
 # TODO: create alias -N, --norm for std + abs ??
 
@@ -156,7 +156,7 @@ absolutize:
     - 'absolutize'
   is_flag: true
   default: false
-  help: 'take absolute value of input data'
+  help: 'take absolute value of calculated returns'
 
 norm_target:  # NOTE: only available in individual mode & for the static approach
   param_decls:
@@ -278,7 +278,7 @@ compare_distros:
     - 'compare_distros'
   default: true
   metavar: ''  # FIXME: get metavar to work w/ flags (not shown currently)
-  help: 'compare the fitted power-law to other distributions using log-likelihoods'
+  help: 'log-likelihoods of PL-fit vs. other distros'
 
 # TODO: hide control & plotting options from --help unless specified by some subcommand/flag (to reduce clutter)
 

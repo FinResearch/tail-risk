@@ -66,4 +66,5 @@ plot:
   - alpha_qntl
   # - alpha_signif (used in figure title of time_rolling plots)
 
+# TODO: add sub-setting for output data formatting?
 # TODO: consider adding a sub-setting section for verbosity logging?

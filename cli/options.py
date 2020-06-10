@@ -286,8 +286,9 @@ def gset_group_opts(ctx, param, analyze_group):
                 opt_obj.default = grp_dflts[opt]
             # ONLY display options specified in group_defaults.yaml
             opt_obj.hidden = False if opt in grp_dflts else True
-        param.help = ('-G set; this is the specialized help for group '
+        param.help = ("'-G' is set, showing specialized help for group "
                       'tail analysis')
+        param.show_default = False
 
     # piggyback off eagerness of the -G opt to dynamically set help texts
     _set_vnargs_choice_metahelp_(ctx)
