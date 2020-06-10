@@ -67,8 +67,8 @@ approach:
     choices:
       - 'rolling'
       - 'increasing'
-      - 'static'
       - 'monthly'
+      - 'static'
     preselect: 0
 
 dynamic_appr_params:

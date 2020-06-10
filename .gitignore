@@ -3,3 +3,4 @@ __pycache__
 tail-stats_*
 profile*.svg
 *.log
+*.pdf

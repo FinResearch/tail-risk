@@ -55,6 +55,7 @@ class _Analyzer(ABC):
         if bool(date):  # dynamic approach
             df = date[0]
             di = self.sa.get_dyn_lbd(df)
+            # NOTE: di above is 1st date w/ price, not 1st date w/ return
         else:           # static approach
             di, df = self.sd.date_i, self.sd.date_f
         date_log = f"b/w [{di}, {df}]"
@@ -279,7 +280,8 @@ def analyze_tail(settings):
     analyzer.analyze()
     analyzer.res.write_df_to_file()
     results = analyzer.get_resdf()
+    print('-' * 120)
     print(results)
-    print('-' * 100)
+    print('-' * 75)
     results.info()
-    print('-' * 100)
+    print('-' * 75)

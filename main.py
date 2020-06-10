@@ -12,11 +12,12 @@ if user_inputs == 0:  # for catching the --help option
 # create option flag to just print out the user_inputs
 #  print(user_inputs)
 
-#  settings = Settings(user_inputs)
-settings = Settings(user_inputs).settings
-#  print(settings)
-#
-analyze_tail(settings)
+if __name__ == "__main__":
+    #  settings = Settings(user_inputs)
+    settings = Settings(user_inputs).settings
+    #  print(settings)
+    #
+    analyze_tail(settings)
 
 # TODO: apply black styling to all modules (i.e. ' --> ")
 # TODO: move all TODO notes into single markdown/textfile
