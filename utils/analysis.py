@@ -62,7 +62,6 @@ class _Analyzer(ABC):
         print(grp_tail_log + date_log)
 
     @abstractmethod
-    # TODO --> def _slice_dbdf_data(self):
     def _set_curr_input_array(self):
         # NOTE: storage posn into results_df (curr_df_pos) also set here
         pass
@@ -113,7 +112,6 @@ class _Analyzer(ABC):
         return {('returns-statistics',) + tuple(rsk): rsv for rsk, rsv
                 in rtrn_stats.items()}
 
-    # TODO: add getting xmin_today data when doing group tail analysis
     def __get_curr_tail_stats(self):
         alpha, xmin, sigma = (getattr(self.curr_fit.power_law, prop)
                               for prop in ('alpha', 'xmin', 'sigma'))
@@ -138,7 +136,6 @@ class _Analyzer(ABC):
         return {('log-likelihoods', f"{dist}_{st}"): val for dist, stats
                 in logl_stats.items() for st, val in stats.items()}
 
-    # TODO: add getting xmin_today data when doing group tail analysis
     def __get_curr_plfit_stats(self):
         tail_stats = self.__get_curr_tail_stats()
         logl_stats = (self.__get_curr_logl_stats()

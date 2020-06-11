@@ -79,8 +79,9 @@ class Results:
         with pd.ExcelWriter(self.sd.output_fname) as writer:
             for grp in self.sd.grouping_labs:
                 self.df[grp].to_excel(writer, sheet_name=grp)
-            if isinstance(self.sd.pccxdf, pd.DataFrame):
-                self.sd.pccxdf.to_excel(writer, sheet_name='Clauset xmins')
+            if isinstance(self.sd.clauset_xmins_df, pd.DataFrame):
+                lb_info = self.sd.clauset_xmins_df.columns.name
+                self.sd.clauset_xmins_df.to_excel(writer, sheet_name=lb_info)
 
     def write_df_to_file(self, filetype='xlsx'):
         self.prettify_df()

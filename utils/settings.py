@@ -27,11 +27,7 @@ class Settings:
         if self.plot_results:
             self._gset_plot_settings()
         if isinstance(self.xmin_qnty, pd.DataFrame):  # only w/ {file, average}
-            self._validate_xmins_df_statcols()  # val after _gset_grouping_info
-            if hasattr(self, 'pccxdf'):  # create new cidx w/ lb-info after val
-                self.pccxdf.columns = pd.MultiIndex.from_product(
-                    [(f"lookback = {self._lookback} days",),
-                     self.pccxdf.columns])
+            self._validate_xmins_df_statcols()  # must aftr _gset_grouping_info
 
         # instantiate the settings SimpleNamespace objects
         self._load_set_settings_config()
@@ -303,9 +299,8 @@ class Settings:
             self._n_bound_i = rws + lag + self._lookback - 1
             print("AVERAGE xmins to be calculated w/ rolling window size of "
                   f"{rws} days & lag days of {lag}")  # add to -V logging
-            # pccxdf: Pre-Computed Clauset Xmins DataFrame
-            self.pccxdf = self.__precompute_clauset_xmins_df()
-            xmins_df = self.pccxdf.rolling(rws).mean()
+            self.clauset_xmins_df = self.__precompute_clauset_xmins_df()
+            xmins_df = self.clauset_xmins_df.rolling(rws).mean()
 
         self.xmin_qnty = xmins_df.shift(lag).loc[self.date_i:self.date_f]
 
@@ -333,8 +328,10 @@ class Settings:
         analyzer = DynamicAnalyzer(pcs)
         analyzer.analyze()
         clauset_xmins_df = analyzer.get_resdf()
-        clauset_xmins_df.columns = [f"{self._tst_map[t]} {grp}" for
-                                    grp, t, *_ in clauset_xmins_df.columns]
+        lb_info = f'Clauset xmins, LB = {self._lookback} days'
+        clauset_xmins_df.columns = pd.Index([f"{self._tst_map[t]} {grp}" for
+                                             grp, t, *_ in clauset_xmins_df.columns],
+                                            name=lb_info)
         return clauset_xmins_df
 
     # ensures xmins for chosen ticker(s)/group(s) & tail(s) exist

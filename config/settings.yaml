@@ -24,7 +24,7 @@ data:
   - rstats_collabs  # rstats: returns statistics
   - tstats_collabs  # tstats: tail statistics
   - output_fname
-  - pccxdf  # Pre-Computed Clauset Xmins DataFrame
+  - clauset_xmins_df  # only generated when Clauset xmins calculated from scratch w/ 'average' xmin rule
 
 ## returns settings: used to calculate/preprocess the returns to be analyzed
 rtrn:
@@ -48,7 +48,6 @@ anal:
   - xmin_rule
   - xmin_qnty
   - txmin_map  # only used by xmin_rule 'file' OR 'average'
-  # - clauset_xmins_df  # contains value of xmin_today <-- ASK/CNFRM: not add to results_df
   - calc_rtrn_stats
   - run_ks_test
   - ks_iter

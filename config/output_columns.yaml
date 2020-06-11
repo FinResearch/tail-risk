@@ -14,8 +14,6 @@ statistics:
   tail-statistics:
     - alpha
     - xmin
-    # - xmin_used   # TODO: only relevant for Group analysis
-    # - xmin_today  # contained in clauset_xmins_df <-- ASK/CNFRM: not add to results_df??
     - sigma
     - abs_len
     - ks_pv
