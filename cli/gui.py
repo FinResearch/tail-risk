@@ -5,9 +5,6 @@ from .options import _read_fname_to_df
 from . import ROOT_DIR
 OPT_CFG_DIR = f'{ROOT_DIR}/config/options/'  # TODO: use pathlib.Path ??
 
-#  if __name__ == '__main__':
-#      specs_fpath = '../config/options/easygui.yaml'
-
 
 class GUI:
 
@@ -42,8 +39,6 @@ class GUI:
                 if 'self' in criterion:
                     ev_act = eval(criterion)
                 else:
-                    # TODO: add 'self' explicitly where appropriate?
-                    #       deal w/ 'evaluation' in other way
                     ev_act = eval(f"getattr(self, '{criterion}', None)")
 
                 if action == 'init_on':

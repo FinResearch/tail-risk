@@ -195,7 +195,7 @@ alpha_signif:
     title: 'alpha'
     default: 0.05
 
-data_is_continuous:
+data_is_continuous:  # TODO: hide this option??
   metas:
     box_type: 'buttonbox'
     cli_str_comp: "f'--{opt_val}'"

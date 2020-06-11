@@ -10,6 +10,7 @@ class Returns:
         self.sr = settings.rtrn
         self.sa = settings.anal
 
+        # TODO/FIXME: remove redundant/useless assertion statements
         if self.sa.approach == 'static':
             Normalizer = StaticNormalizer
         elif self.sa.approach == 'monthly':
@@ -66,7 +67,6 @@ class _Normalizer(ABC):
     """
 
     def __init__(self, settings, returns_df):
-        # TODO: take input vector directly from data settings?
         self.sd = settings.data
         self.sr = settings.rtrn
         self.sa = settings.anal
@@ -92,8 +92,6 @@ class _Normalizer(ABC):
 
         # normalize after grouping in -G mode
         if self.sr.norm_after:
-            # TODO/ASK: take care of when to absolutize for -G, since --norm_after is the default
-            # ASK/TODO: do --std & --abs necessarily have the same timing when both are specified???
             rtrn = self.__normalize_numpy(rtrn)
         return rtrn
 
@@ -132,8 +130,7 @@ class DynamicNormalizer(_Normalizer):
 
         self.dates = self.returns_df.index
 
-        self._win_type = {'rolling': 'rolling', 'increasing': 'expanding'}.\
-            get(self.sa.approach)
+        self._win_type = {'rolling': 'rolling', 'increasing': 'expanding'}.get(self.sa.approach)
         self.rtrn_window = getattr(self.returns_df,
                                    self._win_type)(self.sr.dyn_win_size)
 
@@ -142,6 +139,7 @@ class DynamicNormalizer(_Normalizer):
             self.means = self.__get_window_stat('mean')
             self.stds = (self.__get_window_stat('std')
                          if len(self.returns_df) > 1 else None)
+            # TODO/FIXME: add standardization for return window w/ NaN values
 
     def __get_window_stat(self, stat):
         window_stat = getattr(self.rtrn_window, stat)().dropna()

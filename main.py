@@ -20,7 +20,6 @@ if __name__ == "__main__":
     analyze_tail(settings)
 
 # TODO: apply black styling to all modules (i.e. ' --> ")
-# TODO: move all TODO notes into single markdown/textfile
 # TODO: annotate/de-annotate NOTE notes
 # TODO: move imports needed conditionally to within those branches,
 #       example: like warnings.warn & itertools.product in settings.py

@@ -40,7 +40,7 @@ rtrn:
 
 ## analysis settings: determines how the data is analyzed
 anal:
-  - approach  # TODO: needless to export if rolling_window_type known/constructed in settings.py
+  - approach
   - use_dynamic
   - get_dyn_lbd  # bound method used in analysis.py for getting the lookback date label for logging
   - tails_to_anal
@@ -51,7 +51,7 @@ anal:
   - calc_rtrn_stats
   - run_ks_test
   - ks_iter
-  - compare_distros  # TODO: add warning informing ignored if '-a static'
+  - compare_distros
 
 ## plotting settings: needed specifically and only for plotting
 plot:

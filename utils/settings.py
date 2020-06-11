@@ -2,7 +2,7 @@ import yaml
 import pandas as pd
 
 import enum
-from types import SimpleNamespace  # TODO: consider switching to namedtuple?
+from types import SimpleNamespace
 from statistics import NormalDist
 from itertools import product
 
@@ -53,7 +53,7 @@ class Settings:
             print(getattr(self.settings, subsett))
         else:
             self._validate_subsetting(subsett)
-        return ''  # FIXME: instead of just print, should return proper str val
+        return ''  # TODO/FIXME: instead of just print, should return proper str val
 
     # # methods needed for the core general settings # #
 
@@ -197,7 +197,6 @@ class Settings:
     # # methods configuring the output results DataFrame # #
 
     def _load_set_stats_columns_labels(self):
-        # TODO/NOTE: -G, --group dynamic cols differs slightly (xmin_today)
         cfg_fpath = 'config/output_columns.yaml'  # TODO: improve pkg/path sys
         with open(f'{cfg_fpath}', encoding='utf8') as cfg:
             self.stats_colname, sub_stats_maps = tuple(
@@ -307,8 +306,6 @@ class Settings:
     def __precompute_clauset_xmins_df(self):
         bound_i = self.__gdiab(self._n_bound_i)
         self.date_f = self.__gdiab(self.__get_disp_to_orig_date(self.date_f))
-        # TODO: add option to not save precomp'd Clauset xmins, which
-        #       enables fitting up to the (date_f - lag)-th date only
         overridden_opts = {'date_i': bound_i,
                            'date_f': self.date_f,
                            'xmin_args': ('clauset', None),

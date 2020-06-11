@@ -7,7 +7,7 @@ from .options import gset_full_dbdf, attach_yaml_opts, post_parse_funcs
 
 
 @click.command(context_settings=dict(default_map=None,
-                                     max_content_width=100,  # TODO: use 120?
+                                     max_content_width=100,  # try 120 too
                                      help_option_names=('-h', '--help'),
                                      #  token_normalize_func=None,
                                      ),

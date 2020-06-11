@@ -2,8 +2,6 @@
 
 # defaults values specific to group tail analysis
 
-# TODO: allow modding other attrs besides 'default' in this config?
-
 analyze_group: true
 
 approach_args:
@@ -23,7 +21,7 @@ norm_before: false
 norm_after: false  # true if either --std OR --abs set w/o timing specified
 
 xmin_args:
-  - "average"  # TODO: defaults for 'average' set in parse_xmin_args() in options.py
+  - "average"  # NOTE: defaults for 'average' set in parse_xmin_args() in options.py
   - "clauset"
   - "%"
   - "ℝ "

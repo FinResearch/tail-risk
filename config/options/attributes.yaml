@@ -2,10 +2,6 @@
 
 # options attributes for all forms of tail analysis
 
-# TODO: consider adding the full_dbdf argument declaration in here?
-# also create another config file to specify the order in which the
-# params & CBs are to be parsed/fired?
-
 run_gui:
   param_decls:
     - '--gui/--cli'
@@ -120,8 +116,8 @@ returns_type:
     - '--rt'
     - '--returns-type'
     - 'returns_type'
-  type:  # TODO: consider using Enum types for all Choice values
-    - 'raw'  # TODO: rename to 'basic'
+  type:
+    - 'raw'
     - 'relative'
     - 'log'
   default: 'log'
@@ -222,7 +218,7 @@ data_is_continuous:
     - 'data_is_continuous'
   is_flag: true
   default: true
-  # hidden: true  # TODO: or at least hide??
+  # hidden: true
   help: 'data type: continuous~ℝ , discrete~ℤ'
 
 xmin_args:
@@ -297,7 +293,6 @@ plot_results:
     - '--plot/--no-plot'
     - 'plot_results'
   is_flag: true
-  # type: 'bool'  # TODO: consider cast this (& other bool-flags) to proper click.BOOL type?
   default: true
   help: ''
 

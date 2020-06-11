@@ -1,7 +1,3 @@
-# TODO: wrap logical components into classes??? (ex. group tail analysis)
-# TODO: consider creating func to add Click runtime ctx obj as attr to passed
-# ui_opts obj. Ex-usecase: allow settings.py access to custom dflts on VNargOpt
-
 import click
 
 import yaml
@@ -14,7 +10,6 @@ from pathlib import Path
 from ._vnargs import VnargsOption
 from . import ROOT_DIR
 OPT_CFG_DIR = f'{ROOT_DIR}/config/options/'  # TODO: use pathlib.Path ??
-# TODO: once ROOT_DIR added to sys.path in project top level, ref from ROOT_DIR
 
 
 # # Decorator (& its helpers) # #
@@ -85,7 +80,6 @@ def _read_fname_to_df(fname):
     fext = fpath.suffix
 
     if fpath.is_file():
-        # TODO: move below mapping into some config file???
         ext2reader_map = {'.csv': ('read_csv', {}),
                           '.txt': ('read_table', {}),
                           '.xlsx': ('read_excel', {'engine': 'openpyxl'})}
@@ -170,8 +164,6 @@ def _gset_vnargs_choice_default(ctx, param, inputs,
         elif len(vals) == 1:
             vals = vals[0]  # all 1-tups are unpacked to their sole element
         else:
-            # TODO: if know which num-arg in tup is more likely to vary, then
-            # can implement system to allow 1 num input, and default for other
             vals = tuple(vals)
             # NOTE: tuple returned from here will always have length >= 2
 
@@ -306,7 +298,6 @@ def validate_approach_args(ctx, param, approach_args):
         if err.args[0] == 'too many values to unpack (expected 2)':
             raise ValueError("must pass both 'lookback' & 'analysis-frequency'"
                              " if overriding the default for either one")
-            # TODO: can maybe constrain this, if eg. anal_freq is discrete vals
         else:
             raise ValueError(err)
 
@@ -342,7 +333,6 @@ def gset_full_dbdf(ctx, param, db_fname):
 
     NOTE: the function mutates the ctx state to add the inferred default vals
     """
-    # TODO: attach calc'd objs such as (df, tickers, dates) onto ctx for use??
 
     full_dbdf = _read_fname_to_df(db_fname)
 
@@ -350,10 +340,8 @@ def gset_full_dbdf(ctx, param, db_fname):
     # inferred index of date_i; only used when 'default' date_i not set in YAML
     di_iix = (ctx._lookback - 1
               if ctx._approach in {'rolling', 'increasing'} else 0)
-    # FIXME/TODO: infer di_iix for monthly appr from passed in MMYYYY date_i;
-    #       if date_i/f passed in is DDMMYYYY, then use that exact date_i/f
 
-    dbdf_attrs = {'tickers': list(full_dbdf.columns),  # TODO: rm NaNs/nulls??
+    dbdf_attrs = {'tickers': list(full_dbdf.columns),
                   'date_i': full_dates[di_iix],
                   'date_f': full_dates[-1]}
 
@@ -431,7 +419,7 @@ def parse_xmin_args(ctx, param, xmin_args):
         assert grp_dyn,\
             (f"{xmin_args} passed to '--xmin', thus method 'average' inferred;"
              "\nAVERAGE only applicable w/ DYNAMIC approaches & in GROUP mode")
-        if len(y) == 2:
+        if len(y) == 2:  # this implies len(xmin_args) == 3
             a, b, c = xmin_args
             if all(s.isdecimal() for s in (a, b)):
                 win, lag, fname = xmin_args
@@ -441,15 +429,15 @@ def parse_xmin_args(ctx, param, xmin_args):
                 errmsg = ("3 args passed to '--xmin'; xmins data file to use "
                           "for 'average' must be passed either FIRST or LAST")
                 raise AssertionError(errmsg)
-        elif len(y) == 1:
+        elif len(y) == 1:  # this implies len(xmin_args) == 2
             win, lag, fname = (*xmin_args, None)
         # TODO: account for when only 1 num arg passed --> make it window-size?
+        #       e.g. "$ python main.py DB_FILE ... --xmin average 99"
         type_errmsg = ("both numeric args to '--xmin' rule 'average' must "
                        f"be INTs (# days); given: '{win}, {lag}'")
         win, lag = sorted([_convert_str_to_num(val, must_be_int=True,
                                                type_errmsg=type_errmsg,
                                                min_allowed=0)
-                           # TODO: enable diff min for window & lag args
                            for val in (win, lag)], reverse=True)
         ctx._xmins_df = _read_fname_to_df(fname) if bool(fname) else None
         return ('average', (win, lag, ctx._xmins_df))
@@ -468,7 +456,6 @@ def parse_xmin_args(ctx, param, xmin_args):
         percent = _convert_str_to_num(x[:-1], min_allowed=0, max_allowed=100,
                                       range_errmsg=range_errmsg)
         return ('percent', percent)
-        # TODO: accept file of percents
     else:
         try:
             return ('manual', _convert_str_to_num(x))

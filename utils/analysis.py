@@ -8,14 +8,14 @@ import scipy.stats
 from abc import ABC, abstractmethod
 from itertools import product
 
-from powerlaw import Fit  # TODO: consider import entire module?
+from powerlaw import Fit
 from ._plpva import plpva as _plpva
 from .returns import Returns
 from .results import Results
 
-import sys  # TODO: remove after debugging uses done
-from os import getpid  # TODO: remove after debugging uses done
-from multiprocessing import Pool  # TODO: import as mp?
+import sys  # TODO: remove sys module & os.getpid after debugging uses done
+from os import getpid
+from multiprocessing import Pool
 
 
 class _Analyzer(ABC):
@@ -77,7 +77,7 @@ class _Analyzer(ABC):
                  "xmin data by file")  # TODO: add file support for -a static?
             grp, date, tail = self.curr_iter_id
             txmin = self.sa.txmin_map[tail]
-            xmin = self.sa.xmin_qnty.loc[date, f"{txmin} {grp}"]  # TODO: make selecting 'grp' optional
+            xmin = self.sa.xmin_qnty.loc[date, f"{txmin} {grp}"]
             if isinstance(xmin, str) and xmin.endswith("%"):
                 # b/c values containing '%' in xmins_df must be str
                 percent = float(xmin[:-1])
@@ -210,8 +210,7 @@ class _Analyzer(ABC):
             restup_ls = [restup for restup in  # TODO: optimize chunksize below
                          pool.map(self._analyze_iter, iter_id_keys)]
 
-        # TODO: update results_df more efficiently, ex. pd.DataFrame.replace(),
-        #       np.ndarray, etc.; see TODO note under __get_tdir_iter_restup)
+        # TODO: update res_df more efficiently, ex. pd.df.replace(), np.ndarray
         for restup in restup_ls:
             idx, res = restup  # if use '+' NOTE that DFs init'd w/ NaNs
             self.res.df.loc[idx].update(res)
@@ -245,9 +244,6 @@ class StaticAnalyzer(_Analyzer):
         assert not self.sa.use_dynamic
         self.iter_id_keys = product(self.sd.grouping_labs,
                                     self.sa.tails_to_anal)
-        # TODO: cache preproc'd data arr above so 2nd tail need not recompute;
-        # NOTE: consider make tails_to_anal as 1st factor in itertools.product,
-        #       so data array for one set of tail are all calculated first
 
     def _set_curr_input_array(self):  # TODO: pass curr_iter_id as arg???
         lab, tail = self.curr_df_pos = self.curr_iter_id
@@ -263,7 +259,6 @@ class DynamicAnalyzer(_Analyzer):
         self.iter_id_keys = product(self.sd.grouping_labs,
                                     self.sd.anal_dates,
                                     self.sa.tails_to_anal)
-        # TODO: see TODO & NOTE regarding Tail in __init__ of StaticAnalyzer
 
     # TODO: consider vectorizing operations on all tickers
     def _set_curr_input_array(self):  # TODO: pass curr_iter_id as arg???
