@@ -83,6 +83,7 @@ main.py|27 col 3| # TODO: remove needless assertion stmt(s) after code is well-t
 |36 col 3| # TODO add subcommands: plot & resume_calculation (given full/partial data),
 |41 col 3| # TODO:hash opts to uniq-ID usr-input; useful for --partial-saves & --load-opts
 **** |51 col 3| # TODO: log to stdin analysis progress (ex. 7/89 dates for ticker XYZ analyzed)
+***** make --gui option work from CLI
 
 ## gui.py
 *** |6 col 48| OPT_CFG_DIR = f'{ROOT_DIR}/config/options/'  # TODO: use pathlib.Path ??
@@ -156,14 +157,17 @@ main.py|27 col 3| # TODO: remove needless assertion stmt(s) after code is well-t
 
 
 
+***** re-integrate plotting back into module
 
 # plot_funcs/
 plot_funcs/boxplot.py|30 col 21| #  + lab  # TODO: add this label
 plot_funcs/boxplot.py|38 col 11| # TODO: implement plot saving functionality?
+
 plot_funcs/fits_dict.py|67 col 3| # TODO: implement template inheritance for common fields (ax_table pos, etc.)
 plot_funcs/fits_dict.py|130 col 3| # TODO: consider just doing all this directly in a subclass?
 plot_funcs/fits_dict.py|155 col 6| #  # TODO: consider making a function that checks for this automatically
 plot_funcs/fits_dict.py|159 col 3| # TODO: move the below into own file
+
 plot_funcs/tail_risk_plotter.py|1 col 3| # TODO: need to add boxplot, plotter using powerlaw's Fit API, barplot
 plot_funcs/tail_risk_plotter.py|3 col 24| from abc import ABC  # TODO: need to label @abstracmethod to work as ABC
 plot_funcs/tail_risk_plotter.py|15 col 3| # TODO: consider making class for these, and pass them as dict objects

@@ -139,6 +139,9 @@ def _gset_vnargs_choice_default(ctx, param, inputs,
                                 errmsg_name=None,
                                 errmsg_extra=None):
 
+    # NOTE/FIXME: both '-G' & '--a rolling' are processed eagerly by Click; so
+    # depending on which passed 1st, the extracted lookback value for 'rolling'
+    # is either 504 (-a b4) OR 252 (-G b4), b/c Click parses eagers in order
     dflts_by_chce = param.default  # use default map encoded in YAML config
     choices = tuple(dflts_by_chce.keys())
     dfch = choices[0]  # dfch: DeFault CHoice

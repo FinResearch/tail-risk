@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 from itertools import product
 
 from powerlaw import Fit
-from ._plpva import plpva as _plpva
+from ._plpva import plpva
 from .returns import Returns
 from .results import Results
 
@@ -45,7 +45,14 @@ class _Analyzer(ABC):
                                     'exp': 'exponential',
                                     'lgn': 'lognormal'}
 
-    # # # state DEPENDENT (or aware) methods # # #
+    #  # TODO: implement function (or general idea) below
+    #  def _analysis_conditional_imports_(self):
+    #      if nproc > 1: import multiprocessing
+    #      if calc_rtrn_stats: import statistics, scipy.stats
+    #      if run_ks_test: import _plpva
+    #      if compare_distros: import powerlaw.Fit
+
+    # # # iteration state DEPENDENT (or aware) methods # # #
 
     def _log_curr_iter(self):
         # TODO: factor out repetitive log? (static: date, dynamic: group_label)
@@ -118,14 +125,14 @@ class _Analyzer(ABC):
         abs_len = sum(self.curr_input_array >= xmin)
         if self.sa.run_ks_test is True:
             # TODO: try compute ks_pv using MATLAB engine & module, and time
-            ks_pv, _ = _plpva(self.curr_input_array, xmin, 'reps',
-                              self.sa.ks_iter, 'silent')
+            ks_pv, _ = plpva(self.curr_input_array, xmin, 'reps',
+                             self.sa.ks_iter, 'silent')
         locs = locals()
         return {('tail-statistics', stat): locs.get(stat) for st_type, stat
                 in self.sd.tstats_collabs if stat in locs}
 
     def __get_curr_logl_stats(self):
-        # compute (R, p) using powerlaw.Fit.distribution_compare
+        # compute (R, p)-pairs (x3) using powerlaw.Fit.distribution_compare
         logl_stats = {key:
                       {stat: val for stat, val in
                        zip(('R', 'p'),
@@ -223,7 +230,7 @@ class _Analyzer(ABC):
             self.analyze_sequential()
         elif nproc > 1:
             self.analyze_multiproc()
-        else:
+        else:  # if 0 or negative number of processors got through to here
             raise TypeError(f'Cannot perform analysis with {nproc} processes')
 
     def get_resdf(self):
