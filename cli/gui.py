@@ -1,9 +1,12 @@
 import yaml
 import easygui
+from pathlib import Path
 
 from .options import _read_fname_to_df
 from . import ROOT_DIR
 OPT_CFG_DIR = f'{ROOT_DIR}/config/options/'  # TODO: use pathlib.Path ??
+
+fnspc_tmp = '[[SPACE]]'  # fnspc_tmp: temp indicator for space within filenames
 
 
 class GUI:
@@ -75,7 +78,10 @@ class GUI:
             if self.__process_creation_criteria(opt, attrs):
                 opt_val = box(**attrs)
                 self._set_value_on_self(opt, opt_val)
-                raw_gui_args_ls.append(eval(self.cli_str_comp.get(opt, "''")))
+                csp = eval(self.cli_str_comp.get(opt, "''"))
+                if Path(csp).is_file():  # handle spaces in filenames, part 1
+                    csp = csp.replace(' ', fnspc_tmp)
+                raw_gui_args_ls.append(csp)
         self.raw_args_str = ' '.join(raw_gui_args_ls)
 
     def get_cli_input_args(self):
@@ -85,4 +91,6 @@ class GUI:
         input_args = [arg for in_arg in [[ovp] if '=' in ovp else ovp.split()
                                          for ovp in argv_pairs]
                       for arg in in_arg]
+        input_args = [arg.replace(fnspc_tmp, ' ') if fnspc_tmp in arg else arg
+                      for arg in input_args]  # handle spc in filenames, part 2
         return input_args
