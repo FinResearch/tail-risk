@@ -163,7 +163,7 @@ norm_timings:
   metas:
     box_type: 'multchoicebox'
     creation_criteria: ['init_on: self.normalize and self.analyze_group']
-    cli_str_comp: "'' if opt_val is None else ' '.join(f'--{topt}' for topt in opt_val)"
+    cli_str_comp: "'' if opt_val is None else ' '.join(f'--norm-{topt}' for topt in opt_val)"
   attrs:
     msg: 'Normalize before and/or after grouping the data'
     title: 'normalization timing'
