@@ -14,6 +14,9 @@ statistics:
   tail-statistics:
     - alpha
     - xmin
+    - xmax
+    - xmean
+    - xstdv
     - sigma
     - abs_len
     - ks_pv

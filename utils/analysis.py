@@ -122,7 +122,12 @@ class _Analyzer(ABC):
     def __get_curr_tail_stats(self):
         alpha, xmin, sigma = (getattr(self.curr_fit.power_law, prop)
                               for prop in ('alpha', 'xmin', 'sigma'))
-        abs_len = sum(self.curr_input_array >= xmin)
+        elm_in_fit = self.curr_input_array >= xmin
+        fitted_vec = self.curr_input_array[elm_in_fit]
+        xmax = max(fitted_vec)
+        xmean = fitted_vec.mean()
+        xstdv = fitted_vec.std()
+        abs_len = len(fitted_vec)
         if self.sa.run_ks_test is True:
             # TODO: try compute ks_pv using MATLAB engine & module, and time
             ks_pv, _ = plpva(self.curr_input_array, xmin, 'reps',
