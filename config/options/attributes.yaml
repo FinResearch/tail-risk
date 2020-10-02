@@ -29,11 +29,11 @@ tickers:  # TODO: allow passing in a .txt file of tickers?
   cls: 'VnargsOption'
   separator: ','
   type: 'list'
-  default:  # TODO: remove default after project completion
-    - 'DE 01Y'
-    # - 'DE 03Y'
-    # - 'DE 05Y'
-    # - 'DE 10Y'
+  # default:  # TODO: remove default after project completion
+  #   - 'DE 01Y'
+  #   # - 'DE 03Y'
+  #   # - 'DE 05Y'
+  #   # - 'DE 10Y'
   # metavar: '[ <csv on CLI> | <.csv> | <.txt> ]'
   # callback: 'set_tickers_from_textfile'
   metavar: '<csv on CLI>'
