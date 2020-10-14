@@ -285,10 +285,11 @@ def analyze_tail(settings):
     Analyzer = DynamicAnalyzer if settings.anal.use_dynamic else StaticAnalyzer
     analyzer = Analyzer(settings)
     analyzer.analyze()
-    analyzer.res.write_df_to_file()
+    #  analyzer.res.write_df_to_file()
     results = analyzer.get_resdf()
-    print('-' * 120)
-    print(results)
-    print('-' * 75)
-    results.info()
-    print('-' * 75)
+    #  print('-' * 120)
+    #  print(results)
+    #  print('-' * 75)
+    #  results.info()
+    #  print('-' * 75)
+    return results

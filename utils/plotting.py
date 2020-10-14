@@ -43,7 +43,7 @@ def _set_line_style(vec_name):
 
 # TODO: consider moving plotter state into own class
 # and use this class only for plotting
-class TailRiskPlotter(ABC):
+class _BasePlotter(ABC):
     #  NOTE on method naming convention: excluding the special dunder methods,
     #  self-defined methods prepended by double underscores are meant to be
     #  called only by other private methods, which are themselves prepended by
@@ -52,23 +52,24 @@ class TailRiskPlotter(ABC):
     """
     """
 
-    def __init__(self, ticker, settings, data, plot_type):  # fits_dict, data):
+    #  def __init__(self, ticker, settings, data, plot_type):  # fits_dict, data):
+    def __init__(self, settings, data):  # fits_dict, data):
         """
         :param: ticker: string of ticker name
         :param: settings: SimpleNamespace object containing user-input options
         :param: data: dictionary of lists/arrays containing data to plot
         :param: plot_type: str; should be one of (αf, hg, ci, as, rs, ks, bx)
         """
-        self.ticker = ticker
+        #  self.ticker = ticker
         self.settings = settings
         # TODO: consider passing in only the data needed by the given plot_type
         self.data = data
         # TODO: make validator function for plot_type?
-        self.ptyp = plot_type
+        #  self.ptyp = plot_type
         # NOTE: set the entire ptyp_config below if more config flags added
         #  self.ptyp_config = ptyp_config[self.ptyp]  # FIXME: module global
         #  self.multiplicities = ptyp_config[self.ptyp]["multiplicities"]
-        self.multiplicities = get_ptyp_config()[self.ptyp]["multiplicities"]
+        #  self.multiplicities = get_ptyp_config()[self.ptyp]["multiplicities"]
         self.tails_used = self.__get_tails_used()
         self.plot_combos = self.__get_plot_combos()
         self.return_type_label = self.__get_return_type_label()
@@ -278,7 +279,7 @@ class TailRiskPlotter(ABC):
             self._present_figure()
 
 
-class TabledFigurePlotter(TailRiskPlotter):
+class TabledFigurePlotter(_BasePlotter):
 
     def __init__(self, ticker, settings, data, plot_type):  # fits_dict, data):
 
@@ -384,7 +385,7 @@ class TabledFigurePlotter(TailRiskPlotter):
         self._add_table()
 
 
-class TimeRollingPlotter(TailRiskPlotter):
+class TimeRollingPlotter(_BasePlotter):
 
     def __init__(self, ticker, settings, data, plot_type):  # fits_dict, data):
 

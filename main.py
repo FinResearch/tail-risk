@@ -2,7 +2,8 @@ import sys
 
 import cli
 from utils.analysis import analyze_tail
-from utils.settings import Settings as Settings
+from utils.settings import Settings
+from utils.plotting import _BasePlotter
 
 user_inputs = cli.get_user_inputs.main(standalone_mode=False)
 
@@ -17,7 +18,9 @@ if __name__ == "__main__":
     settings = Settings(user_inputs).settings
     #  print(settings)
     #
-    analyze_tail(settings)
+    results = analyze_tail(settings)
+    plotter = _BasePlotter(settings, results)
+    print(plotter)
 
 # TODO: apply black styling to all modules (i.e. ' --> ")
 # TODO: annotate/de-annotate NOTE notes
