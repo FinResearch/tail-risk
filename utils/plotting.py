@@ -5,6 +5,7 @@ from itertools import product
 from string import Template
 
 import json
+import yaml
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,6 +15,11 @@ import matplotlib.pyplot as plt
 from plot_funcs.fits_dict import get_fits_dict, get_ptyp_config
 # TODO: consider making class for these, and pass them as dict objects
 
+with open('config/plotting.yaml') as cfg:
+    PLOT_CONFIG = yaml.load(cfg, Loader=yaml.SafeLoader)
+
+from pprint import pprint
+pprint(PLOT_CONFIG)
 
 # TODO: consider making values returned from this function part
 # of plot_types_static_info (ptsi) data --> now: self.curr_ptinfo
@@ -41,6 +47,12 @@ def _set_line_style(vec_name):
     return {"label": label, "color": color}
 
 
+def _determine_plot_types(self):
+    """figure out which plots need to be produced based
+    on the passed results data DF"""
+    pass
+
+
 # TODO: consider moving plotter state into own class
 # and use this class only for plotting
 class _BasePlotter(ABC):
@@ -53,28 +65,29 @@ class _BasePlotter(ABC):
     """
 
     #  def __init__(self, ticker, settings, data, plot_type):  # fits_dict, data):
-    def __init__(self, settings, data):  # fits_dict, data):
+    def __init__(self, settings, data, plot_type):  # fits_dict, data):
         """
         :param: ticker: string of ticker name
         :param: settings: SimpleNamespace object containing user-input options
         :param: data: dictionary of lists/arrays containing data to plot
         :param: plot_type: str; should be one of (αf, hg, ci, as, rs, ks, bx)
         """
-        #  self.ticker = ticker
-        self.settings = settings
-        # TODO: consider passing in only the data needed by the given plot_type
+        self.sd = settings.data
+        self.sr = settings.rtrn
+        self.sa = settings.anal
+        self.sp = settings.plot
         self.data = data
         # TODO: make validator function for plot_type?
-        #  self.ptyp = plot_type
+        self.ptyp = plot_type
         # NOTE: set the entire ptyp_config below if more config flags added
         #  self.ptyp_config = ptyp_config[self.ptyp]  # FIXME: module global
-        #  self.multiplicities = ptyp_config[self.ptyp]["multiplicities"]
+        self.multiplicities = PLOT_CONFIG[self.ptyp]["_multiplicities"]
         #  self.multiplicities = get_ptyp_config()[self.ptyp]["multiplicities"]
-        self.tails_used = self.__get_tails_used()
+        #  self.tails_used = self.sa.tails_to_anal
         self.plot_combos = self.__get_plot_combos()
-        self.return_type_label = self.__get_return_type_label()
-        self.ax_title_base = (f"Time Period: {self.settings.date_i} "
-                              f"- {self.settings.date_f}")
+        self.return_type_label = self.__get_returns_type_label()
+        self.ax_title_base = (f"Time Period: {self.sd.date_i} "
+                              f"- {self.sd.date_f}")
         #  NOTE: the fits_dict attr below now initialized in subclasses
         #  self.fits_dict = fits_dict["time_rolling"]
 
@@ -86,24 +99,11 @@ class _BasePlotter(ABC):
 
     # Methods for determining state-independent info; called in __init__()
 
-    def __get_tails_used(self):
-        """Return tuple containing the tails selected/used
-        """
-
-        tails_used = []
-        if self.settings.use_right_tail:
-            tails_used.append("right")
-        if self.settings.use_left_tail:
-            tails_used.append("left")
-
-        return tuple(tails_used)
-
     # TODO: consider moving this method into child class
     def __get_plot_combos(self):
         """Return tuple of 2-tups representing all concrete figures requested
         """
-
-        if len(self.tails_used) == 2:
+        if len(self.sa.tails_to_anal) == 2:
             mults = self.multiplicities
             # TODO: set fig_name to state "both tails" instead of either R/L
             #  tails = ("right",)  # NOTE: can also use "left", does not matter
@@ -113,27 +113,22 @@ class _BasePlotter(ABC):
             # NOTE: if single tail used, then mult is necessarily "singles"
             mults = ("singles",)
             tails = self.tails_used
-
         return product(mults, tails)
 
-    def __get_return_type_label(self):
+    def __get_returns_type_label(self):
         """This info is independent of the state (ticker, tail, etc.).
         Instead it is solely determined by the chosen return type
         """
-
         pt_i = "P(t)"
-        pt_f = f"P(t+{self.settings.tau})"
-
-        if self.settings.return_type == "basic":
+        pt_f = f"P(t+{self.sr.tau})"
+        if self.sr.returns_type == "basic":
             label = f"{pt_f} - {pt_i}"
-        elif self.settings.return_type == "relative":
+        elif self.sr.returns_type == "relative":
             label = f"{pt_f}/{pt_i} - 1.0"
-        elif self.settings.return_type == "log":
+        elif self.sr.returns_type == "log":
             label = rf"$\log$({pt_f}/{pt_i})"
-
-        if self.settings.absolutize:
+        if self.sr.absolutize:
             label = f"|{label}|"
-
         return label
 
     # NOTE: should be called before every _init_figure() call
@@ -203,12 +198,10 @@ class _BasePlotter(ABC):
 
         TODO: it should not care about the data being plotted nor the opts
         """
-
         # TODO: use fig, ax = plt.subplots() idiom to Initialize?
         fig = plt.figure(self.curr_ptinfo["fig_name"])
         axes_pos = (0.1, 0.20, 0.83, 0.70)
         ax = fig.add_axes(axes_pos)
-
         self.ax = ax
 
     def _plot_vectors(self):
