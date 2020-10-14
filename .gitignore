@@ -3,6 +3,7 @@ __pycache__
 *.json
 tail-stats_*xlsx
 _tail-stats_*xlsx
+.~*xlsx
 profile*.svg
 *.log
 *.pdf

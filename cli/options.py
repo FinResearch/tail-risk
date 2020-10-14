@@ -1,4 +1,5 @@
 import click
+from click.core import ParameterSource
 
 import yaml
 import pandas as pd
@@ -159,9 +160,9 @@ def _gset_vnargs_choice_default(ctx, param, inputs,
 
     # NOTE: click.ParameterSource & methods not in v7.0; using HEAD (symlink)
     opt_src = ctx.get_parameter_source(param.name)
-    if opt_src == 'DEFAULT':
+    if opt_src == ParameterSource.DEFAULT:
         vals = dflts_by_chce[dfch]
-    elif opt_src == 'COMMANDLINE':
+    elif opt_src == ParameterSource.COMMANDLINE:
         if len(vals) == 0:
             vals = dflts_by_chce[chce]
         elif len(vals) == 1:
@@ -169,6 +170,8 @@ def _gset_vnargs_choice_default(ctx, param, inputs,
         else:
             vals = tuple(vals)
             # NOTE: tuple returned from here will always have length >= 2
+    else:
+        raise ValueError('should never get here!!')
 
     return chce, vals
 
@@ -247,7 +250,7 @@ def __nullify_and_warn_if_usr_set_opt(ctx, opt, val, nullify_cond, warn_msg,
                                       warn_conjunct_cond=True):
     src = ctx.get_parameter_source(opt)
     if nullify_cond:
-        if src == 'COMMANDLINE':
+        if src == ParameterSource.COMMANDLINE:
             from warnings import warn
             warn(warn_msg)
             # TODO: use warnings.showwarning() to write to sys.stdout??
@@ -378,7 +381,7 @@ def confirm_group_flag_set(ctx, param, val):
 
 def determine_lookback_override(ctx, param, lb_ov):
     opt = param.name
-    cond = (ctx.get_parameter_source(opt) == 'DEFAULT'
+    cond = (ctx.get_parameter_source(opt) == ParameterSource.DEFAULT
             or ctx._approach in {'static', 'monthly'})
     msg = (f"'--lookback' N/A to {ctx._approach.upper()} approach; "
            f"ignoring '--lb {lb_ov}'")
@@ -413,7 +416,7 @@ def parse_xmin_args(ctx, param, xmin_args):
     # group analysis + dynamic approach (convenient conditional)
     grp_dyn = ctx._analyze_group and ctx._approach in {'rolling', 'increasing'}
 
-    if ctx.get_parameter_source(param.name) == "DEFAULT":
+    if ctx.get_parameter_source(param.name) == ParameterSource.DEFAULT:
         xmin_args = ('66', '0',) if grp_dyn else ('clauset',)
 
     x, *y = xmin_args
@@ -498,7 +501,7 @@ def conditionalize_normalization_options_(ctx, yaml_opts):
             ctx, opt, val, not normalize, msg,
             warn_conjunct_cond=val is not None)
 
-    use_default_timing = all(src == 'DEFAULT' for src
+    use_default_timing = all(src == ParameterSource.DEFAULT for src
                              in (ctx.get_parameter_source(nt) for nt
                                  in ('norm_before', 'norm_after')))
     if normalize and ctx._analyze_group and use_default_timing:
@@ -515,7 +518,7 @@ def conditionally_toggle_tail_flag_(ctx, yaml_opts):
     names, sources, values = zip(*names_srcs_vals)
 
     if not any(values):
-        if all(src == 'DEFAULT' for src in sources):
+        if all(src == ParameterSource.DEFAULT for src in sources):
             raise ValueError('defaults for both tails are False (skip); '
                              'specify -L or -R to analyze the left/right tail;'
                              ' or -LR for both')
@@ -525,10 +528,11 @@ def conditionally_toggle_tail_flag_(ctx, yaml_opts):
     # sources (i.e. 1 COMMANDLINE, 1 DEFAULT), and they are both True
     if sources[0] != sources[1] and all(values):
         for name, src, val in names_srcs_vals:
-            yaml_opts[name] = val if src == 'COMMANDLINE' else not val
+            yaml_opts[name] = (val if src == ParameterSource.COMMANDLINE else
+                               not val)
 
     if yaml_opts['absolutize']:
-        if ctx.get_parameter_source('anal_left') == 'COMMANDLINE':
+        if ctx.get_parameter_source('anal_left') == ParameterSource.COMMANDLINE:
             from warnings import warn
             warn("'--abs / --absolutize' flag set, only RIGHT tail "
                  "appropriate for analysis; ignoring -L, using -R")
@@ -566,7 +570,7 @@ def gset_monthly_approach_bounds_(ctx, yaml_opts):
         yaml_opts['monthly_bounds'] = {mm: tuple(mb) for mm, mb in
                                        monthly_bounds.items() if len(mb) == 3}
         #  from collections import namedtuple
-        #  # Each Month :: d0: last date prev month, d1: 1st date, dN: last date
+        #  # Ea. Month :: d0: last date prev month, d1: 1st date, dN: last date
         #  MonthlyBounds = namedtuple('Monthly_Bounds', ['d0', 'd1', 'dN'])
         # TODO/FIXME: use the collections.namedtuple construction above?
         # need to workaround non-pickle-able restriction of instance methods
