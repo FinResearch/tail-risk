@@ -240,6 +240,7 @@ xmin_args:
   help: |  # FIXME: newline(s) below not preserved in --help (adding blank spaces does it, but is janky)
     * clauset : enter "-x clauset" to automatically compute xmin   
     * % (percent): enter ℝ ∊ [0, 100] w/ a %-suffix  [ex. "-x 95%"]
+    * s.d. (std-dev): enter a ℝ-value w/ 'sd'-suffix  [ex. "-x 2sd"]
     * ℝ (manual) : enter any ℝ number  [ex. "-x -0.5"]                  
     * XMINS_FILE : pass file w/ date-indexed xmin data
 

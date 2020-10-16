@@ -405,11 +405,12 @@ def validate_norm_target(ctx, param, trgt):
 
 # callback for the xmin_args (-x, --xmin) option
 def parse_xmin_args(ctx, param, xmin_args):
-    """there are 5 types of accepted input to --xmin:
+    """there are 6 types of accepted input to --xmin:
     * average:     : "$ ... -x 66 5" (only applicable in -G mode)
     * XMINS_FILE   : "$ ... -x xmins_data_file.txt"
     * clauset      : "$ ... -x clauset"
     * % (percent)  : "$ ... -x 99%"
+    * standard dev : "$ ... -x 2sd"
     * ℝ (manual)   : "$ ... -x 0.5" OR "$ ... -x _2" (_ denotes negatives)
     """
 
@@ -462,6 +463,11 @@ def parse_xmin_args(ctx, param, xmin_args):
         percent = _convert_str_to_num(x[:-1], min_allowed=0, max_allowed=100,
                                       range_errmsg=range_errmsg)
         return ('percent', percent)
+    elif x.endswith('sd'):
+        range_errmsg = f"standard deviation should be >0; given: {x[:-2]} s.d."
+        stdv = _convert_str_to_num(x[:-2], min_allowed=0,
+                                   range_errmsg=range_errmsg)
+        return ('std-dev', stdv)
     else:
         try:
             return ('manual', _convert_str_to_num(x))

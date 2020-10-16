@@ -74,17 +74,21 @@ class _Analyzer(ABC):
         pass
 
     def __get_xmin(self):
-        if self.sa.xmin_rule in {"clauset", "manual"}:
-            xmin = self.sa.xmin_qnty  # ie. {None, user-input-ℝ} respectively
-        elif self.sa.xmin_rule == "percent":
-            xmin = np.percentile(self.curr_input_array, self.sa.xmin_qnty)
-        elif self.sa.xmin_rule in {"file", "average"}:
+        rule, qnty = self.sa.xmin_rule, self.sa.xmin_qnty
+        if rule in {"clauset", "manual"}:
+            xmin = qnty  # ie. {None, user-input-ℝ} respectively
+        elif rule in {"percent", "std-dev"}:
+            percent = (qnty if rule == "percent" else
+                       qnty * st.stdev(self.curr_returns_array))
+            xmin = np.percentile(self.curr_input_array, percent)
+            #  print(self.curr_iter_id, percent, xmin, file=sys.stderr)
+        elif rule in {"file", "average"}:
             assert self.sa.use_dynamic,\
                 ("static approach does NOT currently support passing "
                  "xmin data by file")  # TODO: add file support for -a static?
             grp, date, tail = self.curr_iter_id
             txmin = self.sa.txmin_map[tail]
-            xmin = self.sa.xmin_qnty.loc[date, f"{txmin} {grp}"]
+            xmin = qnty.loc[date, f"{txmin} {grp}"]
             if isinstance(xmin, str) and xmin.endswith("%"):
                 # b/c values containing '%' in xmins_df must be str
                 percent = float(xmin[:-1])
