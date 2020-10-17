@@ -1,0 +1,101 @@
+#  Figure Information Templates (FIT) Defined Below
+
+
+
+# # Tabled Figures FIT    # TODO: consider implement template inheritance for common fields (ax_table pos, etc.)
+
+αf:   # α-fitting
+  fig_name: "Alpha Fitting for ${ticker}"
+  vec_types: ["α_vec"]
+  ax_title: "Time evolution of the parameter $\alpha$ for ${ticker}\n"
+  ax_ylabel: "$\alpha$"
+  ax_table:
+    _cellText_gens: ['np.mean', 'np.median', 'np.std', 'np.min', 'np.max']
+    _extra_cell: [['Right', 0], ['Left', 0]]  # int element repr insertion posn of extra cell
+    cellLoc: "center"
+    colLabels:
+      - "Tail"    # NOTE: this is label for _extra_cell above
+      - "$E[\alpha]$"
+      - "Median"
+      - "$\sigma(\alpha)$"
+      - "min"
+      - "max"
+    loc: "bottom"
+    bbox: [0.0, -0.26, 1.0, 0.10]
+  _multiplicities: ["double"]
+
+hg:   # histogram of tail-α
+  fig_name: "Histogram of ${tsgn} tail α's for ${ticker}"
+  vec_types: ["α_vec"]
+  extra_lines:    # NOTE: vectors expr encoded as str; use eval() to get value
+    vectors:
+      - "np.repeat(${vec_mean}, ${hist_max} + 1)"
+      - "range(0, int(${hist_max} + 1))"
+    line_style:
+      label: "$E[\hat{\alpha}]$"
+      color: "blue"
+      linewidth: 1.5
+  ax_title: "Empirical distribution (${tdir} tail) of the rolling $\hat{\alpha}$ for ${ticker}\n"
+  ax_ylabel: "Absolute frequency"
+  ax_table:
+    # NOTE: _cellText_gens is prepended w/ _ b/c it's not a table-kwarg
+    _cellText_gens: ['np.mean', 'np.std', 'np.min', 'np.max']
+    cellLoc: "center"
+    colLabels:
+      - "$E[\hat{\alpha}]$"
+      - "$\sigma (\hat{\alpha})$"
+      - "min"
+      - "max"
+    loc: "bottom"
+    bbox: [0.0, -0.26, 1.0, 0.10]
+  _multiplicities: ["single"]
+
+
+# #  Time Rolling FIT
+
+ci:  # time rolling confidence interval
+  fig_name: "Time rolling CI for ${tdir} tail for ${ticker}"
+  vec_types: ["α_vec", "up_bound", "low_bound"]
+  extra_lines:    # NOTE: vectors are encoded as str expr; use eval() to get value
+    vectors:
+      - "map(lambda x: np.repeat(x, ${n_vec} + 2), (2, 3))"
+    line_style: {color: "red"}
+  ax_title: "Rolling confidence intervals for the $\alpha$-${tdir} tail exponents (c = 1 - ${significance})\nTicker: ${ticker}. "
+  ax_ylabel: "$\alpha$"
+  ax_legend:
+    bbox_to_anchor: [0.0, -0.175, 1.0, 0.02]
+    ncol: 3
+    mode: "expand"
+    borderaxespad: 0
+  _multiplicities: ["single"]
+
+as:  # time rolling absolute size
+  fig_name: "Time rolling size for ${tdir} tail for ${ticker}"
+  vec_types: ["abs_len"]
+  ax_title: "Rolling tail length for: ${ticker}\n"
+  ax_ylabel: "Tail length"
+  _multiplicities: ["single", "double"]
+
+rs:  # time rolling relative size
+  fig_name: "Time rolling relative size for ${tdir} tail for ${ticker}"
+  vec_types: ["rel_len"]
+  ax_title: "Rolling relative tail length for: ${ticker}\n"
+  ax_ylabel: "Relative tail length"
+  _multiplicities: ["single", "double"]
+
+ks:  # time rolling KS-test
+  fig_name: "Time KS test for ${tdir} tail for ${ticker}"
+  vec_types: ["α_ks"]
+  ax_title: "KS-statistics: rolling p-value obtained from Clauset algorithm for ${ticker}\n"
+  ax_ylabel: "p-value"
+  _multiplicities: ["single", "double"]
+
+
+# # Matrix FIT
+
+bx:  # boxplot of α-tails
+  fig_name: "${tsgn} Power Law Boxplot"
+  #  "vec_types": ["α_vec"]  # NOTE: this is a matrix
+  ax_title: "Boxplot representation of the $\alpha$-${tdir} tail exponent\n"
+  ax_ylabel: "$\alpha$"
+  _multiplicities: ["single"]
