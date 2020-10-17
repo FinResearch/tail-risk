@@ -222,12 +222,14 @@ xmin_rule:
         - 'clauset'
         - 'manual'
         - 'percent'
+        - 'std-dev'
         - 'file'
       -  # choices for Group mode
         - 'average'
         - 'clauset'
         - 'manual'
         - 'percent'
+        - 'std-dev'
         - 'file'
     # preselect: null
 
@@ -235,15 +237,17 @@ xmin_qnty:
   metas:
     box_type: 'enterbox'
     creation_criteria:
-      - "init_on: self.xmin_rule in {'manual', 'percent'}"
-      - "default set_by: self.xmin_rule == 'manual'"
+      - "init_on: self.xmin_rule in {'manual', 'percent', 'std-dev'}"
+      - "default set_by: {'percent':0, 'manual':1, 'std-dev':2}.get(self.xmin_rule)"
+        # NOTE: do NOT add space b/w the k:v pairs in above dict, b/c that'll break the GUI creation parsing
     cli_str_comp: "opt_val"
   attrs:
-    msg: 'enter numeric argument for chosen xmin rule (manual | percent)'
+    msg: 'enter numeric argument for chosen xmin rule (manual | percent | std-dev)'
     title: 'xmin quantity'
     default:
-      - '90%'   # default value for rule 'percent'
       - '0.0'   # default value for rule 'manual'
+      - '90%'   # default value for rule 'percent'
+      - '2sd'   # default value for rule 'std-dev'
 
 xmin_avg_params:
   metas:

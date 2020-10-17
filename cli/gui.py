@@ -50,7 +50,7 @@ class GUI:
                     val_attr = action.split()[0]
                     assert val_attr in attrs
                     if ev_act is not None:
-                        idx = bool(ev_act)
+                        idx = ev_act if isinstance(ev_act, int) else bool(ev_act)
                         attrs[val_attr] = attrs[val_attr][idx]
                     elif ev_act is None and criterion == 'evaluation':
                         import os  # used by eval() to get # processors
