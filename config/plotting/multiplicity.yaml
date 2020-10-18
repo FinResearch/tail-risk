@@ -1,0 +1,26 @@
+# The multiplicity of a plot type refers to whether the computed results for just a
+# single tail or both the left and right tails are to be plotted on a single figure
+
+αf:   # α-fitting
+  - 'double'
+
+hg:   # histogram of tail-α
+  - 'single'
+
+ci:  # time rolling confidence interval
+  - 'single'
+
+as:  # time rolling absolute size
+  - 'single'
+  - 'double'
+
+rs:  # time rolling relative size
+  - 'single'
+  - 'double'
+
+ks:  # time rolling KS-test
+  - 'single'
+  - 'double'
+
+bx:  # boxplot of α-tails
+  - 'single'

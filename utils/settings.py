@@ -180,6 +180,9 @@ class Settings:
         elif self.partition == 'all':
             part_map = {'all tickers': self.tickers}
 
+        # TODO: determine below value in CLI and provide a --groups option
+        self._num_groups = len(part_map)
+
         # set partition groups as the top-level column label
         # TODO: use slice+loc to org ticks then set toplvl-idx to rm pd depend
         self._tickers_dbdf = pd.concat({grp: self._tickers_dbdf[tickers] for
@@ -228,21 +231,19 @@ class Settings:
         self.title_timestamp = f"Time Period: {self.date_i} - {self.date_f}"
         self.labelstep = self.__get_labelstep()
         self.returns_label = self.__get_returns_label()
+        self.plot_combos = self.__get_plot_combos()
 
     def __get_returns_label(self):
         pt_i = "P(t)"
         pt_f = f"P(t+{self.tau})"
-
         if self.returns_type == "raw":
             label = f"{pt_f} - {pt_i}"
         elif self.returns_type == "relative":
             label = f"{pt_f}/{pt_i} - 1.0"
         elif self.returns_type == "log":
             label = rf"$\log$({pt_f}/{pt_i})"
-
         if self.absolutize:
             label = f"|{label}|"
-
         return label
 
     def __get_labelstep(self):
@@ -252,6 +253,40 @@ class Settings:
         use_quarterly = Period.ANNUAL < len_dates <= 3*Period.ANNUAL
         return (Period.MONTH if use_monthly else
                 Period.QUARTER if use_quarterly else Period.BIANNUAL)
+
+    def __get_plot_types(self):
+        plot_types = [ptyp for ptyp in PlotType]
+        if self.run_ks_test is False:
+            plot_types.remove(PlotType.KS_TEST)
+        if (len(self.tickers) == 1 or
+                (hasattr(self, '_num_groups') and self._num_groups == 1)):
+            plot_types.remove(PlotType.BOXPLOT)
+        return plot_types
+
+    def __load_double_mult_map(self):
+        cfg_fpath = 'config/plotting/multiplicity.yaml'
+        with open(f'{cfg_fpath}', encoding='utf8') as cfg:
+            mult_map = yaml.load(cfg, Loader=yaml.SafeLoader)
+        return mult_map
+
+    def __get_plot_combos(self):
+        plot_types = self.__get_plot_types()
+        if len(self.tails_to_anal) == 1:
+            the_tail = self.tails_to_anal[0]
+            combos = product(plot_types, ((the_tail,),))
+        elif len(self.tails_to_anal) == 2:
+            mult_map = self.__load_double_mult_map()
+            single_tails = ((Tail.right,), (Tail.left,))
+            combos = []
+            for ptyp in plot_types:
+                ptms = mult_map[ptyp.value]  # ptms: plot type multiplicities
+                if 'single' in ptms:
+                    combos += list(product((ptyp,), single_tails))
+                if 'double' in ptms:
+                    combos += list(((ptyp, tuple(Tail)),))
+        else:
+            raise ValueError('should never be here!')
+        return tuple(combos)
 
     # # methods to obtain (for average) & validate xmins DF to directly use # #
 
@@ -423,3 +458,13 @@ class Period(enum.IntEnum):
     QUARTER = 66
     BIANNUAL = 121
     ANNUAL = 252
+
+
+class PlotType(enum.Enum):
+    ALPHA_FIT = 'αf'
+    HISTOGRAM = 'hg'
+    CONF_INTV = 'ci'
+    ABS_TSIZE = 'as'
+    REL_TSIZE = 'rs'
+    KS_TEST = 'ks'
+    BOXPLOT = 'bx'

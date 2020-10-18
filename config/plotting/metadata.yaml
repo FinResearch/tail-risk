@@ -22,7 +22,6 @@
       - 'max'
     loc: 'bottom'
     bbox: [0.0, -0.26, 1.0, 0.10]
-  _multiplicities: ['double']
 
 hg:   # histogram of tail-α
   fig_name: "Histogram of ${tsgn} tail α's for ${ticker}"
@@ -48,7 +47,6 @@ hg:   # histogram of tail-α
       - 'max'
     loc: 'bottom'
     bbox: [0.0, -0.26, 1.0, 0.10]
-  _multiplicities: ['single']
 
 
 # #  Time Rolling FIT
@@ -67,28 +65,24 @@ ci:  # time rolling confidence interval
     ncol: 3
     mode: 'expand'
     borderaxespad: 0
-  _multiplicities: ['single']
 
 as:  # time rolling absolute size
   fig_name: 'Time rolling size for ${tdir} tail for ${ticker}'
   vec_types: ['abs_len']
   ax_title: 'Rolling tail length for: ${ticker}\n'
   ax_ylabel: 'Tail length'
-  _multiplicities: ['single', 'double']
 
 rs:  # time rolling relative size
   fig_name: 'Time rolling relative size for ${tdir} tail for ${ticker}'
   vec_types: ['rel_len']
   ax_title: 'Rolling relative tail length for: ${ticker}\n'
   ax_ylabel: 'Relative tail length'
-  _multiplicities: ['single', 'double']
 
 ks:  # time rolling KS-test
   fig_name: 'Time KS test for ${tdir} tail for ${ticker}'
   vec_types: ['α_ks']
   ax_title: 'KS-statistics: rolling p-value obtained from Clauset algorithm for ${ticker}\n'
   ax_ylabel: 'p-value'
-  _multiplicities: ['single', 'double']
 
 
 # # Matrix FIT
@@ -98,4 +92,3 @@ bx:  # boxplot of α-tails
   #  'vec_types': ['α_vec']  # NOTE: this is a matrix
   ax_title: 'Boxplot representation of the $\alpha$-${tdir} tail exponent\n'
   ax_ylabel: '$\alpha$'
-  _multiplicities: ['single']

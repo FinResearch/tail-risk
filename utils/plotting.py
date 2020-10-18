@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from plot_funcs.fits_dict import get_fits_dict, get_ptyp_config
 # TODO: consider making class for these, and pass them as dict objects
 
-with open('config/plotting.yaml') as cfg:
+with open('config/plotting/metadata.yaml') as cfg:
     PLOT_CONFIG = yaml.load(cfg, Loader=yaml.SafeLoader)
 
 from pprint import pprint
@@ -81,11 +81,7 @@ class _BasePlotter(ABC):
         self.ptyp = plot_type
         # NOTE: set the entire ptyp_config below if more config flags added
         #  self.ptyp_config = ptyp_config[self.ptyp]  # FIXME: module global
-        self.multiplicities = PLOT_CONFIG[self.ptyp]["_multiplicities"]
-        #  self.multiplicities = get_ptyp_config()[self.ptyp]["multiplicities"]
-        #  self.tails_used = self.sa.tails_to_anal
-        self.plot_combos = self.__get_plot_combos()
-        self.return_type_label = self.__get_returns_type_label()
+        #  self.multiplicities = PLOT_CONFIG[self.ptyp]["_multiplicities"]
         self.ax_title_base = (f"Time Period: {self.sd.date_i} "
                               f"- {self.sd.date_f}")
         #  NOTE: the fits_dict attr below now initialized in subclasses
@@ -98,38 +94,6 @@ class _BasePlotter(ABC):
         return f"{self.__class__}, {self.__dict__}"
 
     # Methods for determining state-independent info; called in __init__()
-
-    # TODO: consider moving this method into child class
-    def __get_plot_combos(self):
-        """Return tuple of 2-tups representing all concrete figures requested
-        """
-        if len(self.sa.tails_to_anal) == 2:
-            mults = self.multiplicities
-            # TODO: set fig_name to state "both tails" instead of either R/L
-            #  tails = ("right",)  # NOTE: can also use "left", does not matter
-            # FIXME: above misses ("single", "left") when using both tails
-            tails = ("left",)  # TODO: this was to test "left" works
-        else:
-            # NOTE: if single tail used, then mult is necessarily "singles"
-            mults = ("singles",)
-            tails = self.tails_used
-        return product(mults, tails)
-
-    def __get_returns_type_label(self):
-        """This info is independent of the state (ticker, tail, etc.).
-        Instead it is solely determined by the chosen return type
-        """
-        pt_i = "P(t)"
-        pt_f = f"P(t+{self.sr.tau})"
-        if self.sr.returns_type == "basic":
-            label = f"{pt_f} - {pt_i}"
-        elif self.sr.returns_type == "relative":
-            label = f"{pt_f}/{pt_i} - 1.0"
-        elif self.sr.returns_type == "log":
-            label = rf"$\log$({pt_f}/{pt_i})"
-        if self.sr.absolutize:
-            label = f"|{label}|"
-        return label
 
     # NOTE: should be called before every _init_figure() call
     def _set_plotter_state(self, mult, tdir):
