@@ -60,7 +60,7 @@ ci:  # time rolling confidence interval
     vectors:
       - 'map(lambda x: np.repeat(x, ${n_vec} + 2), (2, 3))'
     line_style: {color: 'red'}
-  ax_title: 'Rolling confidence intervals for the $\alpha$-${tdir} tail exponents (c = 1 - ${significance})\nTicker: ${ticker}. '
+  ax_title: 'Rolling confidence intervals for the $\alpha$-${tdir} tail exponents (c = 1 - ${alpha_signif})\nTicker: ${ticker}. '
   ax_ylabel: '$\alpha$'
   ax_legend:
     bbox_to_anchor: [0.0, -0.175, 1.0, 0.02]
