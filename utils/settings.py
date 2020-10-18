@@ -3,7 +3,6 @@ import pandas as pd
 
 import enum
 from types import SimpleNamespace
-from statistics import NormalDist
 from itertools import product
 
 
@@ -92,8 +91,6 @@ class Settings:
         if self.anal_left:
             tails_to_anal.append(Tail.left)
         self.tails_to_anal = tuple(tails_to_anal)
-        self.alpha_qntl = NormalDist().inv_cdf(1 - len(self.tails_to_anal)/2 *
-                                               self.alpha_signif)
 
     # helper to get the displacement (signed distance) b/w query & origin dates
     def __get_disp_to_orig_date(self, date_q, date_o=None, dates_ix=None):
@@ -231,7 +228,16 @@ class Settings:
         self.title_timestamp = f"Time Period: {self.date_i} - {self.date_f}"
         self.labelstep = self.__get_labelstep()
         self.returns_label = self.__get_returns_label()
+        self.alpha_quantile = self.__calc_alpha_quantile()
         self.plot_combos = self.__get_plot_combos()
+
+    def __get_labelstep(self):
+        len_dates = len(self.anal_dates)
+        _analyze_nondaily = self._frq is not None and self._frq > 1
+        use_monthly = len_dates <= Period.ANNUAL or _analyze_nondaily
+        use_quarterly = Period.ANNUAL < len_dates <= 3*Period.ANNUAL
+        return (Period.MONTH if use_monthly else
+                Period.QUARTER if use_quarterly else Period.BIANNUAL)
 
     def __get_returns_label(self):
         pt_i = "P(t)"
@@ -246,13 +252,10 @@ class Settings:
             label = f"|{label}|"
         return label
 
-    def __get_labelstep(self):
-        len_dates = len(self.anal_dates)
-        _analyze_nondaily = self._frq is not None and self._frq > 1
-        use_monthly = len_dates <= Period.ANNUAL or _analyze_nondaily
-        use_quarterly = Period.ANNUAL < len_dates <= 3*Period.ANNUAL
-        return (Period.MONTH if use_monthly else
-                Period.QUARTER if use_quarterly else Period.BIANNUAL)
+    def __calc_alpha_quantile(self):  # sets upper & lower bounds for CI figs
+        from statistics import NormalDist
+        return NormalDist().inv_cdf(1 - len(self.tails_to_anal)/2 *
+                                    self.alpha_signif)
 
     def __get_plot_types(self):
         plot_types = [ptyp for ptyp in PlotType]

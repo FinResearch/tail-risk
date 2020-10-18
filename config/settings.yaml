@@ -62,8 +62,8 @@ plot:
   # - n_vector (used in histogram, and to set xlim)
   - labelstep
   - returns_label
-  - alpha_qntl
-  # - alpha_signif (used in figure title of time_rolling plots)
+  - alpha_signif
+  - alpha_quantile
   - plot_combos
 
 # TODO: add sub-setting for output data formatting?
