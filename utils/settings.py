@@ -448,7 +448,7 @@ class GroupingName(str):  # TODO: add allowed values constraint when have time
             return self + 's'
 
 
-# TODO: move these Enum types into a constants.py module?
+# TODO: move these Enum types into a constants.py module, and import where needed??
 
 class Tail(enum.Enum):
     right = 1

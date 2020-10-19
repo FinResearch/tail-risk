@@ -11,41 +11,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# NOTE: currently module globals
-#  from plot_funcs.fits_dict import fits_dict, ptyp_config
-from plot_funcs.fits_dict import get_fits_dict, get_ptyp_config
-# TODO: consider making class for these, and pass them as dict objects
 
-with open('config/plotting/metadata.yaml') as cfg:
+with open('config/plotting/figures.yaml') as cfg:
     PLOT_CONFIG = yaml.load(cfg, Loader=yaml.SafeLoader)
 
-from pprint import pprint
-pprint(PLOT_CONFIG)
-
-# TODO: consider making values returned from this function part
-# of plot_types_static_info (ptsi) data --> now: self.curr_ptinfo
-# TODO: alternatively, make this into @staticmethod of TimeRollingPlotter
-def _set_line_style(vec_name):
-    """Helper for setting the line style of the line plot
-    :param: vec_name: string name of the vector to be plotted
-    """
-
-    if "pos" in vec_name:
-        label = "Right tail"
-        color = "green"
-    elif "neg" in vec_name:
-        label = "Left tail"
-        color = "purple"
-
-    # overwrite color and line when plotting α-bounds
-    if "up_bound" in vec_name:
-        label = "Upper bound"
-        color = "black"
-    elif "low_bound" in vec_name:
-        label = "Lower bound"
-        color = "blue"
-
-    return {"label": label, "color": color}
 
 class PlotDataCalculator:
 
@@ -228,6 +197,26 @@ class _BasePlotter(ABC):
         ax = fig.add_axes(axes_pos)
         self.ax = ax
 
+    @staticmethod
+    def _set_line_style(vec_name):
+        """Helper for setting the line style of the line plot
+        :param: vec_name: string name of the vector to be plotted
+        """
+        if "pos" in vec_name:
+            label = "Right tail"
+            color = "green"
+        elif "neg" in vec_name:
+            label = "Left tail"
+            color = "purple"
+        # overwrite color and line when plotting α-bounds
+        if "up_bound" in vec_name:
+            label = "Upper bound"
+            color = "black"
+        elif "low_bound" in vec_name:
+            label = "Lower bound"
+            color = "blue"
+        return {"label": label, "color": color}
+
     def _plot_vectors(self):
         """Given the data to plot, plot them onto the passed axes
         """
@@ -243,7 +232,7 @@ class _BasePlotter(ABC):
 
         for vn in self.curr_vnames2plot:
             # TODO: get line_style from self.curr_ptinfo first?
-            self.ax.plot(self.data[vn], **_set_line_style(vn))
+            self.ax.plot(self.data[vn], **self._set_line_style(vn))
 
     def _config_axes(self):
         """

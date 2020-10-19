@@ -288,7 +288,7 @@ nproc:
   metavar: '<ℤ⁺>'
   help: "# of concurrent processes to use"
 
-plot_results:
+plot_results:   # TODO: should be off for static approach by default
   param_decls:
     - '--plot/--no-plot'
     - 'plot_results'

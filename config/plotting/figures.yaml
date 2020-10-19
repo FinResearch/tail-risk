@@ -12,6 +12,7 @@
   ax_table:
     _cellText_gens: ['np.mean', 'np.median', 'np.std', 'np.min', 'np.max']
     _extra_cell: [['Right', 0], ['Left', 0]]  # int element repr insertion posn of extra cell
+    # FIXME: be mindful of _extra_cell above when multiplicity is single
     cellLoc: 'center'
     colLabels:
       - 'Tail'    # NOTE: this is label for _extra_cell above
