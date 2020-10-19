@@ -8,6 +8,7 @@ import json
 import yaml
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 # NOTE: currently module globals
@@ -46,11 +47,70 @@ def _set_line_style(vec_name):
 
     return {"label": label, "color": color}
 
+class PlotDataCalculator:
 
-def _determine_plot_types(self):
-    """figure out which plots need to be produced based
-    on the passed results data DF"""
-    pass
+    def __init__(self, settings, results):
+        assert settings.anal.use_dynamic, \
+            "static approach currently does not support plotting"
+        self.sd = settings.data
+        self.sa = settings.anal
+        self.sp = settings.plot
+        self.results = results
+        self._gset_relevant_columns_resdf()
+        #  self._gset_plot_data_df()
+        self.update_ids = tuple(product(self.sd.grouping_labs,
+                                        self.sa.tails_to_anal))
+
+    def _gset_plot_data_df(self):
+        pddf = self.__init_plot_data_df()
+        pddf.update(self.rc_resdf)  # gets the (alpha, abs_len, ks_pv) series
+        pddf.update(self.__calc_ci_bounds())  # calc the upper & lower bounds
+        pddf.update(self.__calc_rel_len())  # calc the relative tail length
+        #  print(pddf)
+        #  print(pddf.columns)
+
+    def _gset_relevant_columns_resdf(self):
+        # NOTE: tstats below must match those listed under 'tail-statistics'
+        #       subsection in config/output_columns.yaml
+        reqd_tstats = {'alpha', 'sigma', 'abs_len'}
+        if self.sa.run_ks_test:
+            reqd_tstats.add('ks_pv')
+        rc = [idx for idx in self.results.columns if idx[-1] in reqd_tstats]
+        self.rc_resdf = self.results[rc]  # rc: relevant columns
+        if 'tail-statistics' in self.rc_resdf.columns.levels[-2]:
+            cidx = self.rc_resdf.columns
+            self.rc_resdf.columns = cidx.droplevel(-2)
+        else:
+            raise ValueError('there is a column MultiIndex error!')
+
+    def __init_plot_data_df(self):
+        ridx = self.sd.anal_dates
+        plot_data_stats = ['alpha', 'upper', 'lower', 'abs_len', 'rel_len']
+        if self.sa.run_ks_test:
+            plot_data_stats.append('ks_pv')
+        cidx = pd.MultiIndex.from_product([self.sd.grouping_labs,
+                                           self.sa.tails_to_anal,
+                                           plot_data_stats])
+        return pd.DataFrame(np.full((len(ridx), len(cidx)), np.nan),
+                            index=ridx, columns=cidx, dtype=float)
+
+    def __calc_ci_bounds(self):
+        bounds = {}
+        for grp, tail in self.update_ids:  # TODO: consider vectorizing
+            alpha = self.rc_resdf[(grp, tail, 'alpha')]
+            sigma = self.rc_resdf[(grp, tail, 'sigma')]
+            delta = self.sp.alpha_quantile * sigma
+            bounds[(grp, tail, 'upper')] = alpha + delta
+            bounds[(grp, tail, 'lower')] = alpha - delta
+        return bounds
+
+    def __calc_rel_len(self):
+        rel_lens = {}
+        for grp, tail in self.update_ids:  # TODO: consider vectorizing
+            rv_size = self.results[(grp, 'returns-statistics', '', 'count')]
+            abs_len = self.rc_resdf[(grp, tail, 'abs_len')]
+            rel_lens[(grp, tail, 'rel_len')] = abs_len / rv_size
+        return rel_lens
 
 
 # TODO: consider moving plotter state into own class
