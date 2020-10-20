@@ -5,9 +5,10 @@
 # # Tabled Figures FIT    # TODO: consider implement template inheritance for common fields (ax_table pos, etc.)
 
 αf:   # α-fitting
-  fig_name: 'Alpha Fitting for ${ticker}'
-  vec_types: ['α_vec']
-  ax_title: 'Time evolution of the parameter $\alpha$ for ${ticker}\n'
+  Plot_cls: 'TabledFigurePlotter'
+  fig_name: 'Alpha Fitting for ${label}'
+  stats2plt: ['alpha']
+  ax_title: 'Time evolution of the parameter $\alpha$ for ${label}\n'
   ax_ylabel: '$\alpha$'
   ax_table:
     _cellText_gens: ['np.mean', 'np.median', 'np.std', 'np.min', 'np.max']
@@ -25,8 +26,9 @@
     bbox: [0.0, -0.26, 1.0, 0.10]
 
 hg:   # histogram of tail-α
-  fig_name: "Histogram of ${tsgn} tail α's for ${ticker}"
-  vec_types: ['α_vec']
+  Plot_cls: 'TabledFigurePlotter'
+  fig_name: "Histogram of ${tsgn} tail α's for ${label}"
+  stats2plt: ['alpha']
   extra_lines:    # NOTE: vectors expr encoded as str; use eval() to get value
     vectors:
       - 'np.repeat(${vec_mean}, ${hist_max} + 1)'
@@ -35,7 +37,7 @@ hg:   # histogram of tail-α
       label: '$E[\hat{\alpha}]$'
       color: 'blue'
       linewidth: 1.5
-  ax_title: 'Empirical distribution (${tdir} tail) of the rolling $\hat{\alpha}$ for ${ticker}\n'
+  ax_title: 'Empirical distribution (${tdir}) of the rolling $\hat{\alpha}$ for ${label}\n'
   ax_ylabel: 'Absolute frequency'
   ax_table:
     # NOTE: _cellText_gens is prepended w/ _ b/c it's not a table-kwarg
@@ -53,13 +55,14 @@ hg:   # histogram of tail-α
 # #  Time Rolling FIT
 
 ci:  # time rolling confidence interval
-  fig_name: 'Time rolling CI for ${tdir} tail for ${ticker}'
-  vec_types: ['α_vec', 'up_bound', 'low_bound']
+  Plot_cls: 'TimeRollingPlotter'
+  fig_name: 'Time rolling CI for ${tdir} for ${label}'
+  stats2plt: ['alpha', 'upper', 'lower']
   extra_lines:    # NOTE: vectors are encoded as str expr; use eval() to get value
     vectors:
-      - 'map(lambda x: np.repeat(x, ${n_vec} + 2), (2, 3))'
+      - 'map(lambda x: np.repeat(x, ${vec_size} + 2), (2, 3))'
     line_style: {color: 'red'}
-  ax_title: 'Rolling confidence intervals for the $\alpha$-${tdir} tail exponents (c = 1 - ${alpha_signif})\nTicker: ${ticker}. '
+  ax_title: 'Rolling confidence intervals for the $\alpha$-${tdir} exponents (c = 1 - ${alpha_signif})\nTicker: ${label}. '
   ax_ylabel: '$\alpha$'
   ax_legend:
     bbox_to_anchor: [0.0, -0.175, 1.0, 0.02]
@@ -68,28 +71,32 @@ ci:  # time rolling confidence interval
     borderaxespad: 0
 
 as:  # time rolling absolute size
-  fig_name: 'Time rolling size for ${tdir} tail for ${ticker}'
-  vec_types: ['abs_len']
-  ax_title: 'Rolling tail length for: ${ticker}\n'
+  Plot_cls: 'TimeRollingPlotter'
+  fig_name: 'Time rolling size for ${tdir} for ${label}'
+  stats2plt: ['abs_len']
+  ax_title: 'Rolling tail length for: ${label}\n'
   ax_ylabel: 'Tail length'
 
 rs:  # time rolling relative size
-  fig_name: 'Time rolling relative size for ${tdir} tail for ${ticker}'
-  vec_types: ['rel_len']
-  ax_title: 'Rolling relative tail length for: ${ticker}\n'
+  Plot_cls: 'TimeRollingPlotter'
+  fig_name: 'Time rolling relative size for ${tdir} for ${label}'
+  stats2plt: ['rel_len']
+  ax_title: 'Rolling relative tail length for: ${label}\n'
   ax_ylabel: 'Relative tail length'
 
 ks:  # time rolling KS-test
-  fig_name: 'Time KS test for ${tdir} tail for ${ticker}'
-  vec_types: ['α_ks']
-  ax_title: 'KS-statistics: rolling p-value obtained from Clauset algorithm for ${ticker}\n'
+  Plot_cls: 'TimeRollingPlotter'
+  fig_name: 'Time KS test for ${tdir} for ${label}'
+  stats2plt: ['ks_pv']
+  ax_title: 'KS-statistics: rolling p-value obtained from Clauset algorithm for ${label}\n'
   ax_ylabel: 'p-value'
 
 
 # # Matrix FIT
 
 bx:  # boxplot of α-tails
+  Plot_cls: 'TimeRollingPlotter'
   fig_name: '${tsgn} Power Law Boxplot'
-  #  'vec_types': ['α_vec']  # NOTE: this is a matrix
-  ax_title: 'Boxplot representation of the $\alpha$-${tdir} tail exponent\n'
+  #  'stats2plt': ['α_vec']  # NOTE: this is a matrix
+  ax_title: 'Boxplot representation of the $\alpha$-${tdir} exponent\n'
   ax_ylabel: '$\alpha$'

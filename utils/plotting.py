@@ -12,10 +12,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-with open('config/plotting/figures.yaml') as cfg:
-    PLOT_CONFIG = yaml.load(cfg, Loader=yaml.SafeLoader)
-
-
 class PlotDataCalculator:
 
     def __init__(self, settings, results):
@@ -25,18 +21,10 @@ class PlotDataCalculator:
         self.sa = settings.anal
         self.sp = settings.plot
         self.results = results
+        self._update_ids = tuple(product(self.sd.grouping_labs,
+                                         self.sa.tails_to_anal))
         self._gset_relevant_columns_resdf()
-        #  self._gset_plot_data_df()
-        self.update_ids = tuple(product(self.sd.grouping_labs,
-                                        self.sa.tails_to_anal))
-
-    def _gset_plot_data_df(self):
-        pddf = self.__init_plot_data_df()
-        pddf.update(self.rc_resdf)  # gets the (alpha, abs_len, ks_pv) series
-        pddf.update(self.__calc_ci_bounds())  # calc the upper & lower bounds
-        pddf.update(self.__calc_rel_len())  # calc the relative tail length
-        #  print(pddf)
-        #  print(pddf.columns)
+        self._gset_plot_data_df()
 
     def _gset_relevant_columns_resdf(self):
         # NOTE: tstats below must match those listed under 'tail-statistics'
@@ -65,7 +53,7 @@ class PlotDataCalculator:
 
     def __calc_ci_bounds(self):
         bounds = {}
-        for grp, tail in self.update_ids:  # TODO: consider vectorizing
+        for grp, tail in self._update_ids:  # TODO: consider vectorizing
             alpha = self.rc_resdf[(grp, tail, 'alpha')]
             sigma = self.rc_resdf[(grp, tail, 'sigma')]
             delta = self.sp.alpha_quantile * sigma
@@ -75,11 +63,22 @@ class PlotDataCalculator:
 
     def __calc_rel_len(self):
         rel_lens = {}
-        for grp, tail in self.update_ids:  # TODO: consider vectorizing
+        for grp, tail in self._update_ids:  # TODO: consider vectorizing
             rv_size = self.results[(grp, 'returns-statistics', '', 'count')]
             abs_len = self.rc_resdf[(grp, tail, 'abs_len')]
             rel_lens[(grp, tail, 'rel_len')] = abs_len / rv_size
         return rel_lens
+
+    def _gset_plot_data_df(self):
+        self.pddf = self.__init_plot_data_df()
+        self.pddf.update(self.rc_resdf)  # gets (alpha, abs_len, ks_pv) vecs
+        self.pddf.update(self.__calc_ci_bounds())  # get upper & lower bounds
+        self.pddf.update(self.__calc_rel_len())  # get relative tail length
+
+    def get_vec(self, vec_id, rtn_ndarray=True):
+        # NOTE: vec_id must be of the form: (group_label, Tail, statistic)
+        vec_series = self.pddf[vec_id]
+        return vec_series.to_numpy() if rtn_ndarray else vec_series
 
 
 # TODO: consider moving plotter state into own class
@@ -93,94 +92,49 @@ class _BasePlotter(ABC):
     """
     """
 
-    #  def __init__(self, ticker, settings, data, plot_type):  # fits_dict, data):
-    def __init__(self, settings, data, plot_type):  # fits_dict, data):
+    def __init__(self, settings, plot_label, plot_combo_id,
+                 figure_metadata, plot_data_calc):
         """
-        :param: ticker: string of ticker name
         :param: settings: SimpleNamespace object containing user-input options
-        :param: data: dictionary of lists/arrays containing data to plot
-        :param: plot_type: str; should be one of (αf, hg, ci, as, rs, ks, bx)
+        :param: plot_label: string; ticker or group ID
+        :param: plot_combo_id: tuple; ex. (PlotType.ALPHA_FIT, (Tail.right,))
+        :param: figure_metadata: figure metadata dict for a given plot type
+        :param: plot_data_calc: PlotDataCalculator object instance
         """
         self.sd = settings.data
-        self.sr = settings.rtrn
-        self.sa = settings.anal
+        #  self.sr = settings.rtrn
+        #  self.sa = settings.anal
         self.sp = settings.plot
-        self.data = data
-        # TODO: make validator function for plot_type?
-        self.ptyp = plot_type
-        # NOTE: set the entire ptyp_config below if more config flags added
-        #  self.ptyp_config = ptyp_config[self.ptyp]  # FIXME: module global
-        #  self.multiplicities = PLOT_CONFIG[self.ptyp]["_multiplicities"]
-        self.ax_title_base = (f"Time Period: {self.sd.date_i} "
-                              f"- {self.sd.date_f}")
-        #  NOTE: the fits_dict attr below now initialized in subclasses
-        #  self.fits_dict = fits_dict["time_rolling"]
+        self.plt_lab = plot_label
+        self.plt_typ, self.tail_tup = plot_combo_id
+        # TODO: import PlotType enum class to remove redundant assignment below
+        self.plt_id = self.plt_typ.value
+        self.fmdat = self.__sub_figure_metadata(figure_metadata)
+        self.pcalc = plot_data_calc
 
     # TODO: also add __repr__ method
-
     def __str__(self):
         # TODO: flesh this method out with better output
         return f"{self.__class__}, {self.__dict__}"
 
-    # Methods for determining state-independent info; called in __init__()
+    def _gset_tail_metadata(self):
+        _tail_sgl = self.tail_tup[0] if len(self.tail_tup) == 1 else None
+        self.tdir = f'{_tail_sgl.name} tail' if _tail_sgl else 'both tails'
+        _tsgn_map = {1: 'positive', -1: 'negative'}
+        self.tsgn = _tsgn_map[_tail_sgl.value] if _tail_sgl else ''
 
-    # NOTE: should be called before every _init_figure() call
-    def _set_plotter_state(self, mult, tdir):
-        """Sets the current state, i.e. the tail direction, plot
-        type (CI, tail size, KS, etc.), and eventually ticker ID
+    def __sub_figure_metadata(self, fig_metdat_temp):
         """
-        self.curr_mult = mult  # multiplicity: must be 'single' OR 'double'
-        # TODO: simplify naming to use either 'pos/neg' OR 'right/left'???
-        self.curr_tdir = tdir
-        self.curr_tsgn = "negative" if self.curr_tdir == "left" else "positive"
-        self.curr_tsgs = self.curr_tsgn[:3]  # tail sign short form, ex. "pos"
-        # TODO: below will be diff from self.ticker once unnested in tickers
-        self.curr_ticker = self.ticker  # TODO: will be diff when plot unnested
-        # TODO: consider adding if-check, to only update self.curr_ptinfo
-        #       when stateful values inside of template_map changes
-        self.curr_ptinfo = self.__set_ptyp_info()
-        self.curr_vnames2plot = self.__get_vnames2plot()
-
-    # State-aware and -dependent methods below
-
-    # # state management and "bookkeeping" methods
-
-    def __set_ptyp_info(self):
-        """Named 'set' b/c there is dynamic info generated as well
-        As opposed to simply fetching static data
         """
-
-        sett = self.settings
-        # TODO: make template_map subclass specific attribute?
-        template_map = {
-            "n_vec": sett.n_vec,
-            "significance": sett.alpha_sgnf,
-            "ticker": self.curr_ticker,
-            "tdir": self.curr_tdir,
-            "tsgn": self.curr_tsgn,
-        }
-
-        # NOTE: self.fits_dict is instantiated in subclass (problem?)
-        ptyp_tmpl_dict = self.fits_dict[self.ptyp]
-        ptyp_template = Template(json.dumps(ptyp_tmpl_dict))
-        made_ptyp_info = ptyp_template.safe_substitute(template_map)
-
-        return json.loads(made_ptyp_info)
-
-    def __get_vnames2plot(self):
-        """
-        Set the correct data to be passed to _plot_vectors()
-        """
-
-        # TODO: refactor below to be more concise and DRY
-        if self.curr_mult == "double":
-            #  self.curr_tdir = "both"  # FIXME: where best to set this?
-            tails_to_use = ("pos", "neg",)
-        else:
-            tails_to_use = (self.curr_tsgs,)
-
-        return [f"{tsgs}_{vtyp}" for tsgs, vtyp in
-                product(tails_to_use, self.curr_ptinfo["vec_types"])]
+        self._gset_tail_metadata()
+        temp_sub_map = {"vec_size": self.sp.vec_size,
+                        "alpha_signif": self.sp.alpha_signif,
+                        "label": self.plt_lab,
+                        "tdir": self.tdir,
+                        "tsgn": self.tsgn}
+        fmdat_template = Template(json.dumps(fig_metdat_temp))
+        fmdat_complete = fmdat_template.safe_substitute(temp_sub_map)
+        return json.loads(fmdat_complete)
 
     # # methods for the actual plotting of the figure(s)
     # NOTE: plot phases partitioned into 3 for easy overwriting by subclasses
@@ -192,29 +146,30 @@ class _BasePlotter(ABC):
         TODO: it should not care about the data being plotted nor the opts
         """
         # TODO: use fig, ax = plt.subplots() idiom to Initialize?
-        fig = plt.figure(self.curr_ptinfo["fig_name"])
+        fig = plt.figure(self.fmdat["fig_name"])
         axes_pos = (0.1, 0.20, 0.83, 0.70)
         ax = fig.add_axes(axes_pos)
         self.ax = ax
 
     @staticmethod
-    def _set_line_style(vec_name):
+    def _set_line_style(vec_id):
         """Helper for setting the line style of the line plot
-        :param: vec_name: string name of the vector to be plotted
+        :param: vec_id: unique 3-tuple that IDs any given vector
         """
-        if "pos" in vec_name:
-            label = "Right tail"
-            color = "green"
-        elif "neg" in vec_name:
-            label = "Left tail"
-            color = "purple"
+        _, tail, stat = vec_id
+
+        use_right_tail = tail.value == 1
+        label = 'Right tail' if use_right_tail else 'Left tail'
+        color = 'green' if use_right_tail else 'purple'
+
         # overwrite color and line when plotting α-bounds
-        if "up_bound" in vec_name:
+        if stat == 'upper':
             label = "Upper bound"
             color = "black"
-        elif "low_bound" in vec_name:
+        elif stat == 'lower':
             label = "Lower bound"
             color = "blue"
+
         return {"label": label, "color": color}
 
     def _plot_vectors(self):
@@ -230,9 +185,11 @@ class _BasePlotter(ABC):
                 # TODO: ensure all vecs are 2-tups for x-y plot??? (ex. hist)
                 self.ax.plot(vec, **extra_lines["line_style"])
 
-        for vn in self.curr_vnames2plot:
-            # TODO: get line_style from self.curr_ptinfo first?
-            self.ax.plot(self.data[vn], **self._set_line_style(vn))
+        for tail in self.tail_tup:
+            for st in self.fmdat['stats2plt']:
+                vec_id = (self.plt_lab, tail, st)
+                self.ax.plot(self.pcalc.get_vec(vec_id),
+                             **self._set_line_style(vec_id))
 
     def _config_axes(self):
         """
@@ -240,8 +197,9 @@ class _BasePlotter(ABC):
         """
 
         sett = self.settings
+        self.ax.set_title(self.fmdat["ax_title"] + self.sp.title_timeperiod)
 
-        self.ax.set_title(self.curr_ptinfo["ax_title"] + self.ax_title_base)
+        self.ax.set_xlim(xmin=0.0, xmax=self.sp.vec_size-1)
 
         self.ax.set_xlim(xmin=0.0, xmax=sett.n_vec-1)
         self.ax.set_xticks(range(0, sett.n_spdt, sett.spec_labelstep))
@@ -249,9 +207,9 @@ class _BasePlotter(ABC):
                                  sett.spec_dates[0::sett.spec_labelstep]],
                                 rotation="vertical")
 
-        self.ax.set_ylabel(self.curr_ptinfo["ax_ylabel"])
+        self.ax.set_ylabel(self.fmdat["ax_ylabel"])
 
-        self.ax.legend(**self.curr_ptinfo.get("ax_legend", {}))
+        self.ax.legend(**self.fmdat.get("ax_legend", {}))
         self.ax.grid()
 
     # NOTE: does this function need to be state aware?
@@ -261,10 +219,10 @@ class _BasePlotter(ABC):
         """
         # TODO: support interative modes
 
-        if self.settings.show_plots:
+        if self.sp.show_plots:
             plt.show()
 
-        if self.settings.save_plots:
+        if self.sp.save_plots:
             pass
         else:
             # TODO: implement plot saving functionality here
@@ -276,13 +234,10 @@ class _BasePlotter(ABC):
         This is the publicly exposed API to this class.
         Just initialize a plotter object, and call plotter.plot()
         """
-
-        for mult, tdir in self.plot_combos:
-            self._set_plotter_state(mult, tdir)
-            self._init_figure()
-            self._plot_vectors()
-            self._config_axes()
-            self._present_figure()
+        self._init_figure()
+        self._plot_vectors()
+        self._config_axes()
+        self._present_figure()
 
 
 class TabledFigurePlotter(_BasePlotter):
@@ -317,8 +272,8 @@ class TabledFigurePlotter(_BasePlotter):
             self.__calc_vec_stats(self.data[vn])
 
             IQR = npp(self.data[vn], 75) - npp(self.data[vn], 25)
-            # TODO: ASK why use: h = 2*IQR/cuberoot(n_vec)
-            h = 2 * IQR * np.power(self.settings.n_vec, -1/3)
+            # TODO: ASK why use: h = 2*IQR/cuberoot(vec_size)
+            h = 2 * IQR * np.power(self.sp.vec_size, -1/3)
             # TODO: xlim also uses max & min --> keep DRY
             n_bins = int((self.vec_max - self.vec_min)/h)
             hist_vals, bins, patches = self.ax.hist(self.data[vn],
@@ -329,7 +284,7 @@ class TabledFigurePlotter(_BasePlotter):
     def __plot_extra_hist_line(self):
         # TODO: factor this into own function to keep DRY for histogram
 
-        extra_lines = self.curr_ptinfo["extra_lines"]
+        extra_lines = self.fmdat["extra_lines"]
         vecs_encoded = extra_lines["vectors"]
 
         vecs_template = Template(json.dumps(vecs_encoded))
@@ -381,7 +336,7 @@ class TabledFigurePlotter(_BasePlotter):
 
         if self.use_hist:
             self.ax.set_xlim(xmin=self.vec_min, xmax=self.vec_max)
-            self.ax.set_ylabel(self.curr_ptinfo["ax_ylabel"])
+            self.ax.set_ylabel(self.fmdat["ax_ylabel"])
             self.ax.set_ylim(ymin=0, ymax=self.hist_max)
             self.ax.legend()  # TODO: make legend & grid DRY
             self.ax.grid()
@@ -402,29 +357,25 @@ class TimeRollingPlotter(_BasePlotter):
         self.fits_dict = get_fits_dict()["time_rolling"]
         # TODO: consider making fits_dict flat in plot_types level
         self.ax_title_base = (f"{self.ax_title_base}. "
-                              f"Input: {self.return_type_label}")
-
-    # NOTE: below is WIP --> maybe make into standalone module function
-    def plot_ensemble(self):
-        #  for ptyp in fits_dict["time_rolling"].keys():
-        #      plotter = TimeRollingPlotter(ticker, settings, data, ptyp)
-        #      plotter.plot()
-        pass
+                              f"Input: {self.sp.returns_label}")
 
 
-# TODO: save a set of results data to do quick plot development!!!
+def plot_ensemble(settings, results):
+    with open('config/plotting/figures.yaml') as cfg:
+        figs_meta_map = yaml.load(cfg, Loader=yaml.SafeLoader)
 
-tabled_figs = get_fits_dict()["tabled_figure"].keys()
-def tabled_figure_plotter(ticker, settings, data):
-    #  for ptyp in fits_dict["tabled_figure"].keys():
-    for ptyp in tabled_figs:
-        plotter = TabledFigurePlotter(ticker, settings, data, ptyp)
-        plotter.plot()
+    plot_data_calc = PlotDataCalculator(settings, results)
 
+    for combo_id in settings.plot.plot_combos:
+        ptid = combo_id[0].value
+        fig_meta = figs_meta_map[ptid]
 
-timeroll_figs = get_fits_dict()["time_rolling"].keys()
-def time_rolling_plotter(ticker, settings, data):
-    #  for ptyp in fits_dict["time_rolling"].keys():
-    for ptyp in timeroll_figs:
-        plotter = TimeRollingPlotter(ticker, settings, data, ptyp)
-        plotter.plot()
+        #  Plot_cls = eval(fig_meta['Plot_cls'])
+        Plot_cls = _BasePlotter
+
+        for label in settings.data.grouping_labs:
+            plotter = Plot_cls(settings, label, combo_id,
+                               fig_meta, plot_data_calc)
+            plotter.plot()
+            if ptid == 'bx':
+                break

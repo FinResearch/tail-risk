@@ -24,6 +24,8 @@ class Settings:
         self._load_set_stats_columns_labels()
         self._gset_output_filename()
         if self.plot_results:
+            assert self.use_dynamic,\
+                "static approach currently does not support plotting"
             self._gset_plot_settings()
         if isinstance(self.xmin_qnty, pd.DataFrame):  # only w/ {file, average}
             self._validate_xmins_df_statcols()  # must aftr _gset_grouping_info
@@ -225,7 +227,8 @@ class Settings:
     # # methods relevant to settings needed by plotter # #
 
     def _gset_plot_settings(self):
-        self.title_timestamp = f"Time Period: {self.date_i} - {self.date_f}"
+        self.title_timeperiod = f"Time Period: {self.date_i} - {self.date_f}"
+        self.vec_size = len(self.anal_dates) if self.use_dynamic else None
         self.labelstep = self.__get_labelstep()
         self.returns_label = self.__get_returns_label()
         self.alpha_quantile = self.__calc_alpha_quantile()

@@ -58,8 +58,8 @@ plot:
   - plot_results
   - show_plots
   - save_plots
-  - title_timestamp
-  # - n_vector (used in histogram, and to set xlim)
+  - title_timeperiod
+  - vec_size
   - labelstep
   - returns_label
   - alpha_signif

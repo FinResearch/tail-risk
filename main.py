@@ -3,7 +3,7 @@ import sys
 import cli
 from utils.analysis import analyze_tail
 from utils.settings import Settings
-from utils.plotting import PlotDataCalculator, _BasePlotter
+from utils.plotting import plot_ensemble
 
 user_inputs = cli.get_user_inputs.main(standalone_mode=False)
 
@@ -19,10 +19,8 @@ if __name__ == "__main__":
     #  print(settings)
     #
     results = analyze_tail(settings)
-    #  plotter = _BasePlotter(settings, results, 'as')
-    #  print(plotter)
-    pdc = PlotDataCalculator(settings, results)
-    pdc._gset_plot_data_df()
+    plot_ensemble(settings, results)
+
 
 # TODO: apply black styling to all modules (i.e. ' --> ")
 # TODO: annotate/de-annotate NOTE notes
