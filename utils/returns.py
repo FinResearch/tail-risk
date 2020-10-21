@@ -185,7 +185,8 @@ class MonthlyNormalizer(DynamicNormalizer):
                 self.stds.loc[date] = rtdf_by_month.std(axis=0)
 
     def _get_lookback_label(self, date):
-        return self.sr.monthly_bounds[date[3:]][1]
+        mmyyyy = date[3:]
+        return self.sr.monthly_bounds[mmyyyy][1]
 
 
 class ReturnsIter:

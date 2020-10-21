@@ -363,7 +363,8 @@ class Settings:
     # # method exported to analysis.py, used strictly for logging # #
     def get_dyn_lbd(self, date):  # get dynamic lookback date
         if self.approach == 'monthly':
-            return self.monthly_bounds[date[3:]][0]
+            mmyyyy = date[3:]
+            return self.monthly_bounds[mmyyyy][0]
         else:
             date = date if self.approach == 'rolling' else self.date_i
             return self.__gbdl(self._lookback, date0=date, incl_date0=True)
