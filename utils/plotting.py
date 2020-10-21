@@ -128,8 +128,10 @@ class _BasePlotter(ABC):
         """
         self._gset_tail_metadata()
         temp_sub_map = {"vec_size": self.sp.vec_size,
-                        "alpha_signif": self.sp.alpha_signif,
-                        "label": self.plt_lab,
+                        "conf_lvl": self.sp.confidence_level,
+                        "timeperiod": self.sp.title_timeperiod,
+                        "rtrn_label": self.sp.returns_label,
+                        "label": f'{self.sd.grouping_type}: {self.plt_lab}',
                         "tdir": self.tdir,
                         "tsgn": self.tsgn}
         fmdat_template = Template(json.dumps(fig_metdat_temp))
@@ -195,10 +197,7 @@ class _BasePlotter(ABC):
         """
         configure it appropriately after plotting (title, ticks, etc.)
         """
-
-        sett = self.settings
-        self.ax.set_title(self.fmdat["ax_title"] + self.sp.title_timeperiod)
-
+        self.ax.set_title(self.fmdat["ax_title"])
         self.ax.set_xlim(xmin=0.0, xmax=self.sp.vec_size-1)
 
         self.ax.set_xlim(xmin=0.0, xmax=sett.n_vec-1)

@@ -8,7 +8,9 @@
   Plot_cls: 'TabledFigurePlotter'
   fig_name: 'Alpha Fitting for ${label}'
   stats2plt: ['alpha']
-  ax_title: 'Time evolution of the parameter $\alpha$ for ${label}\n'
+  ax_title: |-
+    Time evolution of $\alpha$ for ${label}
+    Time period: ${timeperiod}
   ax_ylabel: '$\alpha$'
   ax_table:
     _cellText_gens: ['np.mean', 'np.median', 'np.std', 'np.min', 'np.max']
@@ -37,7 +39,9 @@ hg:   # histogram of tail-α
       label: '$E[\hat{\alpha}]$'
       color: 'blue'
       linewidth: 1.5
-  ax_title: 'Empirical distribution (${tdir}) of the rolling $\hat{\alpha}$ for ${label}\n'
+  ax_title: |-
+    Empirical distribution (${tdir}) of rolling $\hat{\alpha}$ for ${label}
+    Time period: ${timeperiod}
   ax_ylabel: 'Absolute frequency'
   ax_table:
     # NOTE: _cellText_gens is prepended w/ _ b/c it's not a table-kwarg
@@ -62,7 +66,9 @@ ci:  # time rolling confidence interval
     vectors:
       - 'map(lambda x: np.repeat(x, ${vec_size} + 2), (2, 3))'
     line_style: {color: 'red'}
-  ax_title: 'Rolling confidence intervals for the $\alpha$-${tdir} exponents (c = 1 - ${alpha_signif})\nTicker: ${label}. '
+  ax_title: |-
+    Rolling confidence intervals for $\alpha$-${tdir} exponents (c = ${conf_lvl}) for ${label}
+    Time period: ${timeperiod}, input: ${rtrn_label}
   ax_ylabel: '$\alpha$'
   ax_legend:
     bbox_to_anchor: [0.0, -0.175, 1.0, 0.02]
@@ -74,21 +80,27 @@ as:  # time rolling absolute size
   Plot_cls: 'TimeRollingPlotter'
   fig_name: 'Time rolling size for ${tdir} for ${label}'
   stats2plt: ['abs_len']
-  ax_title: 'Rolling tail length for: ${label}\n'
+  ax_title: |-
+    Rolling absolute tail length for ${label}
+    Time period: ${timeperiod}, input: ${rtrn_label}
   ax_ylabel: 'Tail length'
 
 rs:  # time rolling relative size
   Plot_cls: 'TimeRollingPlotter'
   fig_name: 'Time rolling relative size for ${tdir} for ${label}'
   stats2plt: ['rel_len']
-  ax_title: 'Rolling relative tail length for: ${label}\n'
+  ax_title: |-
+    Rolling relative tail length for ${label}
+    Time period: ${timeperiod}, input: ${rtrn_label}
   ax_ylabel: 'Relative tail length'
 
 ks:  # time rolling KS-test
   Plot_cls: 'TimeRollingPlotter'
   fig_name: 'Time KS test for ${tdir} for ${label}'
   stats2plt: ['ks_pv']
-  ax_title: 'KS-statistics: rolling p-value obtained from Clauset algorithm for ${label}\n'
+  ax_title: |-
+    Rolling p-value via Clauset method (KS test) for ${label}
+    Time period: ${timeperiod}, input: ${rtrn_label}
   ax_ylabel: 'p-value'
 
 
@@ -98,5 +110,7 @@ bx:  # boxplot of α-tails
   Plot_cls: 'TimeRollingPlotter'
   fig_name: '${tsgn} Power Law Boxplot'
   #  'stats2plt': ['α_vec']  # NOTE: this is a matrix
-  ax_title: 'Boxplot representation of the $\alpha$-${tdir} exponent\n'
+  ax_title: |-
+    Boxplot representation of $\alpha$-${tdir} exponents
+    Time period: ${timeperiod}
   ax_ylabel: '$\alpha$'

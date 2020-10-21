@@ -227,7 +227,7 @@ class Settings:
     # # methods relevant to settings needed by plotter # #
 
     def _gset_plot_settings(self):
-        self.title_timeperiod = f"Time Period: {self.date_i} - {self.date_f}"
+        self.title_timeperiod = f"{self.date_i} — {self.date_f}"
         self.vec_size = len(self.anal_dates) if self.use_dynamic else None
         self.labelstep = self.__get_labelstep()
         self.returns_label = self.__get_returns_label()
@@ -250,12 +250,14 @@ class Settings:
         elif self.returns_type == "relative":
             label = f"{pt_f}/{pt_i} - 1.0"
         elif self.returns_type == "log":
-            label = rf"$\log$({pt_f}/{pt_i})"
+            label = f"log[{pt_f}/{pt_i}]"
+            #  label = rf"$\\log$($\\frac{{pt_f}}{{pt_i}}$)"
         if self.absolutize:
             label = f"|{label}|"
         return label
 
     def __calc_alpha_quantile(self):  # sets upper & lower bounds for CI figs
+        self.confidence_level = 1 - self.alpha_signif  # also calc plt conf_lvl
         from statistics import NormalDist
         return NormalDist().inv_cdf(1 - len(self.tails_to_anal)/2 *
                                     self.alpha_signif)

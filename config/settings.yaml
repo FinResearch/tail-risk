@@ -62,7 +62,7 @@ plot:
   - vec_size
   - labelstep
   - returns_label
-  - alpha_signif
+  - confidence_level
   - alpha_quantile
   - plot_combos
 
