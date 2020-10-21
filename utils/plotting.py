@@ -229,14 +229,59 @@ class _BasePlotter(ABC):
 
 class TabledFigurePlotter(_BasePlotter):
 
-    def __init__(self, settings, plot_label, plot_combo_id,
-                 figure_metadata, plot_data_calc):
-        super().__init__(settings, plot_label, plot_combo_id,
-                         figure_metadata, plot_data_calc)
+    #  def __init__(self, settings, plot_label, plot_combo_id,
+    #               figure_metadata, plot_data_calc):
+    #      super().__init__(settings, plot_label, plot_combo_id,
+    #                       figure_metadata, plot_data_calc)
 
-        self.use_hist = True if self.ptyp == "hg" else False
-        #  #  self.table_info = self.curr_ptinfo["ax_table"]
-        #  self.table_info = self.fits_dict[self.ptyp]["ax_table"]
+    def __gen_table_text(self):
+
+        # text generating functions; use dict.pop to remove non-table-kwarg
+        tgfuncs = eval(self.table_info.pop("_cellText_gens"))
+
+        extra_cell = self.table_info.pop("_extra_cell", ())
+
+        cellText = []
+        for i, vn in enumerate(self.curr_vnames2plot):
+            row_cells = [np.round(fn(self.data[vn]), 4) for fn in tgfuncs]
+            if extra_cell:
+                cell_val, pos = extra_cell[i]
+                row_cells.insert(pos, cell_val)
+            cellText.append(row_cells)
+
+        return cellText
+
+    def _add_table(self):
+
+        cellText = self.__gen_table_text()
+        # TODO: attach Table object to self?
+        table = self.ax.table(cellText=cellText, **self.table_info)
+        table.auto_set_font_size(False)
+        table.set_fontsize(10)
+        table.scale(0.5, 0.5)
+
+    #  def _plot_vectors(self):
+    #      """Given the data to plot, plot them onto the passed axes
+    #      """
+    #
+    #      if self.use_hist:
+    #          self.__histogram()
+    #          self.__plot_extra_hist_line()
+    #      else:
+    #          super()._plot_vectors()
+
+    def _config_axes(self):
+        super()._config_axes()
+        self._add_table()
+
+
+class HistogramPlotter(TabledFigurePlotter):
+
+    #  def __init__(self, settings, plot_label, plot_combo_id,
+    #               figure_metadata, plot_data_calc):
+    #      super().__init__(settings, plot_label, plot_combo_id,
+    #                       figure_metadata, plot_data_calc)
+    #      assert self.plt_typ.value == 'hg'
 
     def __calc_vec_stats(self, vec):
         self.vec_min = np.min(vec)
@@ -278,60 +323,19 @@ class TabledFigurePlotter(_BasePlotter):
             x, y = eval(x_str), eval(y_str)
             self.ax.plot(x, y, **extra_lines["line_style"])
 
-    def __gen_table_text(self):
-
-        # text generating functions; use dict.pop to remove non-table-kwarg
-        tgfuncs = eval(self.table_info.pop("_cellText_gens"))
-
-        extra_cell = self.table_info.pop("_extra_cell", ())
-
-        cellText = []
-        for i, vn in enumerate(self.curr_vnames2plot):
-            row_cells = [np.round(fn(self.data[vn]), 4) for fn in tgfuncs]
-            if extra_cell:
-                cell_val, pos = extra_cell[i]
-                row_cells.insert(pos, cell_val)
-            cellText.append(row_cells)
-
-        return cellText
-
-    def _add_table(self):
-
-        cellText = self.__gen_table_text()
-        # TODO: attach Table object to self?
-        table = self.ax.table(cellText=cellText, **self.table_info)
-        table.auto_set_font_size(False)
-        table.set_fontsize(10)
-        table.scale(0.5, 0.5)
-
     def _plot_vectors(self):
         """Given the data to plot, plot them onto the passed axes
         """
-
-        if self.use_hist:
-            self.__histogram()
-            self.__plot_extra_hist_line()
-        else:
-            super()._plot_vectors()
+        self.__histogram()
+        self.__plot_extra_hist_line()
 
     def _config_axes(self):
-
-        if self.use_hist:
-            self.ax.set_xlim(xmin=self.vec_min, xmax=self.vec_max)
-            self.ax.set_ylabel(self.fmdat["ax_ylabel"])
-            self.ax.set_ylim(ymin=0, ymax=self.hist_max)
-            self.ax.legend()  # TODO: make legend & grid DRY
-            self.ax.grid()
-        else:
-            super()._config_axes()
-
+        self.ax.set_xlim(xmin=self.vec_min, xmax=self.vec_max)
+        self.ax.set_ylabel(self.fmdat["ax_ylabel"])
+        self.ax.set_ylim(ymin=0, ymax=self.hist_max)
+        self.ax.legend()  # TODO: make legend & grid DRY
+        self.ax.grid()
         self._add_table()
-
-
-class HistogramPlotter(TabledFigurePlotter):
-
-    def __init__(self):
-        pass
 
 
 class TimeRollingPlotter(_BasePlotter):

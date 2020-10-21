@@ -28,7 +28,7 @@
     bbox: [0.0, -0.26, 1.0, 0.10]
 
 hg:   # histogram of tail-α
-  Plot_cls: 'TabledFigurePlotter'
+  Plot_cls: 'HistogramPlotter'
   fig_name: "Histogram of ${tsgn} tail α's for ${label}"
   stats2plt: ['alpha']
   _extra_lines:    # NOTE: vectors expr encoded as str; use eval() to get value
