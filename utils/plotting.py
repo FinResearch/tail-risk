@@ -81,14 +81,7 @@ class PlotDataCalculator:
         return vec_series.to_numpy() if rtn_ndarray else vec_series
 
 
-# TODO: consider moving plotter state into own class
-# and use this class only for plotting
 class _BasePlotter(ABC):
-    #  NOTE on method naming convention: excluding the special dunder methods,
-    #  self-defined methods prepended by double underscores are meant to be
-    #  called only by other private methods, which are themselves prepended by
-    #  a single underscore.
-    #  all __ methods have return values; while _ methods, not neccessarily
     """
     """
 
@@ -159,11 +152,9 @@ class _BasePlotter(ABC):
         :param: vec_id: unique 3-tuple that IDs any given vector
         """
         _, tail, stat = vec_id
-
         use_right_tail = tail.value == 1
         label = 'Right tail' if use_right_tail else 'Left tail'
         color = 'green' if use_right_tail else 'purple'
-
         # overwrite color and line when plotting α-bounds
         if stat == 'upper':
             label = "Upper bound"
@@ -171,8 +162,7 @@ class _BasePlotter(ABC):
         elif stat == 'lower':
             label = "Lower bound"
             color = "blue"
-
-        return {"label": label, "color": color}
+        return {'label': label, 'color': color}
 
     def _plot_vectors(self):
         """Given the data to plot, plot them onto the passed axes
@@ -241,19 +231,14 @@ class _BasePlotter(ABC):
 
 class TabledFigurePlotter(_BasePlotter):
 
-    def __init__(self, ticker, settings, data, plot_type):  # fits_dict, data):
-
-        # NOTE: maybe call super() after assigning self.fits_dict ??
-        super().__init__(ticker, settings, data, plot_type)
+    def __init__(self, settings, plot_label, plot_combo_id,
+                 figure_metadata, plot_data_calc):
+        super().__init__(settings, plot_label, plot_combo_id,
+                         figure_metadata, plot_data_calc)
 
         self.use_hist = True if self.ptyp == "hg" else False
-        # FIXME: currently fits_dict below is a module global
-        #  self.fits_dict = fits_dict["tabled_figure"]
-        self.fits_dict = get_fits_dict()["tabled_figure"]
-        # NOTE: problem :: fits_dict init'd in subclass, but curr_ptinfo is in
-        #       parent; and it is only instantiated on __set_ptyp_info()
-        #  self.table_info = self.curr_ptinfo["ax_table"]
-        self.table_info = self.fits_dict[self.ptyp]["ax_table"]
+        #  #  self.table_info = self.curr_ptinfo["ax_table"]
+        #  self.table_info = self.fits_dict[self.ptyp]["ax_table"]
 
     def __calc_vec_stats(self, vec):
         self.vec_min = np.min(vec)
@@ -345,18 +330,18 @@ class TabledFigurePlotter(_BasePlotter):
         self._add_table()
 
 
+class HistogramPlotter(TabledFigurePlotter):
+
+    def __init__(self):
+        pass
+
+
 class TimeRollingPlotter(_BasePlotter):
 
-    def __init__(self, ticker, settings, data, plot_type):  # fits_dict, data):
-
-        super().__init__(ticker, settings, data, plot_type)
-        # FIXME: currently fits_dict below is an imported module global
-        # NOTE: self.fits_dict must 1st be instant'd as self.curr_ptinfo req it
-        #  self.fits_dict = fits_dict["time_rolling"]
-        self.fits_dict = get_fits_dict()["time_rolling"]
-        # TODO: consider making fits_dict flat in plot_types level
-        self.ax_title_base = (f"{self.ax_title_base}. "
-                              f"Input: {self.sp.returns_label}")
+    def __init__(self, settings, plot_label, plot_combo_id,
+                 figure_metadata, plot_data_calc):
+        super().__init__(settings, plot_label, plot_combo_id,
+                         figure_metadata, plot_data_calc)
 
 
 def plot_ensemble(settings, results):
@@ -370,7 +355,7 @@ def plot_ensemble(settings, results):
         fig_meta = figs_meta_map[ptid]
 
         #  Plot_cls = eval(fig_meta['Plot_cls'])
-        Plot_cls = _BasePlotter
+        Plot_cls = TimeRollingPlotter
 
         for label in settings.data.grouping_labs:
             plotter = Plot_cls(settings, label, combo_id,
