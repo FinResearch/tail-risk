@@ -31,7 +31,7 @@ hg:   # histogram of tail-α
   Plot_cls: 'TabledFigurePlotter'
   fig_name: "Histogram of ${tsgn} tail α's for ${label}"
   stats2plt: ['alpha']
-  extra_lines:    # NOTE: vectors expr encoded as str; use eval() to get value
+  _extra_lines:    # NOTE: vectors expr encoded as str; use eval() to get value
     vectors:
       - 'np.repeat(${vec_mean}, ${hist_max} + 1)'
       - 'range(0, int(${hist_max} + 1))'
@@ -62,9 +62,10 @@ ci:  # time rolling confidence interval
   Plot_cls: 'TimeRollingPlotter'
   fig_name: 'Time rolling CI for ${tdir} for ${label}'
   stats2plt: ['alpha', 'upper', 'lower']
-  extra_lines:    # NOTE: vectors are encoded as str expr; use eval() to get value
-    vectors:
-      - 'map(lambda x: np.repeat(x, ${vec_size} + 2), (2, 3))'
+  extra_lines:
+    vectors:  # NOTE: vectors encoded as str expr; use eval() to get value
+      - 'np.repeat(2, ${vec_size} + 2)'
+      - 'np.repeat(3, ${vec_size} + 2)'
     line_style: {color: 'red'}
   ax_title: |-
     Rolling confidence intervals for $\alpha$-${tdir} exponents (c = ${conf_lvl}) for ${label}

@@ -169,13 +169,11 @@ class _BasePlotter(ABC):
         """
 
         # TODO: factor this into own function to keep DRY for histogram
-        if extra_lines := self.curr_ptinfo.get("extra_lines", {}):
-            vectors = extra_lines["vectors"]
-            if isinstance(vectors, str):
-                vectors = eval(vectors)
-            for vec in vectors:
-                # TODO: ensure all vecs are 2-tups for x-y plot??? (ex. hist)
-                self.ax.plot(vec, **extra_lines["line_style"])
+        # TODO: ensure all vecs are 2-tups for x-y plot?? (ex. hist)
+        if extra_lines := self.fmdat.get("extra_lines", {}):
+            extra_vecs = [eval(vec_str) for vec_str in extra_lines['vectors']]
+            for vec in extra_vecs:
+                self.ax.plot(vec, **extra_lines['line_style'])
 
         for tail in self.tail_tup:
             for st in self.fmdat['stats2plt']:
