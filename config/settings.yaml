@@ -60,7 +60,8 @@ plot:
   - save_plots
   - title_timeperiod
   - vec_size
-  - labelstep
+  - xtick_locs
+  - xtick_labs
   - returns_label
   - confidence_level
   - alpha_quantile

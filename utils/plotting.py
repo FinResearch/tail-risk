@@ -188,11 +188,9 @@ class _BasePlotter(ABC):
         self.ax.set_title(self.fmdat["ax_title"])
         self.ax.set_xlim(xmin=0.0, xmax=self.sp.vec_size-1)
 
-        self.ax.set_xlim(xmin=0.0, xmax=sett.n_vec-1)
-        self.ax.set_xticks(range(0, sett.n_spdt, sett.spec_labelstep))
-        self.ax.set_xticklabels([dt[3:] for dt in
-                                 sett.spec_dates[0::sett.spec_labelstep]],
-                                rotation="vertical")
+        self.ax.set_xticks(self.sp.xtick_locs)
+        self.ax.set_xticklabels(self.sp.xtick_labs, rotation="vertical")
+        # TODO: take only DD-MM for xtick labels OR something else?
 
         self.ax.set_ylabel(self.fmdat["ax_ylabel"])
 

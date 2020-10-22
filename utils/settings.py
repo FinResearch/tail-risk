@@ -229,18 +229,21 @@ class Settings:
     def _gset_plot_settings(self):
         self.title_timeperiod = f"{self.date_i} — {self.date_f}"
         self.vec_size = len(self.anal_dates) if self.use_dynamic else None
-        self.labelstep = self.__get_labelstep()
+        self.xtick_locs, self.xtick_labs = self.__get_plot_xticks_info()
         self.returns_label = self.__get_returns_label()
         self.alpha_quantile = self.__calc_alpha_quantile()
         self.plot_combos = self.__get_plot_combos()
 
-    def __get_labelstep(self):
+    def __get_plot_xticks_info(self):  # FIXME: consider when already 'monthly'
         len_dates = len(self.anal_dates)
         _analyze_nondaily = self._frq is not None and self._frq > 1
         use_monthly = len_dates <= Period.ANNUAL or _analyze_nondaily
         use_quarterly = Period.ANNUAL < len_dates <= 3*Period.ANNUAL
-        return (Period.MONTH if use_monthly else
-                Period.QUARTER if use_quarterly else Period.BIANNUAL)
+        labelstep = (Period.MONTH if use_monthly else
+                     Period.QUARTER if use_quarterly else Period.BIANNUAL)
+        xtick_locs = range(0, len_dates, labelstep)
+        xtick_labs = self.anal_dates[0::labelstep]
+        return xtick_locs, xtick_labs
 
     def __get_returns_label(self):
         pt_i = "P(t)"
@@ -461,7 +464,6 @@ class Tail(enum.Enum):
 
 
 class Period(enum.IntEnum):
-    # TODO: just subclass Enum, and return PERIOD.value for self.labelstep??
     MONTH = 22
     QUARTER = 66
     BIANNUAL = 121
