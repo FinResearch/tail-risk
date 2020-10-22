@@ -114,25 +114,28 @@ class _BasePlotter(ABC):
         _tsgn_map = {1: 'positive', -1: 'negative'}
         self.tsgn = _tsgn_map[_tail_sgl.value] if _tail_sgl else ''
 
+    @staticmethod
+    def _substitute_json_template_(json_temp, sub_map):
+        template = Template(json.dumps(json_temp))
+        return json.loads(template.safe_substitute(sub_map))
+
     def __sub_figure_metadata(self, fig_metdat_temp):
         """
         """
         self._gset_tail_metadata()
-        temp_sub_map = {"vec_size": self.sp.vec_size,
-                        "conf_lvl": self.sp.confidence_level,
-                        "timeperiod": self.sp.title_timeperiod,
-                        "rtrn_label": self.sp.returns_label,
-                        "label": f'{self.sd.grouping_type}: {self.plt_lab}',
-                        "tdir": self.tdir,
-                        "tsgn": self.tsgn}
-        fmdat_template = Template(json.dumps(fig_metdat_temp))
-        fmdat_complete = fmdat_template.safe_substitute(temp_sub_map)
-        return json.loads(fmdat_complete)
+        fig_sub_map = {"vec_size": self.sp.vec_size,
+                       "conf_lvl": self.sp.confidence_level,
+                       "timeperiod": self.sp.title_timeperiod,
+                       "rtrn_label": self.sp.returns_label,
+                       "label": f'{self.sd.grouping_type}: {self.plt_lab}',
+                       "tdir": self.tdir,
+                       "tsgn": self.tsgn}
+        return self._substitute_json_template_(fig_metdat_temp, fig_sub_map)
 
     # # methods for the actual plotting of the figures
 
     @staticmethod
-    def _set_line_style(vec_id):
+    def __set_line_style(vec_id):
         """Helper func for setting the line style of the line plot
         :param: vec_id: unique 3-tuple that IDs any given vector
         """
@@ -176,7 +179,7 @@ class _BasePlotter(ABC):
             for vec in extra_vecs:
                 self.ax.plot(vec, **extra_lines['line_style'])
         for vid, vec in self.v2p_map.items():
-            self.ax.plot(vec, **self._set_line_style(vid))
+            self.ax.plot(vec, **self.__set_line_style(vid))
 
     def _config_axes(self):
         """Configure it appropriately after plotting (title, ticks, etc.)
@@ -249,63 +252,46 @@ class TabledFigurePlotter(_BasePlotter):
 
 class HistogramPlotter(TabledFigurePlotter):
 
-    #  def __init__(self, settings, plot_label, plot_combo_id,
-    #               figure_metadata, plot_data_calc):
-    #      super().__init__(settings, plot_label, plot_combo_id,
-    #                       figure_metadata, plot_data_calc)
-    #      assert self.plt_typ.value == 'hg'
-
-    def __calc_vec_stats(self, vec):
+    def _gset_vec_stats(self, vec):
         self.vec_min = np.min(vec)
         self.vec_max = np.max(vec)
         self.vec_mean = np.mean(vec)
 
-    def __histogram(self):
-
+    def _histogram(self):
         npp = np.percentile  # NOTE: shorthand for NumPy method
-
-        # TODO: is for-loop necessary if each hist only contains a single vec?
-        for vn in self.curr_vnames2plot:
+        for vec in self.v2p_map.values():  # TODO: need for loop if only 1 vec?
             # FIXME: if multiple vecs in histogram, then self attrs
             #        calc'd below gets overwritten
-            self.__calc_vec_stats(self.data[vn])
-
-            IQR = npp(self.data[vn], 75) - npp(self.data[vn], 25)
+            self._gset_vec_stats(vec)
+            IQR = npp(vec, 75) - npp(vec, 25)
             # TODO: ASK why use: h = 2*IQR/cuberoot(vec_size)
             h = 2 * IQR * np.power(self.sp.vec_size, -1/3)
-            # TODO: xlim also uses max & min --> keep DRY
             n_bins = int((self.vec_max - self.vec_min)/h)
-            hist_vals, bins, patches = self.ax.hist(self.data[vn],
-                                                    n_bins, color="red")
+            hist_vals, bins, patches = self.ax.hist(vec, n_bins, color="red")
             # FIXME: if multiple vecs in histogram, then hist_max below ovwrtn
             self.hist_max = np.max(hist_vals)
+        self.hist_sub_map = {'vec_mean': self.vec_mean,
+                             'hist_max': self.hist_max}
 
-    def __plot_extra_hist_line(self):
-        # TODO: factor this into own function to keep DRY for histogram
-
-        extra_lines = self.fmdat["extra_lines"]
-        vecs_encoded = extra_lines["vectors"]
-
-        vecs_template = Template(json.dumps(vecs_encoded))
-        vecs_str_tups = eval(vecs_template.substitute(vec_mean=self.vec_mean,
-                                                      hist_max=self.hist_max))
-
-        # NOTE: elements of vecs_str_tups are 2-tups to allow x vs. y plotting
-        for x_str, y_str in vecs_str_tups:
-            x, y = eval(x_str), eval(y_str)
-            self.ax.plot(x, y, **extra_lines["line_style"])
+    def _plot_extra_hist_line(self):
+        # TODO: factor plt_extra_line in parent cls into own func to keep DRY?
+        extra_line = self.fmdat['extra_line']
+        xy_vec_strs = self._substitute_json_template_(extra_line['vector'],
+                                                      self.hist_sub_map)
+        x, y = [eval(c) for c in xy_vec_strs]
+        self.ax.plot(x, y, **extra_line['line_style'])
 
     def _plot_vectors(self):
-        """Given the data to plot, plot them onto the passed axes
+        """Overwrite _BasePlotter's _plot_vectors method to plot the histogram
         """
-        self.__histogram()
-        self.__plot_extra_hist_line()
+        self._histogram()
+        self._plot_extra_hist_line()
 
     def _config_axes(self):
         self.ax.set_xlim(xmin=self.vec_min, xmax=self.vec_max)
-        self.ax.set_ylabel(self.fmdat["ax_ylabel"])
+        self.ax.set_ylabel(self.fmdat['ax_ylabel'])
         self.ax.set_ylim(ymin=0, ymax=self.hist_max)
-        self.ax.legend()  # TODO: make legend & grid DRY
+        self.ax.legend()
         self.ax.grid()
         self._add_table()
 

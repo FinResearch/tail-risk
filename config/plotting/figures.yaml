@@ -32,10 +32,10 @@ hg:   # histogram of tail-α
   Plot_cls: 'HistogramPlotter'
   fig_name: "Histogram α's - ${tsgn} tail - ${label}"
   stats2plt: ['alpha']
-  _extra_lines:    # NOTE: vectors expr encoded as str; use eval() to get value
-    vectors:
-      - 'np.repeat(${vec_mean}, ${hist_max} + 1)'
-      - 'range(0, int(${hist_max} + 1))'
+  extra_line:    # NOTE: vectors expr encoded as str; use eval() to get value
+    vector:  # NOTE: this is the single extra vertical line
+      - 'np.repeat(${vec_mean}, ${hist_max} + 1)'  # the x-vec of the extra line
+      - 'range(0, int(${hist_max} + 1))'           # the y-vec of the extra line
     line_style:
       label: '$E[\hat{\alpha}]$'
       color: 'blue'
