@@ -185,6 +185,7 @@ class _BasePlotter(ABC):
         """Configure it appropriately after plotting (title, ticks, etc.)
         """
         self.ax.set_title(self.fmdat["ax_title"])
+        # TODO: consider moving xlim & xtick metadata into figures.yaml
         self.ax.set_xlim(xmin=0.0, xmax=self.sp.vec_size-1)
         self.ax.set_xticks(self.sp.xtick_locs)
         self.ax.set_xticklabels(self.sp.xtick_labs, rotation="vertical")
@@ -297,6 +298,7 @@ class HistogramPlotter(TabledFigurePlotter):
         self._add_table()
 
 
+# TODO: just use _BasePlotter for below??
 class TimeRollingPlotter(_BasePlotter):
 
     def __init__(self, settings, plot_label, plot_combo_id,
@@ -336,10 +338,10 @@ def plot_ensemble(settings, results):
     for combo_id in settings.plot.plot_combos:
         ptid = combo_id[0].value
         fig_meta = figs_meta_map[ptid]
-        Plot_cls = eval(fig_meta['Plot_cls'])
+        Plotter = eval(fig_meta['pltr_cls'])
         for label in settings.data.grouping_labs:
-            plotter = Plot_cls(settings, label, combo_id,
-                               fig_meta, plot_data_calc)
+            plotter = Plotter(settings, label, combo_id,
+                              fig_meta, plot_data_calc)
             plotter.plot()
             if ptid == 'bx':  # only need 1 boxplot per tail not per grouping
                 break

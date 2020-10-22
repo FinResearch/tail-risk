@@ -1,11 +1,8 @@
-#  Figure Information Templates (FIT) Defined Below
+#  Figures Metadata Templates
 
-
-
-# # Tabled Figures FIT    # TODO: consider implement template inheritance for common fields (ax_table pos, etc.)
 
 αf:   # α-fitting
-  Plot_cls: 'TabledFigurePlotter'
+  pltr_cls: 'TabledFigurePlotter'
   fig_name: 'Alpha fitting - ${label}'
   stats2plt: ['alpha']
   ax_title: |-
@@ -29,7 +26,7 @@
     bbox: [0.0, -0.26, 1.0, 0.10]
 
 hg:   # histogram of tail-α
-  Plot_cls: 'HistogramPlotter'
+  pltr_cls: 'HistogramPlotter'
   fig_name: "Histogram α's - ${tsgn} tail - ${label}"
   stats2plt: ['alpha']
   extra_line:    # NOTE: vectors expr encoded as str; use eval() to get value
@@ -56,11 +53,8 @@ hg:   # histogram of tail-α
     loc: 'bottom'
     bbox: [0.0, -0.26, 1.0, 0.10]
 
-
-# #  Time Rolling FIT
-
 ci:  # time rolling confidence interval
-  Plot_cls: 'TimeRollingPlotter'
+  pltr_cls: 'TimeRollingPlotter'
   fig_name: 'Time rolling CI - ${tdir} - ${label}'
   stats2plt: ['alpha', 'upper', 'lower']
   extra_lines:
@@ -79,7 +73,7 @@ ci:  # time rolling confidence interval
     borderaxespad: 0
 
 as:  # time rolling absolute size
-  Plot_cls: 'TimeRollingPlotter'
+  pltr_cls: 'TimeRollingPlotter'
   fig_name: 'Time rolling absolute size - ${tdir} - ${label}'
   stats2plt: ['abs_len']
   ax_title: |-
@@ -88,7 +82,7 @@ as:  # time rolling absolute size
   ax_ylabel: 'Tail length'
 
 rs:  # time rolling relative size
-  Plot_cls: 'TimeRollingPlotter'
+  pltr_cls: 'TimeRollingPlotter'
   fig_name: 'Time rolling relative size - ${tdir} - ${label}'
   stats2plt: ['rel_len']
   ax_title: |-
@@ -97,7 +91,7 @@ rs:  # time rolling relative size
   ax_ylabel: 'Relative tail length'
 
 ks:  # time rolling KS-test
-  Plot_cls: 'TimeRollingPlotter'
+  pltr_cls: 'TimeRollingPlotter'
   fig_name: 'Time rolling KS test - ${tdir} - ${label}'
   stats2plt: ['ks_pv']
   ax_title: |-
@@ -105,11 +99,8 @@ ks:  # time rolling KS-test
     Time period: ${timeperiod}, input: ${rtrn_label}
   ax_ylabel: 'p-value'
 
-
-# # Matrix FIT
-
 bx:  # boxplot of α-tails
-  Plot_cls: 'BoxPlotter'
+  pltr_cls: 'BoxPlotter'
   fig_name: 'Boxplot - ${tsgn} tails'
   stats2plt: 'alpha'  # NOTE: this will need to be a matrix
   ax_title: |-
