@@ -1,4 +1,4 @@
-# TODO: need to add boxplot, plotter using powerlaw's Fit API, barplot
+# TODO: need to add plotter using powerlaw's Fit API, barplot
 
 from abc import ABC  # TODO: need to label @abstracmethod to work as ABC
 from itertools import product
@@ -167,7 +167,7 @@ class _BasePlotter(ABC):
         for tail in self.tail_tup:
             for st in self.fmdat['stats2plt']:
                 vec_id = (self.plt_lab, tail, st)
-                self.v2p_map[vec_id] = (self.pcalc.get_vec(vec_id))
+                self.v2p_map[vec_id] = self.pcalc.get_vec(vec_id)
 
     def _plot_vectors(self):
         """Given the data to plot, plot them onto the passed axes
@@ -288,6 +288,7 @@ class HistogramPlotter(TabledFigurePlotter):
         self._plot_extra_hist_line()
 
     def _config_axes(self):
+        self.ax.set_title(self.fmdat["ax_title"])
         self.ax.set_xlim(xmin=self.vec_min, xmax=self.vec_max)
         self.ax.set_ylabel(self.fmdat['ax_ylabel'])
         self.ax.set_ylim(ymin=0, ymax=self.hist_max)
@@ -304,6 +305,30 @@ class TimeRollingPlotter(_BasePlotter):
                          figure_metadata, plot_data_calc)
 
 
+class BoxPlotter(_BasePlotter):
+
+    def _gset_vec2plt(self):
+        tail = self.tail_tup[0]  # NOTE: necessarily has 'single' multiplicity
+        stat = self.fmdat['stats2plt']
+        self.stat_mat = []
+        for label in self.sd.grouping_labs:
+            vec_id = (self.plt_lab, tail, stat)
+            self.stat_mat.append(self.pcalc.get_vec(vec_id))
+
+    def _plot_vectors(self):
+        self.ax.boxplot(self.stat_mat)
+
+    def _config_axes(self):
+        self.ax.set_title(self.fmdat["ax_title"])
+        n_labs = len(self.sd.grouping_labs)
+        self.ax.set_xlim(xmin=0.5, xmax=n_labs+0.5)
+        self.ax.set_xticks(range(1, n_labs+1))
+        self.ax.set_xticklabels(self.sd.grouping_labs)
+        self.ax.set_ylabel(self.fmdat["ax_ylabel"])
+        self.ax.legend()
+        self.ax.grid()
+
+
 def plot_ensemble(settings, results):
     with open('config/plotting/figures.yaml') as cfg:
         figs_meta_map = yaml.load(cfg, Loader=yaml.SafeLoader)
@@ -316,5 +341,5 @@ def plot_ensemble(settings, results):
             plotter = Plot_cls(settings, label, combo_id,
                                fig_meta, plot_data_calc)
             plotter.plot()
-            if ptid == 'bx':
+            if ptid == 'bx':  # only need 1 boxplot per tail not per grouping
                 break

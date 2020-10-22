@@ -109,10 +109,10 @@ ks:  # time rolling KS-test
 # # Matrix FIT
 
 bx:  # boxplot of α-tails
-  # Plot_cls: 'TimeRollingPlotter'
+  Plot_cls: 'BoxPlotter'
   fig_name: 'Boxplot - ${tsgn} tails'
-  #  'stats2plt': ['α_vec']  # NOTE: this is a matrix
+  stats2plt: 'alpha'  # NOTE: this will need to be a matrix
   ax_title: |-
     Boxplot representation of $\alpha$-${tdir} exponents
-    Time period: ${timeperiod}
+    Time period: ${timeperiod}, input: ${rtrn_label}
   ax_ylabel: '$\alpha$'
