@@ -6,7 +6,7 @@
 
 αf:   # α-fitting
   Plot_cls: 'TabledFigurePlotter'
-  fig_name: 'Alpha Fitting for ${label}'
+  fig_name: 'Alpha fitting - ${label}'
   stats2plt: ['alpha']
   ax_title: |-
     Time evolution of $\alpha$ for ${label}
@@ -29,7 +29,7 @@
 
 hg:   # histogram of tail-α
   Plot_cls: 'HistogramPlotter'
-  fig_name: "Histogram of ${tsgn} tail α's for ${label}"
+  fig_name: "Histogram α's - ${tsgn} tail - ${label}"
   stats2plt: ['alpha']
   _extra_lines:    # NOTE: vectors expr encoded as str; use eval() to get value
     vectors:
@@ -60,7 +60,7 @@ hg:   # histogram of tail-α
 
 ci:  # time rolling confidence interval
   Plot_cls: 'TimeRollingPlotter'
-  fig_name: 'Time rolling CI for ${tdir} for ${label}'
+  fig_name: 'Time rolling CI - ${tdir} - ${label}'
   stats2plt: ['alpha', 'upper', 'lower']
   extra_lines:
     vectors:  # NOTE: vectors encoded as str expr; use eval() to get value
@@ -79,7 +79,7 @@ ci:  # time rolling confidence interval
 
 as:  # time rolling absolute size
   Plot_cls: 'TimeRollingPlotter'
-  fig_name: 'Time rolling size for ${tdir} for ${label}'
+  fig_name: 'Time rolling absolute size - ${tdir} - ${label}'
   stats2plt: ['abs_len']
   ax_title: |-
     Rolling absolute tail length for ${label}
@@ -88,7 +88,7 @@ as:  # time rolling absolute size
 
 rs:  # time rolling relative size
   Plot_cls: 'TimeRollingPlotter'
-  fig_name: 'Time rolling relative size for ${tdir} for ${label}'
+  fig_name: 'Time rolling relative size - ${tdir} - ${label}'
   stats2plt: ['rel_len']
   ax_title: |-
     Rolling relative tail length for ${label}
@@ -97,7 +97,7 @@ rs:  # time rolling relative size
 
 ks:  # time rolling KS-test
   Plot_cls: 'TimeRollingPlotter'
-  fig_name: 'Time KS test for ${tdir} for ${label}'
+  fig_name: 'Time rolling KS test - ${tdir} - ${label}'
   stats2plt: ['ks_pv']
   ax_title: |-
     Rolling p-value via Clauset method (KS test) for ${label}
@@ -108,8 +108,8 @@ ks:  # time rolling KS-test
 # # Matrix FIT
 
 bx:  # boxplot of α-tails
-  Plot_cls: 'TimeRollingPlotter'
-  fig_name: '${tsgn} Power Law Boxplot'
+  # Plot_cls: 'TimeRollingPlotter'
+  fig_name: 'Boxplot - ${tsgn} tails'
   #  'stats2plt': ['α_vec']  # NOTE: this is a matrix
   ax_title: |-
     Boxplot representation of $\alpha$-${tdir} exponents
