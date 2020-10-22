@@ -95,8 +95,6 @@ class _BasePlotter(ABC):
         :param: plot_data_calc: PlotDataCalculator object instance
         """
         self.sd = settings.data
-        #  self.sr = settings.rtrn
-        #  self.sa = settings.anal
         self.sp = settings.plot
         self.plt_lab = plot_label
         self.plt_typ, self.tail_tup = plot_combo_id
@@ -131,18 +129,7 @@ class _BasePlotter(ABC):
         fmdat_complete = fmdat_template.safe_substitute(temp_sub_map)
         return json.loads(fmdat_complete)
 
-    # # methods for the actual plotting of the figure(s)
-    # NOTE: plot phases partitioned into 3 for easy overwriting by subclasses
-
-    def _init_figure(self):
-        """Initialize a unique Matplotlib Figure instance used
-        for the actual plotting, then sets it onto self
-        """
-        # TODO: use fig, ax = plt.subplots() idiom to Initialize?
-        fig = plt.figure(self.fmdat["fig_name"])
-        axes_pos = (0.1, 0.20, 0.83, 0.70)
-        ax = fig.add_axes(axes_pos)
-        self.ax = ax
+    # # methods for the actual plotting of the figures
 
     @staticmethod
     def _set_line_style(vec_id):
@@ -162,6 +149,23 @@ class _BasePlotter(ABC):
             color = "blue"
         return {'label': label, 'color': color}
 
+    def _init_figure(self):
+        """Initialize a unique Matplotlib Figure instance used
+        for the actual plotting, then sets it onto self
+        """
+        # TODO: use fig, ax = plt.subplots() idiom to Initialize?
+        fig = plt.figure(self.fmdat["fig_name"])
+        axes_pos = (0.1, 0.20, 0.83, 0.70)
+        ax = fig.add_axes(axes_pos)
+        self.ax = ax
+
+    def _gset_vec2plt(self):
+        self.v2p_map = {}
+        for tail in self.tail_tup:
+            for st in self.fmdat['stats2plt']:
+                vec_id = (self.plt_lab, tail, st)
+                self.v2p_map[vec_id] = (self.pcalc.get_vec(vec_id))
+
     def _plot_vectors(self):
         """Given the data to plot, plot them onto the passed axes
         """
@@ -171,11 +175,8 @@ class _BasePlotter(ABC):
             extra_vecs = [eval(vec_str) for vec_str in extra_lines['vectors']]
             for vec in extra_vecs:
                 self.ax.plot(vec, **extra_lines['line_style'])
-        for tail in self.tail_tup:
-            for st in self.fmdat['stats2plt']:
-                vec_id = (self.plt_lab, tail, st)
-                self.ax.plot(self.pcalc.get_vec(vec_id),
-                             **self._set_line_style(vec_id))
+        for vid, vec in self.v2p_map.items():
+            self.ax.plot(vec, **self._set_line_style(vid))
 
     def _config_axes(self):
         """Configure it appropriately after plotting (title, ticks, etc.)
@@ -209,6 +210,7 @@ class _BasePlotter(ABC):
         Just initialize a plotter object, and call plotter.plot()
         """
         self._init_figure()
+        self._gset_vec2plt()
         self._plot_vectors()
         self._config_axes()
         self._present_figure()
@@ -216,26 +218,19 @@ class _BasePlotter(ABC):
 
 class TabledFigurePlotter(_BasePlotter):
 
-    #  def __init__(self, settings, plot_label, plot_combo_id,
-    #               figure_metadata, plot_data_calc):
-    #      super().__init__(settings, plot_label, plot_combo_id,
-    #                       figure_metadata, plot_data_calc)
-
     def __gen_table_text(self):
-
+        self.table_info = self.fmdat['ax_table']
         # text generating functions; use dict.pop to remove non-table-kwarg
-        tgfuncs = eval(self.table_info.pop("_cellText_gens"))
-
+        tgen_funcs = [eval(fn_str) for fn_str in
+                      self.table_info.pop("_cellText_gens")]
         extra_cell = self.table_info.pop("_extra_cell", ())
-
         cellText = []
-        for i, vn in enumerate(self.curr_vnames2plot):
-            row_cells = [np.round(fn(self.data[vn]), 4) for fn in tgfuncs]
+        for i, vec in enumerate(self.v2p_map.values()):
+            row_cells = [np.round(fn(vec), 4) for fn in tgen_funcs]
             if extra_cell:
                 cell_val, pos = extra_cell[i]
                 row_cells.insert(pos, cell_val)
             cellText.append(row_cells)
-
         return cellText
 
     def _add_table(self):
@@ -246,16 +241,6 @@ class TabledFigurePlotter(_BasePlotter):
         table.auto_set_font_size(False)
         table.set_fontsize(10)
         table.scale(0.5, 0.5)
-
-    #  def _plot_vectors(self):
-    #      """Given the data to plot, plot them onto the passed axes
-    #      """
-    #
-    #      if self.use_hist:
-    #          self.__histogram()
-    #          self.__plot_extra_hist_line()
-    #      else:
-    #          super()._plot_vectors()
 
     def _config_axes(self):
         super()._config_axes()
@@ -336,16 +321,11 @@ class TimeRollingPlotter(_BasePlotter):
 def plot_ensemble(settings, results):
     with open('config/plotting/figures.yaml') as cfg:
         figs_meta_map = yaml.load(cfg, Loader=yaml.SafeLoader)
-
     plot_data_calc = PlotDataCalculator(settings, results)
-
     for combo_id in settings.plot.plot_combos:
         ptid = combo_id[0].value
         fig_meta = figs_meta_map[ptid]
-
-        #  Plot_cls = eval(fig_meta['Plot_cls'])
-        Plot_cls = TimeRollingPlotter
-
+        Plot_cls = eval(fig_meta['Plot_cls'])
         for label in settings.data.grouping_labs:
             plotter = Plot_cls(settings, label, combo_id,
                                fig_meta, plot_data_calc)

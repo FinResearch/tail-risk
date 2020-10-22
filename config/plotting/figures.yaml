@@ -13,6 +13,7 @@
     Time period: ${timeperiod}
   ax_ylabel: '$\alpha$'
   ax_table:
+    # TODO: many of these tail vec stats are included in anal results now, use directly?
     _cellText_gens: ['np.mean', 'np.median', 'np.std', 'np.min', 'np.max']
     _extra_cell: [['Right', 0], ['Left', 0]]  # int element repr insertion posn of extra cell
     # FIXME: be mindful of _extra_cell above when multiplicity is single
