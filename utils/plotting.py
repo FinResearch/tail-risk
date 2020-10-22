@@ -135,10 +135,8 @@ class _BasePlotter(ABC):
     # NOTE: plot phases partitioned into 3 for easy overwriting by subclasses
 
     def _init_figure(self):
-        """Initialize a unique Matplotlib Figure instance,
-        to set it up for the actual plotting, then returns it
-
-        TODO: it should not care about the data being plotted nor the opts
+        """Initialize a unique Matplotlib Figure instance used
+        for the actual plotting, then sets it onto self
         """
         # TODO: use fig, ax = plt.subplots() idiom to Initialize?
         fig = plt.figure(self.fmdat["fig_name"])
@@ -148,7 +146,7 @@ class _BasePlotter(ABC):
 
     @staticmethod
     def _set_line_style(vec_id):
-        """Helper for setting the line style of the line plot
+        """Helper func for setting the line style of the line plot
         :param: vec_id: unique 3-tuple that IDs any given vector
         """
         _, tail, stat = vec_id
@@ -167,14 +165,12 @@ class _BasePlotter(ABC):
     def _plot_vectors(self):
         """Given the data to plot, plot them onto the passed axes
         """
-
         # TODO: factor this into own function to keep DRY for histogram
         # TODO: ensure all vecs are 2-tups for x-y plot?? (ex. hist)
         if extra_lines := self.fmdat.get("extra_lines", {}):
             extra_vecs = [eval(vec_str) for vec_str in extra_lines['vectors']]
             for vec in extra_vecs:
                 self.ax.plot(vec, **extra_lines['line_style'])
-
         for tail in self.tail_tup:
             for st in self.fmdat['stats2plt']:
                 vec_id = (self.plt_lab, tail, st)
@@ -182,27 +178,20 @@ class _BasePlotter(ABC):
                              **self._set_line_style(vec_id))
 
     def _config_axes(self):
-        """
-        configure it appropriately after plotting (title, ticks, etc.)
+        """Configure it appropriately after plotting (title, ticks, etc.)
         """
         self.ax.set_title(self.fmdat["ax_title"])
         self.ax.set_xlim(xmin=0.0, xmax=self.sp.vec_size-1)
-
         self.ax.set_xticks(self.sp.xtick_locs)
         self.ax.set_xticklabels(self.sp.xtick_labs, rotation="vertical")
         # TODO: take only DD-MM for xtick labels OR something else?
-
         self.ax.set_ylabel(self.fmdat["ax_ylabel"])
-
         self.ax.legend(**self.fmdat.get("ax_legend", {}))
         self.ax.grid()
 
-    # NOTE: does this function need to be state aware?
-    def _present_figure(self):  # , fig):  # , show_plot=False):
-        """Show or save the plot(s) either save individual
-        plots with fig.save, or show the plot(s) using plt.show()
+    def _present_figure(self):
+        """Shows and/or saves the generated plot
         """
-        # TODO: support interative modes
 
         if self.sp.show_plots:
             plt.show()
