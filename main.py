@@ -19,7 +19,8 @@ if __name__ == "__main__":
     #  print(settings)
     #
     results = analyze_tail(settings)
-    plot_ensemble(settings, results)
+    if settings.ctrl.plot_results:  # TODO: move check to Plotter class OR just do try/except??
+        plot_ensemble(settings, results)
 
 
 # TODO: apply black styling to all modules (i.e. ' --> ")

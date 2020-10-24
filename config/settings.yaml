@@ -11,6 +11,7 @@ ctrl:
   - save_options
   - partial_save_data
   - nproc
+  - plot_results
 
 ## data settings: input data and useful metadata
 data:
@@ -56,7 +57,6 @@ anal:
 
 ## plotting settings: needed specifically and only for plotting
 plot:
-  - plot_results
   - show_plots
   - save_plots
   - title_timeperiod
