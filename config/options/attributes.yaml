@@ -278,16 +278,6 @@ compare_distros:
 
 # TODO: hide control & plotting options from --help unless specified by some subcommand/flag (to reduce clutter)
 
-nproc:
-  param_decls:
-    - '-N'
-    - '--nproc'
-  type: 'int'
-  # default: 1  # NOTE: set 'default' here to override current behavior of using os.cpu_count()
-  callback: 'gset_nproc_default'
-  metavar: '<ℤ⁺>'
-  help: "# of concurrent processes to use"
-
 plot_results:   # TODO: should be off for static approach by default
   param_decls:
     - '--plot/--no-plot'
@@ -311,3 +301,13 @@ save_plots:
   is_flag: true
   default: false
   help: ''
+
+nproc:
+  param_decls:
+    - '-N'
+    - '--nproc'
+  type: 'int'
+  # default: 1  # NOTE: set 'default' here to override current behavior of using os.cpu_count()
+  callback: 'gset_nproc_default'
+  metavar: '<ℤ⁺>'
+  help: "# of concurrent processes to use"

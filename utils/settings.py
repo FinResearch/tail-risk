@@ -433,6 +433,7 @@ class Settings:
         self._subsettings = list(self._settings_config.keys())
         if not self.plot_results:
             self._subsettings.remove('plot')
+            self.show_plots, self.save_plots = (None, None)
 
     def _validate_subsetting(self, subsett):
         assert subsett in self._subsettings,\
@@ -447,11 +448,17 @@ class Settings:
 
     # writes the settings to a JSON file to aid in disambiguation
     def _write_settings_json(self):
+        extras = {'database': self.full_dbdf.columns.name,
+                  'lookback': self._lookback,
+                  'analysis_freq': self._frq,
+                  'tails_to_analyze': [t.name for t in self.tails_to_anal]}
+        # TODO: also write xmin_quantity: manual val, %, s.d., file name
         with open('config/settings.json') as fpr:
             settings = json.load(fpr)
         self_dict = vars(self)
         settings.update((k, self_dict[k]) for k in
                         settings.keys() & self_dict.keys())
+        settings.update(extras)
         with open(f'{self.outputs_dirname}/settings.json', 'w') as fpw:
             json.dump(settings, fpw, indent=4)
 
