@@ -123,7 +123,7 @@ class _BasePlotter(ABC):
         """
         """
         self._gset_tail_metadata()
-        fig_sub_map = {"vec_size": self.sp.vec_size,
+        fig_sub_map = {"vec_size": self.sp.plot_vec_size,
                        "conf_lvl": self.sp.confidence_level,
                        "timeperiod": self.sp.title_timeperiod,
                        "rtrn_label": self.sp.returns_label,
@@ -186,7 +186,7 @@ class _BasePlotter(ABC):
         """
         self.ax.set_title(self.fmdat["ax_title"])
         # TODO: consider moving xlim & xtick metadata into figures.yaml
-        self.ax.set_xlim(xmin=0.0, xmax=self.sp.vec_size-1)
+        self.ax.set_xlim(xmin=0.0, xmax=self.sp.plot_vec_size-1)
         self.ax.set_xticks(self.sp.xtick_locs)
         self.ax.set_xticklabels(self.sp.xtick_labs, rotation="vertical")
         # TODO: take only DD-MM for xtick labels OR something else?
@@ -265,7 +265,7 @@ class HistogramPlotter(TabledFigurePlotter):
             self._gset_vec_stats(vec)
             IQR = npp(vec, 75) - npp(vec, 25)
             # TODO: ASK why use: h = 2*IQR/cuberoot(vec_size)
-            h = 2 * IQR * np.power(self.sp.vec_size, -1/3)
+            h = 2 * IQR * np.power(self.sp.plot_vec_size, -1/3)
             n_bins = int((self.vec_max - self.vec_min)/h)
             hist_vals, bins, patches = self.ax.hist(vec, n_bins, color="red")
             # FIXME: if multiple vecs in histogram, then hist_max below ovwrtn

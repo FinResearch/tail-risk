@@ -25,8 +25,7 @@
   "plot_results": "",
   "show_plots": "",
   "save_plots": "",
-  "title_timeperiod": "",
-  "vec_size": "",
+  "plot_vec_size": "",
   "returns_label": "",
   "confidence_level": "",
   "alpha_quantile": ""

@@ -238,7 +238,7 @@ class Settings:
 
     def _gset_plot_settings(self):
         self.title_timeperiod = f"{self.date_i} — {self.date_f}"
-        self.vec_size = len(self.anal_dates) if self.use_dynamic else None
+        self.plot_vec_size = len(self.anal_dates) if self.use_dynamic else None
         self.xtick_locs, self.xtick_labs = self.__get_plot_xticks_info()
         self.returns_label = self.__get_returns_label()
         self.alpha_quantile = self.__calc_alpha_quantile()

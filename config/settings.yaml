@@ -59,7 +59,7 @@ plot:
   - show_plots
   - save_plots
   - title_timeperiod
-  - vec_size
+  - plot_vec_size
   - xtick_locs
   - xtick_labs
   - returns_label
