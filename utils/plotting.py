@@ -201,9 +201,8 @@ class _BasePlotter(ABC):
             fig_id_str = (f"{self.plt_typ.value}__"
                           f"{self.tdir.replace(' ', '-')}__"
                           f"{self.dat_lab}")
-            fig_name = f'{self.sd.outputs_dirname}/{fig_id_str}.png'
-            plt.savefig(fig_name)
-
+            fig_fname = f'{self.sd.outputs_dirname}/{fig_id_str}.png'
+            plt.savefig(fig_fname)
         if self.sp.show_plots:
             plt.show()
 

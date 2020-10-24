@@ -219,14 +219,18 @@ class Settings:
         self.tstats_collabs = tstat + loglh if self.compare_distros else tstat
 
     def _gset_output_filename(self):
-        input_fname = self.full_dbdf.columns.name
-        mode = (f'group-by-{self.partition}' if self.analyze_group else
-                'individual')
-        lb = '' if self._lookback is None else f'-{self._lookback}-lookback'
-        self.output_fname = (f"tail-stats_{input_fname}_{mode}_"
-                             f"{self.approach}{lb}.xlsx")
         self.outputs_dirname = f'outputs_{time.strftime("%Y-%m-%d_%H.%M")}'
-        Path(self.outputs_dirname).mkdir()
+        try:
+            Path(self.outputs_dirname).mkdir()
+        except FileExistsError:
+            action = input((f'Directory "{self.outputs_dirname}" exists. '
+                            'Overwrite contents? [y/N] '))
+            if action in ('y', 'Y', 'yes', 'Yes'):
+                Path(self.outputs_dirname).mkdir(exist_ok=True)
+            else:
+                import sys
+                print('Analysis aborted!')
+                sys.exit()
 
     # # methods relevant to settings needed by plotter # #
 

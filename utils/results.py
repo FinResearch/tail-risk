@@ -73,10 +73,10 @@ class Results:
 
     def _write_static(self, filetype='xlsx'):
         sheet_name = f'{self.sd.date_i} -> {self.sd.date_f}'.replace('/', '-')
-        self.df.to_excel(self.sd.output_fname, sheet_name=sheet_name)
+        self.df.to_excel(self.res_fname, sheet_name=sheet_name)
 
     def _write_dynamic(self, filetype='xlsx'):
-        with pd.ExcelWriter(self.sd.output_fname) as writer:
+        with pd.ExcelWriter(self.res_fname) as writer:
             for grp in self.sd.grouping_labs:
                 self.df[grp].to_excel(writer, sheet_name=grp)
             if isinstance(self.sd.clauset_xmins_df, pd.DataFrame):
@@ -85,4 +85,5 @@ class Results:
 
     def write_df_to_file(self, filetype='xlsx'):
         self.prettify_df()
+        self.res_fname = f'{self.sd.outputs_dirname}/results.xlsx'
         self._write_dynamic() if self.sa.use_dynamic else self._write_static()
