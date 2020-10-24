@@ -85,18 +85,18 @@ class _BasePlotter(ABC):
     """
     """
 
-    def __init__(self, settings, plot_label, plot_combo_id,
+    def __init__(self, settings, data_label, plot_combo_id,
                  figure_metadata, plot_data_calc):
         """
         :param: settings: SimpleNamespace object containing user-input options
-        :param: plot_label: string; ticker or group ID
+        :param: data_label: string; ticker or group ID
         :param: plot_combo_id: tuple; ex. (PlotType.ALPHA_FIT, (Tail.right,))
         :param: figure_metadata: figure metadata dict for a given plot type
         :param: plot_data_calc: PlotDataCalculator object instance
         """
         self.sd = settings.data
         self.sp = settings.plot
-        self.plt_lab = plot_label
+        self.dat_lab = data_label
         self.plt_typ, self.tail_tup = plot_combo_id
         # TODO: import PlotType enum class to remove redundant assignment below
         self.plt_id = self.plt_typ.value
@@ -127,7 +127,7 @@ class _BasePlotter(ABC):
                        "conf_lvl": self.sp.confidence_level,
                        "timeperiod": self.sp.title_timeperiod,
                        "rtrn_label": self.sp.returns_label,
-                       "label": f'{self.sd.grouping_type}: {self.plt_lab}',
+                       "label": f'{self.sd.grouping_type}: {self.dat_lab}',
                        "tdir": self.tdir,
                        "tsgn": self.tsgn}
         return self._substitute_json_template_(fig_metdat_temp, fig_sub_map)
@@ -166,7 +166,7 @@ class _BasePlotter(ABC):
         self.v2p_map = {}
         for tail in self.tail_tup:
             for st in self.fmdat['stats2plt']:
-                vec_id = (self.plt_lab, tail, st)
+                vec_id = (self.dat_lab, tail, st)
                 self.v2p_map[vec_id] = self.pcalc.get_vec(vec_id)
 
     def _plot_vectors(self):
@@ -197,15 +197,15 @@ class _BasePlotter(ABC):
     def _present_figure(self):
         """Shows and/or saves the generated plot
         """
+        if self.sp.save_plots:
+            fig_id_str = (f"{self.plt_typ.value}__"
+                          f"{self.tdir.replace(' ', '-')}__"
+                          f"{self.dat_lab}")
+            fig_name = f'{self.sd.outputs_dirname}/{fig_id_str}.png'
+            plt.savefig(fig_name)
 
         if self.sp.show_plots:
             plt.show()
-
-        if self.sp.save_plots:
-            pass
-        else:
-            # TODO: implement plot saving functionality here
-            pass
 
     # TODO: add *methods parameters to be optionally called?
     def plot(self):
@@ -301,9 +301,9 @@ class HistogramPlotter(TabledFigurePlotter):
 # TODO: just use _BasePlotter for below??
 class TimeRollingPlotter(_BasePlotter):
 
-    def __init__(self, settings, plot_label, plot_combo_id,
+    def __init__(self, settings, data_label, plot_combo_id,
                  figure_metadata, plot_data_calc):
-        super().__init__(settings, plot_label, plot_combo_id,
+        super().__init__(settings, data_label, plot_combo_id,
                          figure_metadata, plot_data_calc)
 
 
@@ -314,7 +314,7 @@ class BoxPlotter(_BasePlotter):
         stat = self.fmdat['stats2plt']
         self.stat_mat = []
         for label in self.sd.grouping_labs:
-            vec_id = (self.plt_lab, tail, stat)
+            vec_id = (self.dat_lab, tail, stat)
             self.stat_mat.append(self.pcalc.get_vec(vec_id))
 
     def _plot_vectors(self):

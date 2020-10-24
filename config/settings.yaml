@@ -23,6 +23,7 @@ data:
   - stats_colname
   - rstats_collabs  # rstats: returns statistics
   - tstats_collabs  # tstats: tail statistics
+  - outputs_dirname # directory to store the analysis results and plots (if any)
   - output_fname
   - clauset_xmins_df  # only generated when Clauset xmins calculated from scratch w/ 'average' xmin rule
 

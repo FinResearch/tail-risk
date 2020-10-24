@@ -1,5 +1,7 @@
 import yaml
 import pandas as pd
+import time
+from pathlib import Path
 
 import enum
 from types import SimpleNamespace
@@ -223,6 +225,8 @@ class Settings:
         lb = '' if self._lookback is None else f'-{self._lookback}-lookback'
         self.output_fname = (f"tail-stats_{input_fname}_{mode}_"
                              f"{self.approach}{lb}.xlsx")
+        self.outputs_dirname = f'outputs_{time.strftime("%Y-%m-%d_%H.%M")}'
+        Path(self.outputs_dirname).mkdir()
 
     # # methods relevant to settings needed by plotter # #
 
