@@ -2,6 +2,7 @@ import yaml
 import pandas as pd
 import time
 from pathlib import Path
+import json
 
 import enum
 from types import SimpleNamespace
@@ -36,6 +37,7 @@ class Settings:
         self._load_set_settings_config()
         self.settings = SimpleNamespace(**{ss: self._make_settings_object(ss)
                                            for ss in self._subsettings})
+        self._write_settings_json()
 
     # TODO: test & improve (also maybe add __repr__?)
     def __str__(self, subsett=None):  # TODO: make part of --verbose logging??
@@ -442,6 +444,16 @@ class Settings:
         for sett in self._settings_config[subsett]:
             sett_map[sett] = getattr(self, sett, None)
         return SimpleNamespace(**sett_map)
+
+    # writes the settings to a JSON file to aid in disambiguation
+    def _write_settings_json(self):
+        with open('config/settings.json') as fpr:
+            settings = json.load(fpr)
+        self_dict = vars(self)
+        settings.update((k, self_dict[k]) for k in
+                        settings.keys() & self_dict.keys())
+        with open(f'{self.outputs_dirname}/settings.json', 'w') as fpw:
+            json.dump(settings, fpw, indent=4)
 
 
 class GroupingName(str):  # TODO: add allowed values constraint when have time

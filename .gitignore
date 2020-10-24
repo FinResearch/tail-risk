@@ -1,6 +1,5 @@
 __pycache__
 .directory
-*.json
 tail-stats_*xlsx
 _tail-stats_*xlsx
 .~*xlsx
