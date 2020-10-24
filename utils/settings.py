@@ -451,7 +451,8 @@ class Settings:
         extras = {'database': self.full_dbdf.columns.name,
                   'lookback': self._lookback,
                   'analysis_freq': self._frq,
-                  'tails_to_analyze': [t.name for t in self.tails_to_anal]}
+                  'tails_to_analyze': [t.name for t in self.tails_to_anal],
+                  'num_processors': self.nproc}
         # TODO: also write xmin_quantity: manual val, %, s.d., file name
         with open('config/settings.json') as fpr:
             settings = json.load(fpr)

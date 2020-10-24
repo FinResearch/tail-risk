@@ -31,6 +31,6 @@
   "returns_label": null,
   "confidence_level": null,
   "alpha_quantile": null,
-  "nproc": null,
+  "num_processors": null,
   "outputs_dirname": null
 }
