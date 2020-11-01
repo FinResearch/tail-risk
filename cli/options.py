@@ -425,7 +425,9 @@ def parse_xmin_args(ctx, param, xmin_args):
     if bool(y):  # this can only possibly be the average method
         assert grp_dyn,\
             (f"{xmin_args} passed to '--xmin', thus method 'average' inferred;"
-             "\nAVERAGE only applicable w/ DYNAMIC approaches & in GROUP mode")
+             "\nAVERAGE only applicable w/ DYNAMIC approaches & in GROUP mode"
+             f"\nYou choices - APPROACH: '{ctx._approach}', "
+             f"GROUP analysis: {ctx._analyze_group}")
         if len(y) == 2:  # this implies len(xmin_args) == 3
             a, b, c = xmin_args
             if all(s.isdecimal() for s in (a, b)):

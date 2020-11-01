@@ -46,6 +46,8 @@ class GUI:
 
                 if action == 'init_on':
                     create_gui = ev_act
+                    if not create_gui:
+                        break
                 elif action.endswith('set_by'):
                     val_attr = action.split()[0]
                     assert val_attr in attrs
