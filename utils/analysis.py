@@ -77,11 +77,11 @@ class _Analyzer(ABC):
         rule, qnty = self.sa.xmin_rule, self.sa.xmin_qnty
         if rule in {"clauset", "manual"}:
             xmin = qnty  # ie. {None, user-input-ℝ} respectively
-        elif rule in {"percent", "std-dev"}:
-            percent = (qnty if rule == "percent" else
-                       qnty * st.stdev(self.curr_returns_array))
-            xmin = np.percentile(self.curr_input_array, percent)
-            #  print(self.curr_iter_id, percent, xmin, file=sys.stderr)
+        elif rule == "percent":
+            xmin = np.percentile(self.curr_signed_returns, qnty)
+        elif rule == "std-dev":
+            r_arr = self.curr_signed_returns
+            xmin = st.fmean(r_arr) + qnty * st.stdev(r_arr)
         elif rule in {"file", "average"}:
             assert self.sa.use_dynamic,\
                 ("static approach does NOT currently support passing "
@@ -100,7 +100,7 @@ class _Analyzer(ABC):
             else:
                 pass  # numerical xmin data reaches this branch
             try:
-                xmin = np.percentile(self.curr_input_array, percent)
+                xmin = np.percentile(self.curr_signed_returns, percent)
             except NameError:
                 xmin = float(xmin)
         else:
@@ -108,7 +108,7 @@ class _Analyzer(ABC):
         return xmin
 
     def _fit_curr_data(self):
-        data = self.curr_input_array
+        data = self.curr_signed_returns
         data = data[np.nonzero(data)]  # only use non-zero elements to do Fit
         xmin = self.__get_xmin()
         self.curr_fit = Fit(data=data, xmin=xmin,
@@ -126,15 +126,15 @@ class _Analyzer(ABC):
     def __get_curr_tail_stats(self):
         alpha, xmin, sigma = (getattr(self.curr_fit.power_law, prop)
                               for prop in ('alpha', 'xmin', 'sigma'))
-        elm_in_fit = self.curr_input_array >= xmin
-        fitted_vec = self.curr_input_array[elm_in_fit]
+        elm_in_fit = self.curr_signed_returns >= xmin
+        fitted_vec = self.curr_signed_returns[elm_in_fit]
         xmax = max(fitted_vec)
         xmean = fitted_vec.mean()
         xstdv = fitted_vec.std()
         abs_len = len(fitted_vec)
         if self.sa.run_ks_test is True:
             # TODO: try compute ks_pv using MATLAB engine & module, and time
-            ks_pv, _ = plpva(self.curr_input_array, xmin, 'reps',
+            ks_pv, _ = plpva(self.curr_signed_returns, xmin, 'reps',
                              self.sa.ks_iter, 'silent')
         locs = locals()
         return {('tail-statistics', stat): locs.get(stat) for st_type, stat
@@ -264,7 +264,7 @@ class StaticAnalyzer(_Analyzer):
     def _set_curr_input_array(self):  # TODO: pass curr_iter_id as arg???
         lab, tail = self.curr_df_pos = self.curr_iter_id
         self.curr_returns_array = self.rtn.get_returns_by_iterId(lab)
-        self.curr_input_array = self.curr_returns_array * tail.value
+        self.curr_signed_returns = self.curr_returns_array * tail.value
 
 
 class DynamicAnalyzer(_Analyzer):
@@ -281,7 +281,7 @@ class DynamicAnalyzer(_Analyzer):
         sub, date, tail = self.curr_iter_id
         self.curr_df_pos = date, (sub, tail)
         self.curr_returns_array = self.rtn.get_returns_by_iterId((sub, date))
-        self.curr_input_array = self.curr_returns_array * tail.value
+        self.curr_signed_returns = self.curr_returns_array * tail.value
 
 
 # wrapper func: instantiate correct Analyzer type and run tail analysis
