@@ -175,9 +175,10 @@ norm_timings:
 anal_tails:
   metas:
     box_type: 'multchoicebox'
-    cli_str_comp: "'' if opt_val is None else ' '.join(f'--{tail}' for tail in opt_val)"
+    set_value_on_self: ['anal_tails', 'bool(opt_val)']
+    cli_str_comp: "'--right-skip --left-skip' if opt_val is None else ' '.join(f'--{tail}' for tail in opt_val)"
   attrs:
-    msg: 'Please specify which tail you want to plot in the alpha timeline'
+    msg: 'Please specify which tail you want to plot in the alpha timeline (select none to only analyze returns)'
     title: 'Select one or both tails'
     choices:
       - 'right'
@@ -189,6 +190,7 @@ anal_tails:
 alpha_signif:
   metas:
     box_type: 'enterbox'
+    creation_criteria: ['init_on: self.anal_tails']
     cli_str_comp: "f'--alpha={opt_val}'"
   attrs:
     msg: 'Please specify the significance of the confidence interval (1 - a) for the alpha parameter '
@@ -211,7 +213,9 @@ data_is_continuous:  # TODO: hide this option??
 xmin_rule:
   metas:
     box_type: 'choicebox'
-    creation_criteria: ['choices set_by: analyze_group']
+    creation_criteria:
+      - 'init_on: self.anal_tails'
+      - 'choices set_by: analyze_group'
     set_value_on_self: ['xmin_rule']
     cli_str_comp: "f\"--xmin {'clauset' if opt_val == 'clauset' else ''}\"" 
   attrs:
@@ -237,7 +241,7 @@ xmin_qnty:
   metas:
     box_type: 'enterbox'
     creation_criteria:
-      - "init_on: self.xmin_rule in {'manual', 'percent', 'std-dev'}"
+      - "init_on: getattr(self, 'xmin_rule', None) in {'manual', 'percent', 'std-dev'}"
       - "default set_by: {'percent':0, 'manual':1, 'std-dev':2}.get(self.xmin_rule)"
         # NOTE: do NOT add space b/w the k:v pairs in above dict, b/c that'll break the GUI creation parsing
     cli_str_comp: "opt_val"
@@ -252,7 +256,7 @@ xmin_qnty:
 xmin_avg_params:
   metas:
     box_type: 'multenterbox'
-    creation_criteria: ["init_on: self.xmin_rule == 'average'"]
+    creation_criteria: ["init_on: getattr(self, 'xmin_rule', None) == 'average'"]
     cli_str_comp: "' '.join(opt_val)"
   attrs:
     msg: "enter the parameters for calculating the rolling average"
@@ -267,7 +271,7 @@ xmin_avg_params:
 use_file_for_avg:
   metas:
     box_type: 'ynbox'
-    creation_criteria: ["init_on: self.xmin_rule == 'average'"]
+    creation_criteria: ["init_on: getattr(self, 'xmin_rule', None) == 'average'"]
     set_value_on_self: ['use_file_for_avg']
   attrs:
     msg: "get averaged xmins from data file?"
@@ -277,7 +281,7 @@ use_file_for_avg:
 xmin_file:
   metas:
     box_type: 'fileopenbox'
-    creation_criteria: ["init_on: self.xmin_rule == 'file' or getattr(self, 'use_file_for_avg', None)"]
+    creation_criteria: ["init_on: getattr(self, 'xmin_rule', None) == 'file' or getattr(self, 'use_file_for_avg', None)"]
     set_value_on_self: ['xmins_df', '_read_fname_to_df(opt_val)']
     cli_str_comp: "opt_val"
   attrs:
@@ -292,7 +296,9 @@ xmin_file:
 run_ks_test:
   metas:
     box_type: 'buttonbox'
-    creation_criteria: ['default_choice set_by: analyze_group']
+    creation_criteria:
+      - 'init_on: self.anal_tails'
+      - 'default_choice set_by: analyze_group'
     set_value_on_self: ['run_ks_test']
     cli_str_comp: "f'--ks-{opt_val}'"
   attrs:
@@ -309,7 +315,7 @@ ks_iter:
   metas:
     box_type: 'integerbox'
     creation_criteria:
-      - "init_on: self.run_ks_test == 'run'"
+      - "init_on: getattr(self, 'run_ks_test', None) == 'run'"
       - 'default set_by: analyze_group'
     cli_str_comp: "f'--ks-iter={opt_val}'"
   attrs:
@@ -324,7 +330,9 @@ ks_iter:
 compare_distros:
   metas:
     box_type: 'ynbox'
-    creation_criteria: ['default_choice set_by: analyze_group']
+    creation_criteria:
+      - 'init_on: self.anal_tails'
+      - 'default_choice set_by: analyze_group'
     cli_str_comp: "f\"--{'' if opt_val else 'no-'}compare\""
   attrs:
     msg: 'Compare fitted power law to other distribution types?'
@@ -348,6 +356,7 @@ nproc:
 plot_results:
   metas:
     box_type: 'ynbox'
+    creation_criteria: ['init_on: self.anal_tails']
     cli_str_comp: "f\"--{'' if opt_val else 'no-'}plot\""
   attrs:
     msg: 'Plot the analyzed data?'

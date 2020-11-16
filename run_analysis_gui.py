@@ -1,3 +1,6 @@
+import os
+import sys
+
 import cli
 from cli.gui import GUI
 
@@ -11,4 +14,8 @@ if __name__ == "__main__":
                                            standalone_mode=False)
 
     settings = Settings(user_inputs).settings
+
+    f = open(os.devnull, 'w')
+    sys.stderr = f
+
     analyze_tail(settings)

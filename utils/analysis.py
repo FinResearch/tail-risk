@@ -119,7 +119,7 @@ class _Analyzer(ABC):
                               for prop in ('alpha', 'xmin', 'sigma'))
         elm_in_fit = self.curr_signed_returns >= xmin
         fitted_vec = self.curr_signed_returns[elm_in_fit]
-        xmax = max(fitted_vec)
+        xmax = max(fitted_vec, default=np.nan)
         xmean = fitted_vec.mean()
         xstdv = fitted_vec.std()
         abs_len = len(fitted_vec)

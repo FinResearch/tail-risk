@@ -63,13 +63,24 @@ class Results:
                      if all(lab == '' for lab in lvl)]
         self.df.columns = self.df.columns.droplevel(lvls2drop)
 
+    def _drop_if_has_null_tail_cols(self):
+        # NOTE: currently only works for dynamic, b/c group col is checked
+        for grp, col, *_ in self.df:
+            try:
+                tval = col.value    # try to get tail value
+                if tval is np.nan:
+                    self.df.drop([(grp, col)], axis=1, inplace=True)
+                    break
+            except AttributeError:
+                pass
+
     def _translate_Tail_to_tname(self):
         #  tail_cols =
         pass
 
     def prettify_df(self):
         self._drop_empty_column_level()
-        # TODO: merge the 2x4 block containing label 'moments'
+        self._drop_if_has_null_tail_cols()
 
     def _write_static(self, filetype='xlsx'):
         sheet_name = f'{self.sd.date_i} -> {self.sd.date_f}'.replace('/', '-')

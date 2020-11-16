@@ -527,10 +527,13 @@ def conditionally_toggle_tail_flag_(ctx, yaml_opts):
 
     if not any(values):
         if all(src == ParameterSource.DEFAULT for src in sources):
-            raise ValueError('defaults for both tails are False (skip); '
+            raise ValueError('defaults for both tails are True (analyze); '
                              'specify -L or -R to analyze the left/right tail;'
                              ' or -LR for both')
-        raise ValueError('at least one tail must be selected to run analysis')
+        elif all(src == ParameterSource.COMMANDLINE for src in sources):
+            print('skipping tail analysis')
+        else:
+            raise ValueError("something went wrong if you're here")
 
     # only toggle one of the tail selection when they are specified via diffent
     # sources (i.e. 1 COMMANDLINE, 1 DEFAULT), and they are both True
