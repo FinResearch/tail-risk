@@ -80,8 +80,7 @@ class _Analyzer(ABC):
         elif rule == "percent":
             xmin = np.percentile(self.curr_signed_returns, qnty)
         elif rule == "std-dev":
-            r_arr = self.curr_signed_returns
-            xmin = st.fmean(r_arr) + qnty * st.stdev(r_arr)
+            xmin = self.__calc_stdv_xmin(qnty)
         elif rule in {"file", "average"}:
             assert self.sa.use_dynamic,\
                 ("static approach does NOT currently support passing "
@@ -106,6 +105,13 @@ class _Analyzer(ABC):
         else:
             raise AttributeError("this should never be reached!")
         return xmin
+
+    def __calc_stdv_xmin(self, factor):
+        mean = st.fmean(self.curr_returns_array)
+        stdv = st.stdev(self.curr_returns_array)
+        *_, tail = self.curr_iter_id
+        assert mean < factor * stdv
+        return abs(mean + tail.value * factor * stdv)  # tail.value ∈ {1, -1}
 
     def _fit_curr_data(self):
         data = self.curr_signed_returns
