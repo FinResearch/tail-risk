@@ -23,9 +23,9 @@ class Results:
         ridx = pd.Index(ridx_labs, name=ridx_name)
 
         # Ridx: COLUMN index for returns-statistics
-        assert len(self.sd.rstats_collabs) == 5,\
-            ("only the first 4 moment statistics plus number of returns "
-             "observations (5 stats in total) are currently supported")
+        assert len(self.sd.rstats_collabs) == 7,\
+            ("only the first 4 moment statistics plus 3 types of returns "
+             "counts (7 stats in total) are currently supported")
         Ridx = pd.MultiIndex.from_tuples(self.sd.rstats_collabs,
                                          names=('', '', self.sd.stats_colname))
         df_rtrn = pd.DataFrame(np.full((len(ridx), len(Ridx)), np.nan),

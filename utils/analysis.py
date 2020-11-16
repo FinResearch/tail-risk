@@ -33,24 +33,9 @@ class _Analyzer(ABC):
         self.rtn = Returns(settings)
         self.res = Results(settings)
 
-        # FIXME: consider DataFrame methods instead: {mean, std, skew, kurt}
-        # Rolling/Expanding obj also have the above, and also .count & .apply
-        # Especially since mean & std can be calc'd when self.rtn is init'd
-        # though mean & std-dev are calc'd per ticker, not grouping
-        self._moments_calc_fnmap = {'mean': st.fmean,
-                                    'std-dev': st.stdev,
-                                    'skewness': scipy.stats.skew,
-                                    'kurtosis': scipy.stats.kurtosis}
         self._distros_to_compare = {'tpl': 'truncated_power_law',
                                     'exp': 'exponential',
                                     'lgn': 'lognormal'}
-
-    #  # TODO: implement function (or general idea) below
-    #  def _analysis_conditional_imports_(self):
-    #      if nproc > 1: import multiprocessing
-    #      if calc_rtrn_stats: import statistics, scipy.stats
-    #      if run_ks_test: import _plpva
-    #      if compare_distros: import powerlaw.Fit
 
     # # # iteration state DEPENDENT (or aware) methods # # #
 
@@ -121,13 +106,13 @@ class _Analyzer(ABC):
                             discrete=self.sa.fit_discretely)
 
     def __get_curr_rtrn_stats(self):
-        calcd_moments = {mstat: fn(self.curr_returns_array)
-                         for mstat, fn in self._moments_calc_fnmap.items()}
-        mstat_map = {('moments', ms): mv for ms, mv in calcd_moments.items()}
-        rtrn_stats = {('', 'count'): len(self.curr_returns_array),
-                      **mstat_map}
-        return {('returns-statistics',) + tuple(rsk): rsv for rsk, rsv
-                in rtrn_stats.items()}
+        # NOTE: functions in below list must match order in output_columns.yaml
+        rs_fns = (len, lambda r: np.count_nonzero(r == 0), np.count_nonzero,
+                  st.fmean, st.stdev, scipy.stats.skew, scipy.stats.kurtosis)
+        rstats_fmap = {self.sd.rstats_collabs[i]: rs_fns[i] for i
+                       in range(len(rs_fns))}
+        return {rstat: rstats_fmap[rstat](self.curr_returns_array)
+                for rstat in self.sd.rstats_collabs}
 
     def __get_curr_tail_stats(self):
         alpha, xmin, sigma = (getattr(self.curr_fit.power_law, prop)
