@@ -1,5 +1,4 @@
 import yaml
-import numpy as np
 import pandas as pd
 
 import enum
@@ -94,20 +93,18 @@ class Settings:
             tails_to_anal.append(Tail.left)
         self.tails_to_anal = tuple(tails_to_anal)
         if bool(self.tails_to_anal):
+            self.analyze_tails = True
             nd = NormalDist()
-            self.alpha_qntl = nd.inv_cdf(1 - len(self.tails_to_anal)/2 *
-                                         self.alpha_signif)
+            self.alpha_qntl = nd.inv_cdf(1 - len(self.tails_to_anal)/2 * self.alpha_signif)
         else:
-            self._set_null_tail_analysis_options()
+            self.analyze_tails = False
+            self._enforce_null_tail_analysis_opts()
 
-    def _set_null_tail_analysis_options(self):
-        self.tails_to_anal = (Tail.null,)
-        self.xmin_args = ('manual', 0)
+    def _enforce_null_tail_analysis_opts(self):
         self.calc_rtrn_stats = True
         self.run_ks_test = False
         self.compare_distros = False
         self.plot_results = False
-        self.nproc = 1
 
     # helper to get the displacement (signed distance) b/w query & origin dates
     def __get_disp_to_orig_date(self, date_q, date_o=None, dates_ix=None):
@@ -428,7 +425,6 @@ class GroupingName(str):  # TODO: add allowed values constraint when have time
 class Tail(enum.Enum):
     right = 1
     left = -1
-    null = np.nan
 
 
 class Period(enum.IntEnum):

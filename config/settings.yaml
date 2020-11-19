@@ -44,6 +44,7 @@ anal:
   - use_dynamic
   - get_dyn_lbd  # bound method used in analysis.py for getting the lookback date label for logging
   - tails_to_anal
+  - analyze_tails
   - fit_discretely
   - xmin_rule
   - xmin_qnty

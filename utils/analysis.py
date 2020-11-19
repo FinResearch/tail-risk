@@ -119,7 +119,7 @@ class _Analyzer(ABC):
                               for prop in ('alpha', 'xmin', 'sigma'))
         elm_in_fit = self.curr_signed_returns >= xmin
         fitted_vec = self.curr_signed_returns[elm_in_fit]
-        xmax = max(fitted_vec, default=np.nan)
+        xmax = max(fitted_vec)
         xmean = fitted_vec.mean()
         xstdv = fitted_vec.std()
         abs_len = len(fitted_vec)
@@ -239,10 +239,6 @@ class _Analyzer(ABC):
         self.res.prettify_df()
         return self.res.df
 
-    #  def write_results_to_file(self):
-    #      self.res.prettify_df()
-    #      self.res.write_df_to_file()
-
 
 class StaticAnalyzer(_Analyzer):
 
@@ -275,9 +271,54 @@ class DynamicAnalyzer(_Analyzer):
         self.curr_signed_returns = self.curr_returns_array * tail.value
 
 
+class NullAnalyzer(_Analyzer):
+
+    def __init__(self, settings):
+        super().__init__(settings)
+        assert self.sa.analyze_tails is False
+        assert self.sa.use_dynamic is True
+        assert self.sa.calc_rtrn_stats is True
+        self.rtrns_type = settings.rtrn.returns_type
+        self.iter_id_keys = product(self.sd.grouping_labs,
+                                    self.sd.anal_dates)
+
+    def _log_curr_iter(self):
+        sub, date = self.curr_iter_id
+        df = date
+        di = self.sa.get_dyn_lbd(df)
+        msg = (f"Analyzing time series {self.rtrns_type.upper()} RETURNS for "
+               f"{self.sd.grouping_type.title()} '{sub}' b/w [{di}, {df}]")
+        print(msg)
+
+    def _set_curr_input_array(self):
+        sub, date = self.curr_df_pos = self.curr_iter_id
+        self.curr_returns_array = self.rtn.get_returns_by_iterId((sub, date))
+
+    def _gset_curr_partial_results(self, action):
+        col, idx = self.curr_df_pos  # type(col)==tuple; type(idx)==str
+        rstats_map = {(col,) + tuple(rsk): rsv for rsk, rsv
+                      in self._Analyzer__get_curr_rtrn_stats().items()}
+        curr_part_res_series = pd.Series({**rstats_map})
+        if action == 'store':
+            self.res.df.loc[idx].update(curr_part_res_series)
+        elif action == 'return':
+            return idx, curr_part_res_series
+        else:
+            raise AttributeError("this should never be reached!")
+
+    # convenience wrapper to keep things tidy
+    def _run_curr_iter_fitting(self):
+        self._log_curr_iter()
+        self._set_curr_input_array()
+
+
 # wrapper func: instantiate correct Analyzer type and run tail analysis
 def analyze_tail(settings):
-    Analyzer = DynamicAnalyzer if settings.anal.use_dynamic else StaticAnalyzer
+    if settings.anal.analyze_tails:
+        Analyzer = (DynamicAnalyzer if settings.anal.use_dynamic else
+                    StaticAnalyzer)
+    else:
+        Analyzer = NullAnalyzer
     analyzer = Analyzer(settings)
     analyzer.analyze()
     analyzer.res.write_df_to_file()

@@ -10,8 +10,27 @@ class Results:
 
         self.df = self.initialize()
 
-    def _init_static(self):
+    def __make_rtrns_df(self, ridx):
+        # Ridx: COLUMN index for returns-statistics
+        assert len(self.sd.rstats_collabs) == 7,\
+            ("only the first 4 moment statistics plus 3 types of returns "
+             "counts (7 stats in total) are currently supported")
+        Ridx = pd.MultiIndex.from_tuples(self.sd.rstats_collabs,
+                                         names=('', '', self.sd.stats_colname))
+        return pd.DataFrame(np.full((len(ridx), len(Ridx)), np.nan),
+                            index=ridx, columns=Ridx, dtype=float)
 
+    def __make_tails_df(self, ridx):
+        # tidx: COLUMN index for tail-statistics
+        tidx = pd.MultiIndex.from_tuples(self.sd.tstats_collabs,
+                                         names=('', self.sd.stats_colname))
+        df_tail = pd.DataFrame(np.full((len(ridx), len(tidx)), np.nan),
+                               index=ridx, columns=tidx, dtype=float)
+        return pd.concat({t: df_tail for t in self.sa.tails_to_anal}, axis=1)
+        # TODO: add col_idx name 'category' for moments, tails, tstat, logl lvl
+        #       consider using input filename as col_idx name; e.g. dbMarkitUS
+
+    def _init_static(self):
         # gixn: grouping index name
         self._gixn = self.sd.grouping_type
         # ridx: ROW index
@@ -22,28 +41,13 @@ class Results:
                      else self.sd.grouping_labs)
         ridx = pd.Index(ridx_labs, name=ridx_name)
 
-        # Ridx: COLUMN index for returns-statistics
-        assert len(self.sd.rstats_collabs) == 7,\
-            ("only the first 4 moment statistics plus 3 types of returns "
-             "counts (7 stats in total) are currently supported")
-        Ridx = pd.MultiIndex.from_tuples(self.sd.rstats_collabs,
-                                         names=('', '', self.sd.stats_colname))
-        df_rtrn = pd.DataFrame(np.full((len(ridx), len(Ridx)), np.nan),
-                               index=ridx, columns=Ridx, dtype=float)
-
-        # tidx: COLUMN index for tail-statistics
-        tidx = pd.MultiIndex.from_tuples(self.sd.tstats_collabs,
-                                         names=('', self.sd.stats_colname))
-        df_tail = pd.DataFrame(np.full((len(ridx), len(tidx)), np.nan),
-                               index=ridx, columns=tidx, dtype=float)
-        df_tails = pd.concat({t: df_tail for t in self.sa.tails_to_anal},
-                             axis=1)
-        # TODO: add col_idx name 'category' for moments, tails, tstat, logl lvl
-        #       consider using input filename as col_idx name; e.g. dbMarkitUS
-
-        single_sheet_df = [df_tails]
+        single_sheet_df = []
         if self.sa.calc_rtrn_stats:  # add df_rtrn if returns-statistics req'd
-            single_sheet_df.insert(0, df_rtrn)
+            df_rtrns = self.__make_rtrns_df(ridx)
+            single_sheet_df.append(df_rtrns)
+        if self.sa.analyze_tails:
+            df_tails = self.__make_tails_df(ridx)
+            single_sheet_df.append(df_tails)
         return pd.concat(single_sheet_df, axis=1)
 
     # TODO look into pd.concat alternatives
@@ -63,24 +67,12 @@ class Results:
                      if all(lab == '' for lab in lvl)]
         self.df.columns = self.df.columns.droplevel(lvls2drop)
 
-    def _drop_if_has_null_tail_cols(self):
-        # NOTE: currently only works for dynamic, b/c group col is checked
-        for grp, col, *_ in self.df:
-            try:
-                tval = col.value    # try to get tail value
-                if tval is np.nan:
-                    self.df.drop([(grp, col)], axis=1, inplace=True)
-                    break
-            except AttributeError:
-                pass
-
     def _translate_Tail_to_tname(self):
         #  tail_cols =
         pass
 
     def prettify_df(self):
         self._drop_empty_column_level()
-        self._drop_if_has_null_tail_cols()
 
     def _write_static(self, filetype='xlsx'):
         sheet_name = f'{self.sd.date_i} -> {self.sd.date_f}'.replace('/', '-')
