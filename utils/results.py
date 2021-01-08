@@ -12,9 +12,9 @@ class Results:
 
     def __make_rtrns_df(self, ridx):
         # Ridx: COLUMN index for returns-statistics
-        assert len(self.sd.rstats_collabs) == 7,\
-            ("only the first 4 moment statistics plus 3 types of returns "
-             "counts (7 stats in total) are currently supported")
+        assert len(self.sd.rstats_collabs) == 11,\
+            ("4 moment & 3 count statistics on whole returns, plus 4 moments "
+             "on signed returns (11 stats in total) are currently supported")
         Ridx = pd.MultiIndex.from_tuples(self.sd.rstats_collabs,
                                          names=('', '', self.sd.stats_colname))
         return pd.DataFrame(np.full((len(ridx), len(Ridx)), np.nan),

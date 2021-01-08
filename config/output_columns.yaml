@@ -12,7 +12,11 @@ statistics:
   moments:
     - mean
     - std-dev
+    - sd_pos
+    - sd_neg
     - skewness
+    - skew_pos
+    - skew_neg
     - kurtosis
 
   tail-statistics:

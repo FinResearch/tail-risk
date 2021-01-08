@@ -105,10 +105,29 @@ class _Analyzer(ABC):
         self.curr_fit = Fit(data=data, xmin=xmin,
                             discrete=self.sa.fit_discretely)
 
+    @staticmethod
+    def signed_rms_fgen(sign, mmt_func):    # rms: returns moments stats
+        def signed_rms_calculator(returns):
+            if sign == 'pos':
+                signed_rtrns = returns[returns>0]
+            elif sign == 'neg':
+                signed_rtrns = returns[returns<0]
+            return mmt_func(signed_rtrns)
+        return signed_rms_calculator
+
     def __get_curr_rtrn_stats(self):
         # NOTE: functions in below list must match order in output_columns.yaml
-        rs_fns = (len, lambda r: np.count_nonzero(r == 0), np.count_nonzero,
-                  st.fmean, st.stdev, scipy.stats.skew, scipy.stats.kurtosis)
+        rs_fns = (len,
+                  lambda r: np.count_nonzero(r == 0),
+                  np.count_nonzero,
+                  st.fmean,
+                  st.stdev,
+                  _Analyzer.signed_rms_fgen('pos', st.stdev),
+                  _Analyzer.signed_rms_fgen('neg', st.stdev),
+                  scipy.stats.skew,
+                  _Analyzer.signed_rms_fgen('pos', scipy.stats.skew),
+                  _Analyzer.signed_rms_fgen('neg', scipy.stats.skew),
+                  scipy.stats.kurtosis,)
         rstats_fmap = {self.sd.rstats_collabs[i]: rs_fns[i] for i
                        in range(len(rs_fns))}
         return {rstat: rstats_fmap[rstat](self.curr_returns_array)
