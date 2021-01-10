@@ -107,16 +107,17 @@ class _Analyzer(ABC):
 
     @staticmethod
     def gen_rmsf(mmt_func):     # rmsf: Returns Moments Statistics Functions
-        return mmt_func, lambda rv: mmt_func(rv[rv>0]), lambda rv: mmt_func(rv[rv<0])
+        return (mmt_func,
+                lambda rv: mmt_func(rv[rv>0]),
+                lambda rv: mmt_func(rv[rv<0]))
 
     def __get_curr_rtrn_stats(self):
         # NOTE: functions in below list must match order in output_columns.yaml
         rs_fns = (len, lambda r: np.count_nonzero(r == 0), np.count_nonzero,
-                  #  *_Analyzer.gen_rmsf(st.fmean),
-                  st.fmean,
+                  *_Analyzer.gen_rmsf(st.fmean),
                   *_Analyzer.gen_rmsf(st.stdev),
                   *_Analyzer.gen_rmsf(scipy.stats.skew),
-                  scipy.stats.kurtosis,)
+                  *_Analyzer.gen_rmsf(scipy.stats.kurtosis),)
         rstats_fmap = {self.sd.rstats_collabs[i]: rs_fns[i] for i
                        in range(len(rs_fns))}
         return {rstat: rstats_fmap[rstat](self.curr_returns_array)

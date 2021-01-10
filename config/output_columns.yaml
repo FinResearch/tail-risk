@@ -9,15 +9,25 @@ statistics:
     - zeros
     - nonzeros
 
-  moments:
-    - mean
-    - std-dev
-    - sd_pos
-    - sd_neg
-    - skewness
-    - skew_pos
-    - skew_neg
-    - kurtosis
+  mean:
+    - all
+    - pos
+    - neg
+
+  std-dev:
+    - all
+    - pos
+    - neg
+
+  skewness:
+    - all
+    - pos
+    - neg
+
+  kurtosis:
+    - all
+    - pos
+    - neg
 
   tail-statistics:
     - alpha

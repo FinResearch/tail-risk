@@ -216,11 +216,11 @@ class Settings:
         if self.run_ks_test is False:
             sub_stats_maps['tail-statistics'].remove('ks_pv')
 
-        rcnts, rmmts, tstat, loglh = [list(product((ss[0],), ss[1])) for ss
-                                      in sub_stats_maps.items()]
+        rcnts, mean, stdv, skew, kurt, tstat, loglh = [
+                list(product((ss[0],), ss[1])) for ss in sub_stats_maps.items()]
 
         self.rstats_collabs = [('returns-statistics',) + rstat for rstat
-                               in rcnts + rmmts]
+                               in rcnts + mean + stdv + skew + kurt]
         self.tstats_collabs = tstat + loglh if self.compare_distros else tstat
 
     def _gset_output_filename(self):
