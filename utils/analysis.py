@@ -106,27 +106,16 @@ class _Analyzer(ABC):
                             discrete=self.sa.fit_discretely)
 
     @staticmethod
-    def signed_rms_fgen(sign, mmt_func):    # rms: returns moments stats
-        def signed_rms_calculator(returns):
-            if sign == 'pos':
-                signed_rtrns = returns[returns>0]
-            elif sign == 'neg':
-                signed_rtrns = returns[returns<0]
-            return mmt_func(signed_rtrns)
-        return signed_rms_calculator
+    def gen_rmsf(mmt_func):     # rmsf: Returns Moments Statistics Functions
+        return mmt_func, lambda rv: mmt_func(rv[rv>0]), lambda rv: mmt_func(rv[rv<0])
 
     def __get_curr_rtrn_stats(self):
         # NOTE: functions in below list must match order in output_columns.yaml
-        rs_fns = (len,
-                  lambda r: np.count_nonzero(r == 0),
-                  np.count_nonzero,
+        rs_fns = (len, lambda r: np.count_nonzero(r == 0), np.count_nonzero,
+                  #  *_Analyzer.gen_rmsf(st.fmean),
                   st.fmean,
-                  st.stdev,
-                  _Analyzer.signed_rms_fgen('pos', st.stdev),
-                  _Analyzer.signed_rms_fgen('neg', st.stdev),
-                  scipy.stats.skew,
-                  _Analyzer.signed_rms_fgen('pos', scipy.stats.skew),
-                  _Analyzer.signed_rms_fgen('neg', scipy.stats.skew),
+                  *_Analyzer.gen_rmsf(st.stdev),
+                  *_Analyzer.gen_rmsf(scipy.stats.skew),
                   scipy.stats.kurtosis,)
         rstats_fmap = {self.sd.rstats_collabs[i]: rs_fns[i] for i
                        in range(len(rs_fns))}
@@ -168,33 +157,41 @@ class _Analyzer(ABC):
                       if self.sa.compare_distros else {})
         return {**tail_stats, **logl_stats}
 
-    def _gset_curr_partial_results(self, action):
+    def __get_calcd_substats_map(self, sstype):
         idx, col = self.curr_df_pos  # type(idx)==str; type(col)==tuple
-        tstats_map = {(col if self.sa.use_dynamic else (col,))+tuple(tsk): tsv
-                      for tsk, tsv in self.__get_curr_plfit_stats().items()}
 
-        if self.sa.calc_rtrn_stats:
-            col = (col[0],) if self.sa.use_dynamic else ()
-            need_rst = self.res.df.loc[idx, col + ('returns-statistics',)].hasnans
-            # FIXME: NaN-check on (<grp>, 'rtrn-stats') to avoid redundant calc
-            # only works for 1-proc b/c multiproc doesn't update res_df til end
-            rstats_map = ({col + tuple(rsk): rsv for rsk, rsv
-                           in self.__get_curr_rtrn_stats().items()}
-                          if need_rst else {})
-        else:
-            rstats_map = {}
+        if sstype == 'plfit':
+            stcalc_fn = self.__get_curr_plfit_stats
+            top_grp = col if self.sa.use_dynamic else (col,)
+            need_ss = self.sa.analyze_tails
+        elif sstype == 'returns':
+            stcalc_fn = self.__get_curr_rtrn_stats
+            top_grp = ((col,) if not self.sa.analyze_tails else
+                       (col[0],) if self.sa.use_dynamic else
+                       ())
+            # NOTE: hasnans check below on (<col>, 'rtrn-stats') Rm's redundant
+            # calc only works for 1-proc b/c multiproc only updts res_df at end
+            rstat_uncalcd = self.res.df.loc[idx, top_grp + ('returns-statistics',)].hasnans
+            need_ss = self.sa.calc_rtrn_stats and rstat_uncalcd
+
+        return ({top_grp + tuple(ss_key): ss_val
+                for ss_key, ss_val in stcalc_fn().items()}
+                if need_ss else {})
+
+    def _gset_curr_partial_results(self, action):
+        fstats_map = self.__get_calcd_substats_map('plfit')
+        rstats_map = self.__get_calcd_substats_map('returns')
 
         # TODO: use np.ndarray instead of pd.Series (wasteful) --> order later
-        curr_part_res_series = pd.Series({**tstats_map, **rstats_map})
+        curr_part_res_series = pd.Series({**fstats_map, **rstats_map})
 
+        idx, _ = self.curr_df_pos
         if action == 'store':
             self.res.df.loc[idx].update(curr_part_res_series)
             # TODO: consider using pd.DataFrame.replace(, inplace=True) instead
             # TODO: can also order stats results first, then assign to DF row
         elif action == 'return':
             return idx, curr_part_res_series
-        else:
-            raise AttributeError("this should never be reached!")
 
     # # # orchestration / driver methods # # #
 
@@ -310,22 +307,10 @@ class NullAnalyzer(_Analyzer):
         print(msg)
 
     def _set_curr_input_array(self):
-        sub, date = self.curr_df_pos = self.curr_iter_id
+        sub, date = self.curr_iter_id
+        self.curr_df_pos = (date, sub)
         self.curr_returns_array = self.rtn.get_returns_by_iterId((sub, date))
 
-    def _gset_curr_partial_results(self, action):
-        col, idx = self.curr_df_pos  # type(col)==tuple; type(idx)==str
-        rstats_map = {(col,) + tuple(rsk): rsv for rsk, rsv
-                      in self._Analyzer__get_curr_rtrn_stats().items()}
-        curr_part_res_series = pd.Series({**rstats_map})
-        if action == 'store':
-            self.res.df.loc[idx].update(curr_part_res_series)
-        elif action == 'return':
-            return idx, curr_part_res_series
-        else:
-            raise AttributeError("this should never be reached!")
-
-    # convenience wrapper to keep things tidy
     def _run_curr_iter_fitting(self):
         self._log_curr_iter()
         self._set_curr_input_array()
