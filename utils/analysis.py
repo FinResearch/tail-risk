@@ -107,9 +107,14 @@ class _Analyzer(ABC):
 
     @staticmethod
     def gen_rmsf(mmt_func):     # rmsf: Returns Moments Statistics Functions
+        def mf_wrapped(mmt_func, rtrn_vec):
+            try:
+                return mmt_func(rtrn_vec)
+            except st.StatisticsError:
+                return np.nan
         return (mmt_func,
-                lambda rv: mmt_func(rv[rv>0]),
-                lambda rv: mmt_func(rv[rv<0]))
+                lambda rv: mf_wrapped(mmt_func, rv[rv>0]),
+                lambda rv: mf_wrapped(mmt_func, rv[rv<0]))
 
     def __get_curr_rtrn_stats(self):
         # NOTE: functions in below list must match order in output_columns.yaml
