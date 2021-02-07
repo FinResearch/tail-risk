@@ -6,7 +6,6 @@ from utils.settings import Settings as Settings
 
 if __name__ == "__main__":
     input_args = GUI().get_cli_input_args()
-    # FIXME: multiple GUI boxes popup when using nproc >1
     user_inputs = cli.get_user_inputs.main(args=input_args,
                                            standalone_mode=False)
 
